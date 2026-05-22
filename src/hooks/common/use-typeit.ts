@@ -79,9 +79,27 @@ export function useTypeIt(
     return instance;
   }
 
+  /** 安全销毁：光标未 attach 时 parentNode 为 null，不可走 TypeIt 默认 destroy */
+  function safeDestroyInstance(inst: TypeIt | null) {
+    if (!inst) return;
+    try {
+      inst.destroy(false);
+    } catch {
+      // DOM 可能已被 Vue 卸载
+    }
+  }
+
+  function clearTargetElement() {
+    const el = getElement();
+    if (!el || typeof el !== 'object' || !('innerHTML' in el)) return;
+    const node = el as HTMLElement;
+    node.innerHTML = '';
+    delete node.dataset.typeitId;
+  }
+
   /** 销毁实例 */
   function destroy() {
-    instance?.destroy();
+    safeDestroyInstance(instance);
     instance = null;
     isRunning.value = false;
   }
@@ -111,22 +129,31 @@ export function useTypeIt(
   }
 
   /** AI SSE：即时追加文本（不排队动画） 需在 `create()` 之后调用；首次调用会自动创建空实例。 */
-  function appendStream(chunk: string) {
-    if (!chunk) return;
+  function appendStream(chunk: string): Promise<void> {
+    if (!chunk) return Promise.resolve();
 
     if (!instance) {
       create({ strings: '' });
     }
+    if (!instance) return Promise.resolve();
 
     isRunning.value = true;
     isComplete.value = false;
-    instance?.type(chunk, { instant: true }).flush();
+
+    // TypeIt.flush() 结束时必调 flushCallback，无参调用会为 null 导致报错
+    return new Promise(resolve => {
+      instance!.type(chunk, { instant: true }).flush(() => {
+        resolve();
+      });
+    });
   }
 
-  /** 清空目标元素并销毁 */
+  /** 清空目标元素并销毁（不调用 TypeIt.reset，避免未 go() 时光标 parentNode 为 null） */
   function reset() {
-    instance?.reset(undefined);
-    destroy();
+    safeDestroyInstance(instance);
+    instance = null;
+    clearTargetElement();
+    isRunning.value = false;
     isComplete.value = false;
   }
 

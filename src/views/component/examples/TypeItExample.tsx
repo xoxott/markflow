@@ -60,7 +60,7 @@ export default defineComponent({
 
       for (const chunk of AI_CHUNKS) {
         if (streamAborted) break;
-        stream.appendStream(chunk);
+        await stream.appendStream(chunk);
         await delay(280);
       }
     };
@@ -131,7 +131,7 @@ const { create, go, appendStream, replay } = useTypeIt(elRef, {
 onMounted(() => { create(); go(); });
 
 // SSE onmessage:
-appendStream(event.data);`}</pre>
+await appendStream(event.data);`}</pre>
         </div>
       </NCard>
     );
