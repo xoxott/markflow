@@ -16,14 +16,12 @@ import { fetchEnvironmentInfo } from '@/service/api/system';
 import { useMonitoringSSE } from '@/hooks/monitoring/useMonitoringSSE';
 import { useEcharts } from '@/hooks/common/echarts';
 import { formatUptime } from '@/utils/monitoring';
-import {
-  CPUUsageCard,
-  EnvironmentInfoCard,
-  MemoryUsageCard,
-  NetworkInfoCard,
-  ProcessInfoCard,
-  SystemInfoCard
-} from './index';
+import CPUUsageCard from './CPUUsageCard';
+import EnvironmentInfoCard from './EnvironmentInfoCard';
+import MemoryUsageCard from './MemoryUsageCard';
+import NetworkInfoCard from './NetworkInfoCard';
+import ProcessInfoCard from './ProcessInfoCard';
+import SystemInfoCard from './SystemInfoCard';
 
 export default defineComponent({
   name: 'SystemMonitoringDrawer',

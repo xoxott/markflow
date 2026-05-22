@@ -2,12 +2,10 @@ import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } fro
 import { NAlert, NButton, NCard, NGi, NGrid, NProgress, NSpace, NSpin } from 'naive-ui';
 import { useMonitoringSSE } from '@/hooks/monitoring/useMonitoringSSE';
 import { formatUptime, getCpuUsageColor, getMemoryUsageColor } from '@/utils/monitoring';
-import {
-  CPUUsageCard,
-  HealthCheckDrawer,
-  MemoryUsageCard,
-  SystemMonitoringDrawer
-} from '@/components/monitoring';
+import CPUUsageCard from './components/CPUUsageCard';
+import HealthCheckDrawer from './components/HealthCheckDrawer';
+import MemoryUsageCard from './components/MemoryUsageCard';
+import SystemMonitoringDrawer from './components/SystemMonitoringDrawer';
 
 export default defineComponent({
   name: 'MonitoringDashboard',
