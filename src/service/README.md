@@ -12,11 +12,11 @@
 
 ### 管道 profile（`PipelineProfile`）
 
-| 值          | 含义                                                                                             |
-| ----------- | ------------------------------------------------------------------------------------------------ |
+| 值          | 含义                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------- |
 | `standard`  | 默认：缓存、去重、中止、队列、事件、熔断 + 传输（**不含**管道重试，列表等场景失败即结束） |
-| `minimal`   | 仅 `PrepareContext` + `PipelineTransport`，适合调试或极轻场景                                    |
-| `resilient` | 在 `standard` 基础上启用 5xx 重试并提高队列并发（见 `pipeline/pipelineProfile.ts`）              |
+| `minimal`   | 仅 `PrepareContext` + `PipelineTransport`，适合调试或极轻场景                             |
+| `resilient` | 在 `standard` 基础上启用 5xx 重试并提高队列并发（见 `pipeline/pipelineProfile.ts`）       |
 
 主业务实例可通过环境变量 **`VITE_HTTP_PIPELINE_PROFILE`** 设为 `standard` | `resilient`（非法或未设则 `standard`）。`createPipelineClient({ pipelineProfile: 'minimal' })` 亦可单独指定。
 

@@ -1,20 +1,12 @@
 /** TypeIt 打字机示例（对齐 SoybeanAdmin 插件页） */
-import { useTypeIt } from '@/hooks/common/use-typeit';
 import { defineComponent, onBeforeUnmount, onMounted, shallowRef } from 'vue';
 import { NButton, NCard, NDivider, NH3, NSpace, NText } from 'naive-ui';
+import { useTypeIt } from '@/hooks/common/use-typeit';
 
 const DEMO_STRING =
   'Markdown Preview Demo 是一个基于 Vue3、Vite、TypeScript 与 Naive UI 的示例项目。';
 
-const AI_CHUNKS = [
-  '你好！',
-  '我是 ',
-  'AI ',
-  '助手，',
-  '正在以 ',
-  '流式 ',
-  '方式回复你。'
-];
+const AI_CHUNKS = ['你好！', '我是 ', 'AI ', '助手，', '正在以 ', '流式 ', '方式回复你。'];
 
 function delay(ms: number) {
   return new Promise<void>(resolve => {

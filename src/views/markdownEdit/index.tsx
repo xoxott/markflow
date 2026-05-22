@@ -1,7 +1,7 @@
 /** Markdown 编辑器页面（TypeIt 驱动左侧输入，右侧 Markdown 实时预览） */
-import { useTypeIt } from '@/hooks/common/use-typeit';
 import { computed, defineComponent, nextTick, onBeforeUnmount, ref, shallowRef } from 'vue';
 import { NButton, NInput, NSpace, useThemeVars } from 'naive-ui';
+import { useTypeIt } from '@/hooks/common/use-typeit';
 import Markdown from '@/components/markdown';
 import README from './README.md?raw';
 
@@ -118,7 +118,7 @@ export default defineComponent({
 
           {showTypeitSurface.value ? (
             <div
-              class="min-h-[480px] w-full border rounded p-3 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words"
+              class="min-h-[480px] w-full whitespace-pre-wrap break-words border rounded p-3 text-sm leading-relaxed font-mono"
               style={typeitSurfaceStyle.value}
             >
               <span ref={typeitTargetRef} />

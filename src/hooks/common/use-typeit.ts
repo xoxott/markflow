@@ -1,6 +1,6 @@
+import { type MaybeRefOrGetter, onScopeDispose, ref, toValue } from 'vue';
 import TypeIt from 'typeit';
 import type { ActionOpts, El, Options } from 'typeit/dist/types';
-import { onScopeDispose, ref, type MaybeRefOrGetter, toValue } from 'vue';
 
 export type { ActionOpts, El, Options as TypeItOptions };
 
@@ -110,10 +110,7 @@ export function useTypeIt(
     return instance;
   }
 
-  /**
-   * AI SSE：即时追加文本（不排队动画）
-   * 需在 `create()` 之后调用；首次调用会自动创建空实例。
-   */
+  /** AI SSE：即时追加文本（不排队动画） 需在 `create()` 之后调用；首次调用会自动创建空实例。 */
   function appendStream(chunk: string) {
     if (!chunk) return;
 
