@@ -1,4 +1,4 @@
-import type { Component, PropType, VNode } from 'vue';
+import type { Component, VNode } from 'vue';
 import { defineComponent, shallowRef, watch } from 'vue';
 import MarkdownIt from 'markdown-it';
 import markdownItKatex from '@vscode/markdown-it-katex';
@@ -36,26 +36,6 @@ export default defineComponent({
     content: {
       type: String,
       required: true
-    },
-    // 是否启用笔写效果
-    showPenEffect: {
-      type: Boolean,
-      default: false
-    },
-    // 笔写效果配置
-    penEffectConfig: {
-      type: Object as PropType<{
-        penColor?: string;
-        size?: number;
-        offsetX?: number;
-        offsetY?: number;
-      }>,
-      default: () => ({
-        penColor: '#15803d',
-        size: 30,
-        offsetX: 0.65,
-        offsetY: -1
-      })
     }
   },
   setup(props) {
@@ -103,10 +83,7 @@ export default defineComponent({
 
     return () => (
       <div style={cssVars.value} class={['markdown-container', themeClass.value]}>
-        <article
-          class={['markdown-body', darkMode.value && 'markdown-body-dark']}
-          style={{ position: 'relative' }}
-        >
+        <article class={['markdown-body', darkMode.value && 'markdown-body-dark']}>
           {vnodes.value.map((vnode, index) => {
             const vnodeProps = vnode.props as Record<string, unknown> | null | undefined;
             const tokenKey =

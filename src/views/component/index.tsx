@@ -16,7 +16,8 @@ import {
   FilePreviewExample,
   MonacoEditorExample,
   RequestClientExample,
-  TablePageSearchExample
+  TablePageSearchExample,
+  TypeItExample
 } from './examples';
 
 export default defineComponent({
@@ -88,6 +89,18 @@ export default defineComponent({
           </div>
         </section>
 
+        {/* ==================== TypeIt 打字机 ==================== */}
+        <section class="space-y-4">
+          <div class="mb-4 flex items-center gap-3">
+            <div class="h-1 w-12 rounded bg-amber-500"></div>
+            <h1 class="text-3xl text-gray-900 font-bold">TypeIt 打字机</h1>
+            <div class="h-1 flex-1 rounded bg-gray-200"></div>
+          </div>
+          <div class="rounded-lg bg-white p-6 shadow-sm">
+            <TypeItExample />
+          </div>
+        </section>
+
         {/* ==================== TablePage 检索区 (SearchBar) ==================== */}
         <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
@@ -111,27 +124,6 @@ export default defineComponent({
             <RequestClientExample />
           </div>
         </section>
-
-        {/* ==================== 流式笔写效果 (Streaming Pen Effect) ==================== */}
-        {/* <section class="space-y-4">
-          <div class="mb-4 flex items-center gap-3">
-            <div class="h-1 w-12 rounded bg-pink-500"></div>
-            <h1 class="text-3xl text-gray-900 font-bold">流式笔写效果</h1>
-            <div class="h-1 flex-1 rounded bg-gray-200"></div>
-          </div>
-
-          <div class="rounded-lg bg-white p-6 shadow-sm">
-            <StreamingPenPositionCompareExample />
-          </div>
-
-          <div class="rounded-lg bg-white p-6 shadow-sm">
-            <StreamingPenDebugExample />
-          </div>
-
-          <div class="rounded-lg bg-white p-6 shadow-sm">
-            <StreamingPenExample />
-          </div>
-        </section> */}
       </div>
     );
   }

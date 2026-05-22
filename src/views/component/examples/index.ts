@@ -38,7 +38,5 @@ export { default as TablePageSearchExample } from './TablePageSearchExample';
 // 声明式动态表单示例
 export { default as DeclarativeFormExample } from './DeclarativeFormExample';
 
-// 流式笔写效果示例
-export { default as StreamingPenExample } from './StreamingPenExample';
-export { default as StreamingPenDebugExample } from './StreamingPenDebugExample';
-export { default as StreamingPenPositionCompareExample } from './StreamingPenPositionCompareExample';
+// TypeIt 打字机示例
+export { default as TypeItExample } from './TypeItExample';

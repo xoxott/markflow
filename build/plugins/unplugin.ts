@@ -49,7 +49,6 @@ export function setupUnplugin(viteEnv: Env.ImportMeta) {
         'src/components/mobile',
         'src/components/monaco',
         'src/components/monitoring',
-        'src/components/streaming-pen-effect',
         'src/components/table-page'
       ],
       dts: 'src/typings/components.d.ts',
