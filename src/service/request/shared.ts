@@ -2,16 +2,11 @@
 /* eslint-disable no-param-reassign */
 import { useAuthStore } from '@/store/modules/auth';
 import { localStg } from '@/utils/storage';
-import { sseManager } from '@/utils/sse/SSEManager';
 import { fetchRefreshToken } from '../api';
+import { reconnectAllStreams } from './stream/streamRegistry';
 import type { RequestInstanceState } from './type';
 
-export function getAuthorization() {
-  const token = localStg.get('token') || localStg.get('accessToken');
-  const Authorization = token ? `Bearer ${token}` : null;
-
-  return Authorization;
-}
+export { getAuthorization } from './auth';
 
 /** refresh token */
 async function handleRefreshToken() {
@@ -58,13 +53,8 @@ async function handleRefreshToken() {
 
     console.log('[Token Refresh] Token 刷新成功');
 
-    // Update SSE connections with new token
-    const newToken = data.accessToken;
-    if (newToken) {
-      const authorization = `Bearer ${newToken}`;
-      sseManager.updateAllHeaders({ Authorization: authorization }, true);
-      console.log('[Token Refresh] SSE connections updated with new token');
-    }
+    reconnectAllStreams();
+    console.log('[Token Refresh] Stream connections reconnected with new token');
 
     return true;
   } catch (err) {

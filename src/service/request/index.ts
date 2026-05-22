@@ -12,6 +12,7 @@ import { createDemoRequestPolicies } from './policies/demoRequestPolicies';
 import { createMainRequestPolicies } from './policies/mainRequestPolicies';
 import { createRefreshTokenRequestOptions } from './policies/refreshTokenPolicies';
 import { SERVICE_DEFAULT_HEADERS } from './requestDefaults';
+import { buildServiceHeaders } from './auth';
 import {
   AxiosTransport,
   buildPipelineSteps,
@@ -19,6 +20,8 @@ import {
   runPipelineAxiosRequest
 } from './pipeline';
 import type { PipelineProfile } from './pipeline';
+import { initStreamAuth } from './stream';
+import { handleExpiredRequest } from './shared';
 
 const isHttpProxy = import.meta.env.DEV && import.meta.env.VITE_HTTP_PROXY === 'Y';
 const { baseURL, otherBaseURL } = getServiceBaseURL(import.meta.env, isHttpProxy);
@@ -77,6 +80,11 @@ export const request = createFlatRequestFromStack<App.Service.Response, RequestI
 
 mainRequestRef.current = request;
 
+initStreamAuth({
+  getHeaders: () => buildServiceHeaders(),
+  onUnauthorized: () => handleExpiredRequest(request.state)
+});
+
 export const demoRequest = createRequest<App.Service.DemoResponse>(
   {
     baseURL: otherBaseURL.demo
@@ -96,3 +104,15 @@ export {
 } from './pipeline';
 
 export type { PipelineProfile } from './pipeline';
+
+export {
+  streamClient,
+  initStreamAuth,
+  reconnectAllStreams,
+  parseStreamMessage,
+  streamLogger
+} from './stream';
+
+export type { StreamAuthOptions, ParseStreamMessageFn } from './stream';
+
+export { getAuthorization, buildServiceHeaders } from './auth';

@@ -7,6 +7,27 @@ declare namespace Api {
    * backend api module: "monitoring"
    */
   namespace Monitoring {
+    /** Monitoring SSE stream event types */
+    type StreamEventType =
+      | 'health'
+      | 'liveness'
+      | 'readiness'
+      | 'metrics'
+      | 'system'
+      | 'performance'
+      | 'environment';
+
+    /** Monitoring SSE event payloads by stream type */
+    interface StreamEventData {
+      health: Api.Health.HealthCheckResponse;
+      liveness: Api.Health.LivenessResponse;
+      readiness: Api.Health.ReadinessResponse;
+      metrics: MetricsSummary;
+      system: Api.System.SystemInfo;
+      performance: Api.System.PerformanceMetrics;
+      environment: Api.System.EnvironmentInfo;
+    }
+
     /** Metrics summary */
     interface MetricsSummary {
       /** Memory usage */

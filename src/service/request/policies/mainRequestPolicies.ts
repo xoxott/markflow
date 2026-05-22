@@ -4,7 +4,8 @@ import type { FlatRequestInstance, RequestOption } from '@suga/axios';
 import { useAuthStore } from '@/store/modules/auth';
 import { isStaticDemo } from '@/utils/env/static-demo';
 import { $t } from '@/locales';
-import { getAuthorization, handleExpiredRequest, showErrorMsg } from '../shared';
+import { getAuthorization } from '../auth';
+import { handleExpiredRequest, showErrorMsg } from '../shared';
 import type { RequestInstanceState } from '../type';
 import {
   AUTH_ERROR_CODES,

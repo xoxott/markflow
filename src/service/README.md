@@ -7,7 +7,8 @@
 | HTTP 门面          | `src/service/request/index.ts`      | 装配：`createAxiosRequestStack` + 步骤链 + `createFlatRequestFromStack`；对外导出 `request` / `refreshTokenRequest` / `demoRequest` |
 | 业务策略（拦截器） | `src/service/request/policies/*.ts` | 主站鉴权、业务码、Token 刷新与登出、Demo 后端形态等（**含业务逻辑**，属正常）                                                       |
 | 横切管道           | `src/service/request/pipeline/`     | `buildPipelineSteps(transport, profile)`、`createPipelineClient`：缓存、去重、中止、队列、事件、重试、熔断；**profile** 见下        |
-| 领域 API           | `src/service/api/*.ts`              | 按资源拆分的函数（如 `fetchUserList`），内部只调 `request`                                                                          |
+| 流式连接           | `src/service/request/stream/`       | `streamClient`（fetch SSE）：与 REST 共享 `buildServiceHeaders` / `handleExpiredRequest`，**不走** Pipeline                         |
+| 领域 API           | `src/service/api/*.ts`              | 按资源拆分的函数（如 `fetchUserList`），内部只调 `request`；流式 endpoint 仅提供 path/url（如 `monitoring-stream.ts`）              |
 | 页面 / 特性模块    | `src/views/*`、`src/components/*`   | **只**从 `@/service/api`（或具体 `./api/xxx`）引用方法，不直接依赖 `axios`                                                          |
 
 ### 管道 profile（`PipelineProfile`）
@@ -26,5 +27,13 @@
 
 1. **默认**：`import { fetchUserList } from '@/service/api/user'` 或 `import { fetchUserList } from '@/service/api'`（统一从 barrel 导出时）。
 2. **需要管道能力**（第三方演示、非标准后端等）：`import { createPipelineClient } from '@/service/request/pipeline'`，自行处理响应体与鉴权。
+3. **SSE / 长连接**：`import { streamClient } from '@/service/request'` 或 `import { useStream } from '@/hooks/common/use-stream'`；业务 path 放在 `src/service/api/*-stream.ts`，鉴权由 `initStreamAuth` 在应用启动时注入（见 `request/index.ts`）。
+
+### Stream（SSE）
+
+- 使用 **fetch + ReadableStream**（支持自定义 `Authorization`，不用 `EventSource`）。
+- 每次连接通过 `buildServiceHeaders()` 附带 token；HTTP 401 时走与 REST 相同的 `handleExpiredRequest`，成功后自动重连。
+- 监控场景：`createMonitoringStreamConfig` + `useMonitoringSSE`（内部 `useStream`）。
+- 测试：`src/service/request/__tests__/parseStreamMessage.test.ts`、`StreamClient.test.ts`。
 
 主业务 `request` 已与共享 `AxiosInstance` 上的拦截器策略及默认步骤链合并；策略代码在 `policies/`，避免在 `index.ts` 堆叠过长逻辑。

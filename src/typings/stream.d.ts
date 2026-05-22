@@ -1,21 +1,11 @@
-/** SSE (Server-Sent Events) related types */
-export namespace SSE {
-  /** SSE connection status */
+/** Server-Sent Events / long-lived stream connection types */
+declare namespace Stream {
+  /** Stream connection status */
   type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
 
-  /** SSE event types for monitoring */
-  type MonitoringEventType =
-    | 'health'
-    | 'liveness'
-    | 'readiness'
-    | 'metrics'
-    | 'system'
-    | 'performance'
-    | 'environment';
-
-  /** SSE connection configuration */
+  /** Stream connection configuration */
   interface ConnectionConfig {
-    /** SSE endpoint URL */
+    /** Stream endpoint URL */
     url: string;
     /** Connection timeout in milliseconds */
     timeout?: number;
@@ -23,11 +13,11 @@ export namespace SSE {
     autoReconnect?: boolean;
     /** Max reconnect attempts */
     maxReconnectAttempts?: number;
-    /** Reconnect delay in milliseconds (will use exponential backoff) */
+    /** Reconnect delay in milliseconds (exponential backoff base) */
     reconnectDelay?: number;
     /** Max reconnect delay in milliseconds */
     maxReconnectDelay?: number;
-    /** Custom headers */
+    /** Extra headers merged after service auth headers */
     headers?: Record<string, string>;
     /** Query parameters */
     params?: Record<string, string>;
@@ -35,8 +25,8 @@ export namespace SSE {
     withCredentials?: boolean;
   }
 
-  /** SSE message format */
-  interface SSEMessage {
+  /** Parsed stream message from backend */
+  interface StreamMessage {
     /** Message type */
     type: 'connected' | 'data' | 'heartbeat' | 'error';
     /** Timestamp */
@@ -47,36 +37,13 @@ export namespace SSE {
     error?: string;
   }
 
-  /** SSE event data */
-  interface EventData<T = any> {
-    /** Event type */
-    type: string;
-    /** Event data */
-    data: T;
-    /** Event ID */
-    id?: string;
-    /** Event timestamp */
-    timestamp?: string;
-  }
-
-  /** Monitoring event data types */
-  interface MonitoringEventData {
-    health: Api.Health.HealthCheckResponse;
-    liveness: Api.Health.LivenessResponse;
-    readiness: Api.Health.ReadinessResponse;
-    metrics: Api.Monitoring.MetricsSummary;
-    system: Api.System.SystemInfo;
-    performance: Api.System.PerformanceMetrics;
-    environment: Api.System.EnvironmentInfo;
-  }
-
   /** Event listener callback */
   type EventListener<T = any> = (data: T, event: MessageEvent) => void;
 
   /** Connection status change callback */
   type StatusChangeListener = (status: ConnectionStatus, error?: Error) => void;
 
-  /** SSE connection instance */
+  /** Stream connection instance */
   interface Connection {
     /** Connection ID */
     id: string;
@@ -94,7 +61,7 @@ export namespace SSE {
     reconnectAttempts: number;
     /** Reconnect timer */
     reconnectTimer?: number;
-    /** Reference count - number of components using this connection */
+    /** Reference count */
     refCount: number;
   }
 }
