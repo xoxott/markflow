@@ -37,6 +37,14 @@ $flow-background-color: var(--flow-background-color, #ffffff) !default;
 // 预览线颜色
 $flow-preview-color: var(--flow-preview-color, #2080f0) !default;
 
+// 小地图
+$flow-minimap-surface-bg: var(--flow-minimap-surface-bg, #ffffff) !default;
+$flow-minimap-surface-border: var(--flow-minimap-surface-border, #e5e7eb) !default;
+$flow-minimap-node-fill: var(--flow-minimap-node-fill, #2080f0) !default;
+$flow-minimap-node-opacity: var(--flow-minimap-node-opacity, 0.75) !default;
+$flow-minimap-viewport-stroke: var(--flow-minimap-viewport-stroke, #2080f0) !default;
+$flow-minimap-viewport-fill: var(--flow-minimap-viewport-fill, rgba(32, 128, 240, 0.12)) !default;
+
 // ==================== 尺寸变量 ====================
 
 // 节点尺寸

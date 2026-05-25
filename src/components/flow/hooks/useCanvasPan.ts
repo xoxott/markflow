@@ -17,7 +17,7 @@ export interface UseCanvasPanOptions {
   /** 平移视口的回调 */
   onPan: (deltaX: number, deltaY: number) => void;
   /** 视口变化事件 */
-  onViewportChange?: (viewport: FlowViewport) => void;
+  onViewportChange?: () => void;
 }
 
 export interface UseCanvasPanReturn {
@@ -42,7 +42,7 @@ export interface UseCanvasPanReturn {
  * @returns 画布平移相关的状态和方法
  */
 export function useCanvasPan(options: UseCanvasPanOptions): UseCanvasPanReturn {
-  const { config, viewport, onPan, onViewportChange } = options;
+  const { config, onPan, onViewportChange } = options;
 
   const drag = useDrag({
     // 检查是否启用画布平移
@@ -52,8 +52,10 @@ export function useCanvasPan(options: UseCanvasPanOptions): UseCanvasPanReturn {
       return panOnDrag !== false && enableCanvasPan !== false;
     },
     canStart: event => {
-      // 如果点击在节点上，不处理画布拖拽
       const target = event.target as HTMLElement;
+      // 小地图内按下由 FlowMinimap 处理，避免与画布平移抢事件
+      if (target.closest('.flow-minimap')) return false;
+      // 如果点击在节点上，不处理画布拖拽
       if (target.closest('.flow-node')) return false;
 
       // 检查是否允许拖拽画布
@@ -78,7 +80,7 @@ export function useCanvasPan(options: UseCanvasPanOptions): UseCanvasPanReturn {
       }
       return allowedButtons.includes(event.button);
     },
-    // 启用增量模式：每次更新后重置起始位置，使得 deltaX/deltaY 是增量偏移
+    useRAF: config.value.performance?.enableRAFThrottle !== false,
     incremental: true,
     onDrag: result => {
       const perfStart = performance.now();
@@ -88,9 +90,7 @@ export function useCanvasPan(options: UseCanvasPanOptions): UseCanvasPanReturn {
       const panTime = performance.now() - panStart;
 
       const changeStart = performance.now();
-      if (onViewportChange) {
-        onViewportChange(viewport.value);
-      }
+      onViewportChange?.();
       const changeTime = performance.now() - changeStart;
 
       const totalTime = performance.now() - perfStart;

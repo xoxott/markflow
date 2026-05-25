@@ -10,15 +10,7 @@
  * 新增示例时，请在 examples 目录下创建对应的组件文件
  */
 import { defineComponent } from 'vue';
-import {
-  BasicComponentsExample,
-  DeclarativeFormExample,
-  FilePreviewExample,
-  MonacoEditorExample,
-  RequestClientExample,
-  TablePageSearchExample,
-  TypeItExample
-} from './examples';
+import { FlowExamples } from './examples';
 
 export default defineComponent({
   name: 'ComponentExample',
@@ -36,7 +28,7 @@ export default defineComponent({
         </section> */}
 
         {/* ==================== 基础组件 (Basic Components) ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-green-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">基础组件</h1>
@@ -45,40 +37,40 @@ export default defineComponent({
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <BasicComponentsExample />
           </div>
-        </section>
+        </section> */}
 
         {/* ==================== 文件预览 (File Preview) ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-blue-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">文件预览</h1>
             <div class="h-1 flex-1 rounded bg-gray-200"></div>
           </div>
           <FilePreviewExample />
-        </section>
+        </section> */}
 
         {/* ==================== 流程图组件 (Flow Components) ==================== */}
-        {/* <section class="space-y-4">
+        <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-purple-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">流程图组件</h1>
             <div class="h-1 flex-1 rounded bg-gray-200"></div>
           </div>
           <FlowExamples />
-        </section> */}
+        </section>
 
         {/* ==================== Monaco 编辑器 ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-indigo-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">Monaco 编辑器</h1>
             <div class="h-1 flex-1 rounded bg-gray-200"></div>
           </div>
           <MonacoEditorExample />
-        </section>
+        </section> */}
 
         {/* ==================== 声明式动态表单 (DeclarativeForm) ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-cyan-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">声明式动态表单</h1>
@@ -87,10 +79,10 @@ export default defineComponent({
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <DeclarativeFormExample />
           </div>
-        </section>
+        </section> */}
 
         {/* ==================== TypeIt 打字机 ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-amber-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">TypeIt 打字机</h1>
@@ -99,10 +91,10 @@ export default defineComponent({
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <TypeItExample />
           </div>
-        </section>
+        </section> */}
 
         {/* ==================== TablePage 检索区 (SearchBar) ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-teal-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">TablePage 检索区</h1>
@@ -111,10 +103,10 @@ export default defineComponent({
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <TablePageSearchExample />
           </div>
-        </section>
+        </section> */}
 
         {/* ==================== RequestClient 组件 (Request Client) ==================== */}
-        <section class="space-y-4">
+        {/* <section class="space-y-4">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-1 w-12 rounded bg-orange-500"></div>
             <h1 class="text-3xl text-gray-900 font-bold">RequestClient</h1>
@@ -123,7 +115,7 @@ export default defineComponent({
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <RequestClientExample />
           </div>
-        </section>
+        </section> */}
       </div>
     );
   }

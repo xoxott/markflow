@@ -15,6 +15,9 @@ export type {
   FlowEdgePathGenerator
 } from './flow-edge';
 
+// 画布组件类型
+export type { FlowCanvasProps, FlowEdgesProps } from './flow-canvas';
+
 // 配置类型
 export type {
   FlowViewport,

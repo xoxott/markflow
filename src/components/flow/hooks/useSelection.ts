@@ -1,7 +1,8 @@
 /**
  * 选择管理 Hook
  *
- * 处理节点和连接线的选择功能，基于 FlowSelectionHandler 核心逻辑 提供 Vue 响应式封装
+ * @deprecated 请优先使用 `useFlowState` 内置的选择 API（selectNode / selectEdge / deselectAll）。 本 Hook 仅用于不依赖
+ *   FlowCanvas 的独立选择场景。
  */
 
 import { type Ref, ref } from 'vue';

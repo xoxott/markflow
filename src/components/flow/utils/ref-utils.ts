@@ -45,6 +45,12 @@ export function shallowUpdateRef<T extends Record<string, any>>(
   keys: (keyof T)[]
 ): void {
   const oldValue = ref.value;
+  if (oldValue === null || oldValue === undefined || newValue === null || newValue === undefined) {
+    if (oldValue !== newValue) {
+      ref.value = newValue;
+    }
+    return;
+  }
   const hasChanged = keys.some(key => oldValue[key] !== newValue[key]);
   if (hasChanged) {
     ref.value = newValue;

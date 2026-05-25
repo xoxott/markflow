@@ -93,3 +93,43 @@
 .flow-background {
   background-color: $flow-background-color;
 }
+
+// ==================== 小地图 ====================
+
+.flow-minimap {
+  &__surface {
+    background: $flow-minimap-surface-bg;
+    border: 1px solid $flow-minimap-surface-border;
+    border-radius: 4px;
+    box-shadow: $flow-shadow-md;
+    overflow: hidden;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &--dragging &__surface {
+    cursor: grabbing;
+  }
+
+  &__node {
+    background: $flow-minimap-node-fill;
+    opacity: $flow-minimap-node-opacity;
+    border-radius: 2px;
+  }
+
+  &__viewport {
+    border: 2px solid $flow-minimap-viewport-stroke;
+    background: $flow-minimap-viewport-fill;
+    border-radius: 2px;
+    pointer-events: none;
+    /* 仅描边+淡填充，不遮挡节点 */
+    box-sizing: border-box;
+
+    &--animate {
+      transition: all 0.15s ease-out;
+    }
+  }
+}

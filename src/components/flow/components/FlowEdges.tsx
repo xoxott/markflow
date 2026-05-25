@@ -4,44 +4,25 @@
  * 负责渲染所有连接线，支持 Canvas/SVG 混合渲染、视口裁剪等性能优化 重构后：逻辑解耦，性能优化
  */
 
-import { type PropType, computed, defineComponent, toRef } from 'vue';
-import { useEdgeViewportCulling } from '../hooks/useEdgeViewportCulling';
-import { useEdgePositions } from '../hooks/useEdgePositions';
-import { useCachedSet } from '../utils/set-utils';
+import {
+  type CSSProperties,
+  type PropType,
+  computed,
+  defineComponent,
+  ref,
+  toRef,
+  watch
+} from 'vue';
 import { PERFORMANCE_CONSTANTS } from '../constants/performance-constants';
+import { useEdgePositions } from '../hooks/useEdgePositions';
+import { useEdgeViewportCulling } from '../hooks/useEdgeViewportCulling';
+import { useFlowCanvasContextOptional } from '../hooks/useFlowCanvasContext';
 import type { FlowConfig, FlowEdge, FlowNode, FlowViewport } from '../types';
+import { useCachedSet } from '../utils/set-utils';
 import EdgeCanvasRenderer from './edges/EdgeCanvasRenderer';
 import EdgeSvgRenderer from './edges/EdgeSvgRenderer';
 
-/** FlowEdges 组件属性 */
-export interface FlowEdgesProps {
-  /** 连接线列表 */
-  edges: FlowEdge[];
-  /** 节点列表（用于计算连接线位置） */
-  nodes: FlowNode[];
-  /** 选中的连接线 ID 列表 */
-  selectedEdgeIds?: string[];
-  /** 视口状态 */
-  viewport?: FlowViewport;
-  /** 实例 ID（用于生成唯一的 SVG ID） */
-  instanceId?: string;
-  /** 是否启用视口裁剪 */
-  enableViewportCulling?: boolean;
-  /** 是否启用 Canvas 渲染（大量连接线时性能更好） */
-  enableCanvasRendering?: boolean;
-  /** Canvas 渲染阈值（连接线数量超过此值使用 Canvas） */
-  canvasThreshold?: number;
-  /** 连接线点击事件 */
-  onEdgeClick?: (edge: FlowEdge, event: MouseEvent) => void;
-  /** 连接线双击事件 */
-  onEdgeDoubleClick?: (edge: FlowEdge, event: MouseEvent) => void;
-  /** 连接线鼠标进入 */
-  onEdgeMouseEnter?: (edge: FlowEdge, event: MouseEvent) => void;
-  /** 连接线鼠标离开 */
-  onEdgeMouseLeave?: (edge: FlowEdge, event: MouseEvent) => void;
-  /** 配置（用于判断连接线是否在节点后面） */
-  config?: Readonly<FlowConfig>;
-}
+export type { FlowEdgesProps } from '../types/flow-canvas';
 
 /** Flow 连接线列表组件 */
 export default defineComponent({
@@ -61,23 +42,23 @@ export default defineComponent({
     },
     viewport: {
       type: Object as PropType<FlowViewport>,
-      default: () => ({ x: 0, y: 0, zoom: 1 })
+      default: undefined
     },
     instanceId: {
       type: String,
-      default: 'default'
+      default: undefined
     },
     enableViewportCulling: {
       type: Boolean,
-      default: true
+      default: undefined
     },
     enableCanvasRendering: {
       type: Boolean,
-      default: false
+      default: undefined
     },
     canvasThreshold: {
       type: Number,
-      default: 200
+      default: undefined
     },
     onEdgeClick: {
       type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
@@ -98,75 +79,211 @@ export default defineComponent({
     config: {
       type: Object as PropType<Readonly<FlowConfig>>,
       default: undefined
+    },
+    isPanning: {
+      type: Boolean,
+      default: undefined
+    },
+    draggingNodeId: {
+      type: String as PropType<string | null>,
+      default: undefined
     }
   },
   setup(props) {
+    const canvasCtx = useFlowCanvasContextOptional();
+
     const edgesRef = toRef(props, 'edges');
     const nodesRef = toRef(props, 'nodes');
-    const viewportRef = computed(() => props.viewport || { x: 0, y: 0, zoom: 1 });
+    const defaultViewport = { x: 0, y: 0, zoom: 1 };
 
-    // 是否使用 Canvas 渲染
-    const useCanvas = computed(() => {
-      return props.enableCanvasRendering && props.edges.length >= props.canvasThreshold;
+    /** 平移时冻结，用于视口裁剪与平移中的路径基准 */
+    const cullingViewportRef = computed(
+      () => props.viewport ?? canvasCtx?.stableViewport.value ?? defaultViewport
+    );
+    /** 实时视口（平移时仅用于 CSS 偏移，避免每帧重算全部边） */
+    const liveViewportRef = computed(
+      () => props.viewport ?? canvasCtx?.viewport.value ?? defaultViewport
+    );
+    const isPanningRef = computed(() => props.isPanning ?? canvasCtx?.isPanning.value ?? false);
+
+    /** 非平移时用实时视口；平移时用冻结视口 + panLayer 的 translate 与节点对齐 */
+    const edgePositionViewportRef = computed(() =>
+      isPanningRef.value ? cullingViewportRef.value : liveViewportRef.value
+    );
+
+    const panLayerStyle = computed((): CSSProperties | undefined => {
+      if (!isPanningRef.value) {
+        return undefined;
+      }
+      const stable = cullingViewportRef.value;
+      const live = liveViewportRef.value;
+      const dx = live.x - stable.x;
+      const dy = live.y - stable.y;
+      if (dx === 0 && dy === 0) {
+        return undefined;
+      }
+      return {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        transform: `translate3d(${dx}px, ${dy}px, 0)`,
+        willChange: 'transform',
+        pointerEvents: 'none'
+      };
     });
+
+    const configRef = computed(() => props.config ?? canvasCtx?.config.value);
+    const enableViewportCulling = computed(
+      () =>
+        props.enableViewportCulling ??
+        canvasCtx?.config.value.performance?.enableViewportCulling ??
+        true
+    );
+    const enableCanvasRendering = computed(
+      () =>
+        props.enableCanvasRendering ??
+        canvasCtx?.config.value.performance?.enableEdgeCanvasRendering ??
+        false
+    );
+    const canvasThreshold = computed(
+      () => props.canvasThreshold ?? canvasCtx?.config.value.performance?.edgeCanvasThreshold ?? 200
+    );
+
+    const resolvedDraggingNodeId = computed(
+      () => props.draggingNodeId ?? canvasCtx?.draggingNodeId.value ?? null
+    );
+
+    const draggingNodeIds = ref(new Set<string>());
+    watch(
+      resolvedDraggingNodeId,
+      id => {
+        draggingNodeIds.value = id ? new Set([id]) : new Set();
+      },
+      { immediate: true }
+    );
 
     const selectedEdgeIdsRef = computed(() => props.selectedEdgeIds || []);
     const selectedEdgeIdsSet = useCachedSet(selectedEdgeIdsRef);
 
-    const defaultInstanceId = computed(() => props.instanceId || 'default');
+    const defaultInstanceId = computed(
+      () => props.instanceId ?? canvasCtx?.instanceId.value ?? 'default'
+    );
 
-    // 视口裁剪
     const { visibleEdges } = useEdgeViewportCulling({
       edges: edgesRef,
       nodes: nodesRef,
-      viewport: viewportRef,
-      enabled: props.enableViewportCulling !== false
+      viewport: cullingViewportRef,
+      enabled: enableViewportCulling.value !== false,
+      isPanning: isPanningRef
     });
 
     // 位置计算
     const { getEdgePositions } = useEdgePositions({
       edges: edgesRef,
       nodes: nodesRef,
-      viewport: viewportRef
+      viewport: edgePositionViewportRef,
+      draggingNodeIds
     });
 
-    // 计算连接线的 z-index（根据配置决定是否在节点后面）
+    // 是否使用 Canvas 渲染（基于可见边数量）
+    const useCanvas = computed(() => {
+      return enableCanvasRendering.value && visibleEdges.value.length >= canvasThreshold.value;
+    });
+
     const edgeZIndex = computed(() => {
-      const renderBehindNodes = props.config?.edges?.renderBehindNodes !== false;
+      const renderBehindNodes = configRef.value?.edges?.renderBehindNodes !== false;
       return renderBehindNodes
         ? PERFORMANCE_CONSTANTS.Z_INDEX_EDGE
         : PERFORMANCE_CONSTANTS.Z_INDEX_NODE_BASE + 1;
     });
 
-    return () => {
-      // 使用 Canvas 渲染
-      if (useCanvas.value) {
-        return (
-          <EdgeCanvasRenderer
-            visibleEdges={visibleEdges.value}
-            getEdgePositions={getEdgePositions}
-            selectedEdgeIdsSet={selectedEdgeIdsSet.value}
-            viewport={viewportRef.value}
-            zIndex={edgeZIndex.value}
-          />
-        );
-      }
+    const hoveredEdgeId = ref<string | null>(null);
+    const visibleEdgesRef = computed(() => visibleEdges.value);
 
-      // 使用 SVG 渲染
-      return (
+    const findEdgeById = (id: string): FlowEdge | undefined =>
+      visibleEdgesRef.value.find(e => e.id === id) ?? edgesRef.value.find(e => e.id === id);
+
+    const handleEdgePointerOver = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const edgeEl = target.closest('[data-edge-id]');
+      if (!edgeEl) {
+        return;
+      }
+      const id = edgeEl.getAttribute('data-edge-id');
+      if (!id || hoveredEdgeId.value === id) {
+        return;
+      }
+      const prevId = hoveredEdgeId.value;
+      hoveredEdgeId.value = id;
+      const edge = findEdgeById(id);
+      if (edge) {
+        props.onEdgeMouseEnter?.(edge, event);
+      }
+      if (prevId) {
+        const prevEdge = findEdgeById(prevId);
+        if (prevEdge) {
+          props.onEdgeMouseLeave?.(prevEdge, event);
+        }
+      }
+    };
+
+    const handleEdgePointerOut = (event: MouseEvent) => {
+      const related = event.relatedTarget as HTMLElement | null;
+      if (related?.closest('[data-edge-id]')) {
+        return;
+      }
+      const id = hoveredEdgeId.value;
+      if (!id) {
+        return;
+      }
+      hoveredEdgeId.value = null;
+      const edge = findEdgeById(id);
+      if (edge) {
+        props.onEdgeMouseLeave?.(edge, event);
+      }
+    };
+
+    return () => {
+      const edgeViewport = edgePositionViewportRef.value;
+      const layerStyle = panLayerStyle.value;
+
+      const edgeRenderer = useCanvas.value ? (
+        <EdgeCanvasRenderer
+          visibleEdges={visibleEdges.value}
+          getEdgePositions={getEdgePositions}
+          selectedEdgeIdsSet={selectedEdgeIdsSet.value}
+          viewport={edgeViewport}
+          zIndex={edgeZIndex.value}
+        />
+      ) : (
         <EdgeSvgRenderer
           visibleEdges={visibleEdges.value}
           getEdgePositions={getEdgePositions}
           selectedEdgeIdsSet={selectedEdgeIdsSet.value}
-          viewport={viewportRef.value}
+          viewport={edgeViewport}
           instanceId={defaultInstanceId.value}
           zIndex={edgeZIndex.value}
+          hoveredEdgeId={hoveredEdgeId.value}
+          onEdgePointerOver={handleEdgePointerOver}
+          onEdgePointerOut={handleEdgePointerOut}
           onEdgeClick={props.onEdgeClick}
           onEdgeDoubleClick={props.onEdgeDoubleClick}
           onEdgeMouseEnter={props.onEdgeMouseEnter}
           onEdgeMouseLeave={props.onEdgeMouseLeave}
-          bezierControlOffset={props.config?.edges?.bezierControlOffset}
+          bezierControlOffset={configRef.value?.edges?.bezierControlOffset}
         />
+      );
+
+      if (!layerStyle) {
+        return edgeRenderer;
+      }
+
+      return (
+        <div class="flow-edges-pan-layer" style={layerStyle}>
+          {edgeRenderer}
+        </div>
       );
     };
   }

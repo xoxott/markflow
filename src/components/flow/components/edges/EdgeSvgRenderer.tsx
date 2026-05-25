@@ -5,7 +5,7 @@
  */
 
 import type { CSSProperties, PropType } from 'vue';
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, withMemo } from 'vue';
 import { getGpuAccelerationStyle } from '../../utils/style-utils';
 import { useEventHandlers } from '../../hooks/useEventHandlers';
 import { generateEdgePath } from '../../utils/edge-path-generator';
@@ -41,6 +41,12 @@ export interface EdgeSvgRendererProps {
   onEdgeMouseEnter?: (edge: FlowEdge, event: MouseEvent) => void;
   /** 连接线鼠标离开 */
   onEdgeMouseLeave?: (edge: FlowEdge, event: MouseEvent) => void;
+  /** 当前悬停的边 ID */
+  hoveredEdgeId?: string | null;
+  /** SVG 容器 pointerover（边 hover 委托） */
+  onEdgePointerOver?: (event: MouseEvent) => void;
+  /** SVG 容器 pointerout（边 hover 委托） */
+  onEdgePointerOut?: (event: MouseEvent) => void;
 }
 
 /** 连接线 SVG 渲染器组件 */
@@ -90,6 +96,18 @@ export default defineComponent({
     bezierControlOffset: {
       type: Number,
       default: 0.5
+    },
+    hoveredEdgeId: {
+      type: String as PropType<string | null>,
+      default: null
+    },
+    onEdgePointerOver: {
+      type: Function as PropType<(event: MouseEvent) => void>,
+      default: undefined
+    },
+    onEdgePointerOut: {
+      type: Function as PropType<(event: MouseEvent) => void>,
+      default: undefined
     }
   },
   setup(props) {
@@ -107,7 +125,7 @@ export default defineComponent({
       width: '100%',
       height: '100%',
       overflow: 'visible',
-      pointerEvents: 'none',
+      pointerEvents: 'auto',
       zIndex: props.zIndex,
       ...getGpuAccelerationStyle({
         enabled: true,
@@ -127,11 +145,18 @@ export default defineComponent({
       }
     });
 
+    const edgeMemoCache: unknown[] = [];
+
     return () => {
       const handlers = eventHandlers.value;
 
       return (
-        <svg class={EDGE_CLASS_NAMES.CONTAINER} style={svgStyle.value}>
+        <svg
+          class={EDGE_CLASS_NAMES.CONTAINER}
+          style={svgStyle.value}
+          onMouseover={props.onEdgePointerOver}
+          onMouseout={props.onEdgePointerOut}
+        >
           {/* 共享的箭头标记定义 */}
           <defs>
             {/* 共享的箭头路径定义 */}
@@ -190,13 +215,14 @@ export default defineComponent({
           </defs>
 
           {/* 渲染连接线 */}
-          {props.visibleEdges.map(edge => {
+          {props.visibleEdges.map((edge, index) => {
             const positions = props.getEdgePositions(edge);
             if (!positions) {
               return null;
             }
 
             const isSelected = props.selectedEdgeIdsSet.has(edge.id);
+            const isHovered = props.hoveredEdgeId === edge.id;
             const path = generateEdgePath(edge, positions, {
               showArrow: edge.showArrow !== false,
               viewport: props.viewport,
@@ -204,28 +230,49 @@ export default defineComponent({
             });
 
             const handler = handlers?.get(edge.id);
+            const memoKey = [
+              edge.id,
+              isSelected,
+              isHovered,
+              path,
+              positions.sourceX,
+              positions.sourceY,
+              positions.targetX,
+              positions.targetY,
+              positions.sourceHandleX,
+              positions.sourceHandleY,
+              positions.targetHandleX,
+              positions.targetHandleY,
+              props.viewport.zoom
+            ];
 
-            return (
-              <BaseEdge
-                key={edge.id}
-                edge={edge}
-                sourceX={positions.sourceX}
-                sourceY={positions.sourceY}
-                targetX={positions.targetX}
-                targetY={positions.targetY}
-                sourceHandleX={positions.sourceHandleX}
-                sourceHandleY={positions.sourceHandleY}
-                targetHandleX={positions.targetHandleX}
-                targetHandleY={positions.targetHandleY}
-                path={path}
-                viewport={props.viewport}
-                instanceId={props.instanceId}
-                selected={isSelected}
-                onClick={handler?.onClick}
-                onDouble-click={handler?.onDoubleClick}
-                onMouseenter={handler?.onMouseEnter}
-                onMouseleave={handler?.onMouseLeave}
-              />
+            return withMemo(
+              memoKey,
+              () => (
+                <BaseEdge
+                  key={edge.id}
+                  edge={edge}
+                  sourceX={positions.sourceX}
+                  sourceY={positions.sourceY}
+                  targetX={positions.targetX}
+                  targetY={positions.targetY}
+                  sourceHandleX={positions.sourceHandleX}
+                  sourceHandleY={positions.sourceHandleY}
+                  targetHandleX={positions.targetHandleX}
+                  targetHandleY={positions.targetHandleY}
+                  path={path}
+                  viewport={props.viewport}
+                  instanceId={props.instanceId}
+                  selected={isSelected}
+                  hovered={isHovered}
+                  onClick={handler?.onClick}
+                  onDouble-click={handler?.onDoubleClick}
+                  onMouseenter={handler?.onMouseEnter}
+                  onMouseleave={handler?.onMouseLeave}
+                />
+              ),
+              edgeMemoCache,
+              index
             );
           })}
         </svg>

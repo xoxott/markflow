@@ -419,9 +419,10 @@ export class DefaultStateStore implements IStateStore {
    * @param deltaY 垂直偏移
    */
   panViewport(deltaX: number, deltaY: number): void {
-    this.viewport.x += deltaX;
-    this.viewport.y += deltaY;
-    this.notifySubscribers('viewport');
+    this.setViewport({
+      x: this.viewport.x + deltaX,
+      y: this.viewport.y + deltaY
+    });
   }
 
   /**

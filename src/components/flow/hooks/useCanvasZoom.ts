@@ -17,12 +17,12 @@ export interface UseCanvasZoomOptions {
   /** 缩放视口的回调 */
   onZoom: (zoom: number, centerX?: number, centerY?: number) => void;
   /** 视口变化事件 */
-  onViewportChange?: (viewport: FlowViewport) => void;
+  onViewportChange?: () => void;
 }
 
 /** 画布缩放 Hook */
 export function useCanvasZoom(options: UseCanvasZoomOptions) {
-  const { config, canvasRef, onZoom, onViewportChange } = options;
+  const { config, canvasRef, onZoom } = options;
 
   const handleWheel = (event: WheelEvent) => {
     if (!config.value.canvas?.zoomOnScroll) {
@@ -47,11 +47,6 @@ export function useCanvasZoom(options: UseCanvasZoomOptions) {
       onZoom(newZoom, centerX, centerY);
     } else {
       onZoom(newZoom);
-    }
-
-    // 触发视口变化事件
-    if (onViewportChange) {
-      onViewportChange(options.viewport.value);
     }
   };
 

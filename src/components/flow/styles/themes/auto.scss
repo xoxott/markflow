@@ -38,6 +38,13 @@
 
     // 预览线颜色
     --flow-preview-color: #2080f0;
+
+    --flow-minimap-surface-bg: rgba(255, 255, 255, 0.96);
+    --flow-minimap-surface-border: #e5e7eb;
+    --flow-minimap-node-fill: #2080f0;
+    --flow-minimap-node-opacity: 0.75;
+    --flow-minimap-viewport-stroke: #2080f0;
+    --flow-minimap-viewport-fill: rgba(32, 128, 240, 0.1);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -70,5 +77,12 @@
 
     // 预览线颜色
     --flow-preview-color: #4a9eff;
+
+    --flow-minimap-surface-bg: rgba(30, 30, 30, 0.96);
+    --flow-minimap-surface-border: #404040;
+    --flow-minimap-node-fill: #4a9eff;
+    --flow-minimap-node-opacity: 0.8;
+    --flow-minimap-viewport-stroke: #4a9eff;
+    --flow-minimap-viewport-fill: rgba(74, 158, 255, 0.12);
   }
 }

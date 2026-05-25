@@ -98,23 +98,27 @@ export default defineComponent({
     const performanceNodes = ref<FlowNode[]>(generatePerformanceNodes(perfNodeCount.value));
     const performanceEdges = ref<FlowEdge[]>(generatePerformanceEdges(perfNodeCount.value));
 
-    // 重新生成性能测试数据
+    const applyPreset = (count: number) => {
+      perfNodeCount.value = count;
+      performanceNodes.value = generatePerformanceNodes(count);
+      performanceEdges.value = generatePerformanceEdges(count);
+      message.success(`已加载 ${count} 节点压测场景`);
+    };
+
     const regeneratePerformanceData = () => {
-      performanceNodes.value = generatePerformanceNodes(perfNodeCount.value);
-      performanceEdges.value = generatePerformanceEdges(perfNodeCount.value);
-      message.success(`已生成 ${perfNodeCount.value} 个节点`);
+      applyPreset(perfNodeCount.value);
     };
 
     return () => (
       <NCard bordered>
-        <NH3 class="border-b pb-2 text-lg font-semibold">
-          Flow 示例 5: 性能测试（可配置节点数量）
-        </NH3>
+        <NH3 class="border-b pb-2 text-lg font-semibold">Flow 性能压测（可配置节点数量）</NH3>
         <NText class="mb-4 block text-gray-500">
-          测试大量节点的渲染性能。已启用空间索引、视口裁剪、RAF节流等优化。观察性能监控面板查看实时FPS。
+          用于观察 FPS 与大规模平移/拖拽。Mac 上若始终 60 FPS，请用 Chrome Performance 的{' '}
+          <strong>CPU 4×</strong> 限速，并优先看面板中的<strong>最低 FPS</strong>。 算法对比请用{' '}
+          <code class="rounded bg-gray-100 px-1">pnpm bench:compare</code>。
         </NText>
         <NSpace class="mb-4" vertical>
-          <NSpace>
+          <NSpace wrap>
             <NText class="text-sm">节点数量:</NText>
             <NInputNumber
               v-model:value={perfNodeCount.value}
@@ -126,6 +130,15 @@ export default defineComponent({
             <NButton size="small" type="primary" onClick={regeneratePerformanceData}>
               重新生成
             </NButton>
+            <NButton size="small" onClick={() => applyPreset(200)}>
+              预设 200
+            </NButton>
+            <NButton size="small" onClick={() => applyPreset(1000)}>
+              预设 1000
+            </NButton>
+            <NButton size="small" onClick={() => applyPreset(2000)}>
+              预设 2000
+            </NButton>
             <NButton
               size="small"
               onClick={() => {
@@ -136,7 +149,8 @@ export default defineComponent({
             </NButton>
           </NSpace>
           <NText class="text-sm text-gray-400">
-            当前: {performanceNodes.value.length} 个节点, {performanceEdges.value.length} 条连接线
+            当前: {performanceNodes.value.length} 个节点, {performanceEdges.value.length} 条连接线 —
+            建议测试：空白处平移 5s → 拖单节点 5s
           </NText>
         </NSpace>
         <div

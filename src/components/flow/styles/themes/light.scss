@@ -7,7 +7,8 @@
 @import '../variables';
 
 :root[data-flow-theme='light'],
-:root:not([data-flow-theme]) {
+:root:not([data-flow-theme]),
+.flow-canvas[data-flow-theme='light'] {
   // 节点颜色
   --flow-node-bg: #ffffff;
   --flow-node-border: #d9d9d9;
@@ -39,4 +40,12 @@
 
   // 预览线颜色
   --flow-preview-color: #2080f0;
+
+  // 小地图
+  --flow-minimap-surface-bg: rgba(255, 255, 255, 0.96);
+  --flow-minimap-surface-border: #e5e7eb;
+  --flow-minimap-node-fill: #2080f0;
+  --flow-minimap-node-opacity: 0.75;
+  --flow-minimap-viewport-stroke: #2080f0;
+  --flow-minimap-viewport-fill: rgba(32, 128, 240, 0.1);
 }

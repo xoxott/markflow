@@ -153,7 +153,10 @@ export const FlowInteractionConfigSchema = z.object({
 /** 性能配置 Schema */
 export const FlowPerformanceConfigSchema = z.object({
   enableRAFThrottle: z.boolean().optional(),
-  enableVirtualScroll: z.boolean().optional(),
+  enableVirtualScroll: z
+    .boolean()
+    .optional()
+    .describe('已弃用：请使用 enableViewportCulling，主路径不再读取 enableVirtualScroll'),
   virtualScrollBuffer: z.number().positive().optional(),
   enableViewportCulling: z.boolean().optional(),
   enableGPUAcceleration: z.boolean().optional(),

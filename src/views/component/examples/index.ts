@@ -14,6 +14,7 @@ export { default as BasicComponentsExample } from './BasicComponentsExample';
 export { FlowExamples } from './FlowExamples';
 
 // Flow 单个示例（供 FlowExamples 内部使用）
+export { default as FlowInteractionGuide } from './FlowInteractionGuide';
 export { default as FlowBasicExample } from './FlowBasicExample';
 export { default as FlowConfigExample } from './FlowConfigExample';
 export { default as FlowStateExample } from './FlowStateExample';

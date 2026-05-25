@@ -5,6 +5,7 @@
  */
 
 import { type CSSProperties, type PropType, computed, defineComponent, toRef } from 'vue';
+import { useFlowCanvasContextOptional } from '../hooks/useFlowCanvasContext';
 import { useNodeState } from '../hooks/useNodeState';
 import { useNodeStyle } from '../hooks/useNodeStyle';
 import { useSpatialIndex } from '../hooks/useSpatialIndex';
@@ -109,7 +110,7 @@ export default defineComponent({
     },
     draggingNodeId: {
       type: String as PropType<string | null>,
-      default: null
+      default: undefined
     },
     elevatedNodeIds: {
       type: Object as PropType<Map<string, number>>,
@@ -117,7 +118,7 @@ export default defineComponent({
     },
     viewport: {
       type: Object as PropType<FlowViewport>,
-      default: () => ({ x: 0, y: 0, zoom: 1 })
+      default: undefined
     },
     config: {
       type: Object as PropType<Readonly<FlowConfig>>,
@@ -125,15 +126,15 @@ export default defineComponent({
     },
     enableViewportCulling: {
       type: Boolean,
-      default: true
+      default: undefined
     },
     viewportCullingBuffer: {
       type: Number,
-      default: 200
+      default: undefined
     },
     isPanning: {
       type: Boolean,
-      default: false
+      default: undefined
     },
     onNodeClick: {
       type: Function as PropType<(node: FlowNode, event: MouseEvent) => void>,
@@ -213,15 +214,32 @@ export default defineComponent({
     }
   },
   setup(props) {
+    const canvasCtx = useFlowCanvasContextOptional();
+
     const nodesRef = toRef(props, 'nodes');
     const selectedNodeIdsRef = computed(() => props.selectedNodeIds || []);
     const lockedNodeIdsRef = computed(() => props.lockedNodeIds || []);
-    const draggingNodeIdRef = toRef(props, 'draggingNodeId');
+    const draggingNodeIdRef = computed(
+      () => props.draggingNodeId ?? canvasCtx?.draggingNodeId.value ?? null
+    );
     const elevatedNodeIdsRef = computed(() => props.elevatedNodeIds || new Map());
-    const configRef = computed(() => props.config);
-    const viewportRef = computed(() => props.viewport || { x: 0, y: 0, zoom: 1 });
-    const enableViewportCullingRef = computed(() => props.enableViewportCulling ?? true);
-    const isPanningRef = computed(() => props.isPanning ?? false);
+    const configRef = computed(() => props.config ?? canvasCtx?.config.value);
+    const viewportRef = computed(
+      () => props.viewport ?? canvasCtx?.stableViewport.value ?? { x: 0, y: 0, zoom: 1 }
+    );
+    const enableViewportCullingRef = computed(
+      () =>
+        props.enableViewportCulling ??
+        canvasCtx?.config.value.performance?.enableViewportCulling ??
+        true
+    );
+    const isPanningRef = computed(() => props.isPanning ?? canvasCtx?.isPanning.value ?? false);
+    const viewportCullingBuffer = computed(
+      () =>
+        props.viewportCullingBuffer ??
+        canvasCtx?.config.value.performance?.virtualScrollBuffer ??
+        200
+    );
 
     // 空间索引管理
     const { spatialIndex } = useSpatialIndex({
@@ -234,7 +252,7 @@ export default defineComponent({
       nodes: nodesRef,
       viewport: viewportRef,
       enabled: enableViewportCullingRef,
-      buffer: props.viewportCullingBuffer,
+      buffer: viewportCullingBuffer.value,
       spatialIndex,
       spatialIndexThreshold: PERFORMANCE_CONSTANTS.SPATIAL_INDEX_THRESHOLD,
       isPanning: isPanningRef
@@ -314,7 +332,7 @@ export default defineComponent({
       // 性能监控
       performanceMonitor.record('nodesRender', renderTime, {
         nodeCount,
-        isPanning: props.isPanning,
+        isPanning: isPanningRef.value,
         renderCount,
         nodesTime
       });
@@ -325,7 +343,7 @@ export default defineComponent({
           nodesTime: `${nodesTime.toFixed(3)}ms`,
           nodeCount,
           avgPerNode: nodeCount > 0 ? `${(nodesTime / nodeCount).toFixed(3)}ms` : '0ms',
-          isPanning: props.isPanning,
+          isPanning: isPanningRef.value,
           renderCount
         });
       }

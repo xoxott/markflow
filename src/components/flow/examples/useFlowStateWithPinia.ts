@@ -1,7 +1,11 @@
 /**
  * Flow 状态管理与 Pinia 集成示例
  *
- * 展示如何使用 Pinia 作为状态存储，实现自定义状态管理
+ * **生产推荐**：在 `<FlowCanvas>` 内使用内置 `useFlowState`（见 `hooks/useFlowState.ts`）， 子组件通过
+ * `useFlowCanvasContext()` 读取 `config`、`getNodeById` 等，无需逐层 props。
+ *
+ * **本文件用途**：演示如何用 Pinia 实现 `IStateStore`，供需要全局 Flow store 的应用参考。 Pinia `getNodeById` getter 与
+ * `FlowCanvasContext.getNodeById` 命名一致，便于对照迁移。
  */
 
 import { computed } from 'vue';
@@ -409,3 +413,22 @@ export function useFlowStateWithPinia(options?: {
     }
   };
 }
+
+/**
+ * 在 FlowCanvas 子树内读取画布上下文（与 Pinia 可并存）
+ *
+ * @example
+ *   ```typescript
+ *   import { defineComponent } from 'vue';
+ *   import { useFlowCanvasContext } from '@/components/flow';
+ *
+ *   export default defineComponent({
+ *     setup() {
+ *       const { config, getNodeById, stableViewport } = useFlowCanvasContext();
+ *       // 等价于 Pinia: const store = useFlowStore(); store.getNodeById(id)
+ *       const node = getNodeById('node-1');
+ *       return () => <div>{node?.id} @ zoom {stableViewport.value.zoom}</div>;
+ *     }
+ *   });
+ *   ```;
+ */

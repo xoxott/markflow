@@ -7,6 +7,9 @@
 // 类型导出
 export * from './types';
 
+// 画布上下文（provide / inject）
+export * from './context/flow-canvas-context';
+
 // 配置导出
 export * from './config/default-config';
 export * from './config/FlowConfigManager';
@@ -32,6 +35,9 @@ export * from './core/commands';
 
 // Hook 导出
 export * from './hooks';
+
+// 小地图（纯函数 + useFlowMinimap）
+export * from './minimap';
 
 // 组件导出
 export * from './components';

@@ -228,6 +228,9 @@ importers:
       '@vitest/ui':
         specifier: ^4.0.16
         version: 4.0.16(vitest@4.0.8)
+      '@vue-flow/core':
+        specifier: 1.48.0
+        version: 1.48.0(vue@3.5.13(typescript@5.6.3))
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.6
@@ -2670,6 +2673,11 @@ packages:
 
   '@vscode/markdown-it-katex@1.1.2':
     resolution: {integrity: sha512-+4IIv5PgrmhKvW/3LpkpkGg257OViEhXkOOgCyj5KMsjsOfnRXkni8XAuuF9Ui5p3B8WnUovlDXAQNb8RJ/RaQ==}
+
+  '@vue-flow/core@1.48.0':
+    resolution: {integrity: sha512-keW9HGaEZEe4SKYtrzp5E+qSGJ5/z+9i2yRDtCr3o72IUnS0Ns1qQNsIbGGz0ygpKzg6LdtbVLWeYAvl3dzLQA==}
+    peerDependencies:
+      vue: ^3.3.0
 
   '@vue/babel-helper-vue-transform-on@1.5.0':
     resolution: {integrity: sha512-0dAYkerNhhHutHZ34JtTl2czVQHUNWv6xEbkdF5W+Yrv5pCWsqjeORdOgbtW2I9gWlt+wBmVn+ttqN9ZxR5tzA==}
@@ -8477,6 +8485,17 @@ snapshots:
   '@vscode/markdown-it-katex@1.1.2':
     dependencies:
       katex: 0.16.25
+
+  '@vue-flow/core@1.48.0(vue@3.5.13(typescript@5.6.3))':
+    dependencies:
+      '@vueuse/core': 10.11.1(vue@3.5.13(typescript@5.6.3))
+      d3-drag: 3.0.0
+      d3-interpolate: 3.0.1
+      d3-selection: 3.0.0
+      d3-zoom: 3.0.0
+      vue: 3.5.13(typescript@5.6.3)
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   '@vue/babel-helper-vue-transform-on@1.5.0': {}
 

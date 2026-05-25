@@ -76,7 +76,7 @@ export function useNodeDrag(options: UseNodeDragOptions): UseNodeDragReturn {
 
   // 使用通用的拖拽 hook
   const drag = useDrag({
-    // 坐标转换：屏幕坐标偏移 -> 画布坐标偏移
+    useRAF: config.value.performance?.enableRAFThrottle !== false,
     transformCoordinates: (
       screenX,
       screenY,

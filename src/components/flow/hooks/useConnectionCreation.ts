@@ -54,11 +54,14 @@ export function useConnectionCreation(
 
   /** 配置连接处理器 */
   connectionHandler.setConfig(config.value);
-  connectionHandler.setOptions({
-    useRAF: true,
-    onCreateEdge,
-    onConnect
-  });
+  const applyHandlerOptions = () => {
+    connectionHandler.setOptions({
+      useRAF: config.value.performance?.enableRAFThrottle !== false,
+      onCreateEdge,
+      onConnect
+    });
+  };
+  applyHandlerOptions();
 
   /** 同步处理器状态到响应式 ref */
   const syncState = () => {
@@ -73,6 +76,7 @@ export function useConnectionCreation(
     () => config.value,
     newConfig => {
       connectionHandler.setConfig(newConfig);
+      applyHandlerOptions();
     }
   );
 

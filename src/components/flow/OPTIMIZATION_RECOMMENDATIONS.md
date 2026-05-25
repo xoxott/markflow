@@ -1,6 +1,19 @@
 # Flow 组件优化建议
 
-本文档详细分析了 Flow 组件的代码和架构，提供了全面的优化建议。
+> **状态**：核心项与后续计划（inject、`edge-canvas-draw`、store 适配器、边 hover）已实施，详见 [`docs/CODE_REVIEW.md`](docs/CODE_REVIEW.md) 顶部「实施状态」。下文为历史分析存档。
+
+## 历史章节索引（已实施）
+
+| 章节                                                                    | 状态   |
+| ----------------------------------------------------------------------- | ------ |
+| FlowCanvas 职责过重 → `useFlowCanvasCore` / `useFlowCanvasInteractions` | 已完成 |
+| provide/inject + `useFlowCanvasContext`                                 | 已完成 |
+| Canvas 边绘制 → `edge-canvas-draw` + `EdgeCanvasRenderer`               | 已完成 |
+| `useFlowState` store 桥接 → `vue-state-bridge` / `selection-bridge`     | 已完成 |
+| ConnectionPreview `getNodeById`                                         | 已完成 |
+| 边 hover（SVG）                                                         | 已完成 |
+
+本文档详细分析了 Flow 组件的代码和架构，提供了全面的优化建议（供回溯，不必重复实施）。
 
 ## 📋 目录
 
@@ -16,13 +29,14 @@
 
 ## 🏗️ 架构优化
 
-### 1. FlowCanvas 组件职责过重
+### 1. FlowCanvas 组件职责过重 ✅ 已实施
 
-**问题**：
+**问题**（历史）：
 
-- `FlowCanvas.tsx` 包含了过多的 hooks 初始化（10+ 个 hooks）
-- 组件 setup 函数超过 400 行，可读性差
-- 多个功能模块耦合在一起
+- `FlowCanvas.tsx` 曾包含 10+ hooks 初始化
+- setup 曾超过 400 行
+
+**当前**：逻辑已迁入 `useFlowCanvasCore` / `useFlowCanvasInteractions`，`FlowCanvas.tsx` ~180 行。
 
 **优化建议**：
 

@@ -6,7 +6,8 @@
 
 @import '../variables';
 
-:root[data-flow-theme='dark'] {
+:root[data-flow-theme='dark'],
+.flow-canvas[data-flow-theme='dark'] {
   // 节点颜色
   --flow-node-bg: #1e1e1e;
   --flow-node-border: #404040;
@@ -38,4 +39,25 @@
 
   // 预览线颜色
   --flow-preview-color: #4a9eff;
+
+  // 小地图
+  --flow-minimap-surface-bg: rgba(30, 30, 30, 0.96);
+  --flow-minimap-surface-border: #404040;
+  --flow-minimap-node-fill: #4a9eff;
+  --flow-minimap-node-opacity: 0.8;
+  --flow-minimap-viewport-stroke: #4a9eff;
+  --flow-minimap-viewport-fill: rgba(74, 158, 255, 0.12);
+}
+
+/** 与项目 `html.dark`（Naive 全局暗色）对齐，未设置 data-flow-theme 时仍生效 */
+html.dark {
+  --flow-minimap-surface-bg: rgba(30, 30, 30, 0.96);
+  --flow-minimap-surface-border: #404040;
+  --flow-minimap-node-fill: #4a9eff;
+  --flow-minimap-node-opacity: 0.8;
+  --flow-minimap-viewport-stroke: #4a9eff;
+  --flow-minimap-viewport-fill: rgba(74, 158, 255, 0.12);
+  --flow-background-color: #1a1a1a;
+  --flow-grid-color: #3a3a3a;
+  --flow-edge-default: #4a5568;
 }

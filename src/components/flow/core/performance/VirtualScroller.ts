@@ -1,7 +1,7 @@
 /**
  * Flow 虚拟滚动器
  *
- * 只渲染可见区域的节点，提升大量节点时的渲染性能
+ * @deprecated 主渲染路径已使用 `useViewportCulling` + 空间索引；请勿在新代码中启用 `enableVirtualScroll`。
  */
 
 import type { FlowNode } from '../../types/flow-node';

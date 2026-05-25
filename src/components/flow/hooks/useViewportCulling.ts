@@ -11,6 +11,7 @@ import type { FlowNode, FlowViewport } from '../types';
 import { filterNodesByOriginalOrder } from '../utils/node-order-utils';
 import { isBoolean, isFunction } from '../utils/type-utils';
 import { performanceMonitor } from '../utils/performance-monitor';
+import { devPerfLog, devPerfWarn } from '../utils/dev-log';
 import { useRafThrottle } from './useRafThrottle';
 
 /** 视口裁剪 Hook 选项 */
@@ -187,7 +188,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
 
       // 如果视口裁剪耗时超过阈值，立即输出警告
       if (totalTime > 5) {
-        console.warn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
+        devPerfWarn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
           nodesCount: nodes.value.length,
           visibleCount: newVisibleNodes.length,
           queryTime: `${(queryTime - queryStart).toFixed(2)}ms`,
@@ -211,7 +212,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
 
       // 如果视口裁剪耗时超过阈值，立即输出警告
       if (totalTime > 5) {
-        console.warn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
+        devPerfWarn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
           nodesCount: nodes.value.length,
           visibleCount: newVisibleNodes.length,
           isPanning: isPanning?.value
@@ -269,7 +270,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
 
       const updateTime = performance.now() - updateStart;
       if (updateTime > 1 || idsChanged) {
-        console.log('[Performance] useViewportCulling 更新可见节点:', {
+        devPerfLog('[Performance] useViewportCulling 更新可见节点:', {
           time: `${updateTime.toFixed(3)}ms`,
           visibleCount: newVisibleNodes.length,
           idsChanged,
@@ -280,7 +281,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
       // 节点 ID 集合和节点对象引用都没变化，不更新引用，避免 FlowNodes 重新渲染
       const updateTime = performance.now() - updateStart;
       if (updateTime > 1) {
-        console.log('[Performance] useViewportCulling 跳过更新（可见节点未变化）:', {
+        devPerfLog('[Performance] useViewportCulling 跳过更新（可见节点未变化）:', {
           time: `${updateTime.toFixed(3)}ms`,
           visibleCount: newVisibleNodes.length,
           idsChanged: false,
@@ -313,7 +314,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
       });
 
       // 记录所有 watch 触发（用于调试）
-      console.log('[Performance] nodesWatch 触发:', {
+      devPerfLog('[Performance] nodesWatch 触发:', {
         time: `${watchTime.toFixed(3)}ms`,
         nodesCount: nodes.value.length,
         enabled: enabledRef.value

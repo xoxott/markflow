@@ -29,6 +29,8 @@ export interface FlowBackgroundProps {
   viewport?: FlowViewport;
   /** 实例 ID（用于生成唯一的 SVG ID） */
   instanceId?: string;
+  /** 是否正在平移（平移期间可启用 GPU 层） */
+  isPanning?: boolean;
   /** 自定义样式 */
   style?: Record<string, any>;
   /** CSS 类名 */
@@ -84,6 +86,10 @@ export default defineComponent({
     fillContainer: {
       type: Boolean,
       default: true
+    },
+    isPanning: {
+      type: Boolean,
+      default: false
     }
   },
   setup(props) {
@@ -155,12 +161,10 @@ export default defineComponent({
       return mod < 0 ? mod + size : mod;
     });
 
-    /** 判断是否需要 GPU 加速优化 */
+    /** 仅在平移或高缩放时启用 GPU 层 */
     const shouldOptimize = computed(() => {
       return (
-        props.viewport.zoom > GRID_CONSTANTS.GPU_ACCELERATION_ZOOM_THRESHOLD ||
-        props.viewport.x !== 0 ||
-        props.viewport.y !== 0
+        props.isPanning || props.viewport.zoom > GRID_CONSTANTS.GPU_ACCELERATION_ZOOM_THRESHOLD
       );
     });
 
@@ -215,7 +219,7 @@ export default defineComponent({
             <svg
               class="flow-grid"
               style={svgContainerStyle.value}
-              key={`grid-svg-${props.gridType}-${props.gridSize}-${props.viewport.zoom}`}
+              key={`grid-svg-${props.gridType}-${props.gridSize}`}
             >
               <defs>
                 {result.defs}

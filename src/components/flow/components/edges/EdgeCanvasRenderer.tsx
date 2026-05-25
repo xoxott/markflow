@@ -4,33 +4,21 @@
  * 负责使用 Canvas 渲染大量连接线，提供更好的性能
  */
 
-import { type PropType, defineComponent, onMounted, ref, watch } from 'vue';
+import { type PropType, computed, defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRafThrottle } from '../../hooks/useRafThrottle';
 import type { FlowEdge, FlowViewport } from '../../types';
 import type { EdgePositions } from '../../hooks/useEdgePositions';
-import {
-  ARROW_SIZES,
-  CANVAS_CONSTANTS,
-  EDGE_COLORS,
-  STROKE_WIDTHS
-} from '../../constants/edge-constants';
-import { calculateArrowSize, calculateStrokeWidth } from '../../utils/edge-style-utils';
+import { drawEdgesOnCanvas, ensureCanvasLayoutSize } from '../../utils/edge-canvas-draw';
 
 /** EdgeCanvasRenderer 组件属性 */
 export interface EdgeCanvasRendererProps {
-  /** 可见连接线列表 */
   visibleEdges: FlowEdge[];
-  /** 连接线位置计算函数 */
   getEdgePositions: (edge: FlowEdge) => EdgePositions | null;
-  /** 选中的连接线 ID 集合 */
   selectedEdgeIdsSet: Set<string>;
-  /** 视口状态 */
   viewport: FlowViewport;
-  /** z-index 值 */
   zIndex?: number;
 }
 
-/** 连接线 Canvas 渲染器组件 */
 export default defineComponent({
   name: 'EdgeCanvasRenderer',
   props: {
@@ -57,103 +45,65 @@ export default defineComponent({
   },
   setup(props) {
     const canvasRef = ref<HTMLCanvasElement | null>(null);
+    let resizeObserver: ResizeObserver | null = null;
 
-    /** 渲染 Canvas */
+    const visibleEdgeIdsKey = computed(() => props.visibleEdges.map(e => e.id).join(','));
+
+    const selectedIdsKey = computed(() => Array.from(props.selectedEdgeIdsSet).sort().join(','));
+
     const renderCanvas = () => {
-      if (!canvasRef.value) {
+      const canvas = canvasRef.value;
+      if (!canvas) {
         return;
       }
 
-      const canvas = canvasRef.value;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { desynchronized: true });
       if (!ctx) {
         return;
       }
 
-      // 设置画布尺寸
-      const container = canvas.parentElement;
-      const width = container ? container.clientWidth : window.innerWidth;
-      const height = container ? container.clientHeight : window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
+      const { width, height } = ensureCanvasLayoutSize(canvas, ctx);
 
-      // 清空画布
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // 绘制连接线
-      props.visibleEdges.forEach(edge => {
-        const positions = props.getEdgePositions(edge);
-        if (!positions) {
-          return;
-        }
-
-        const isSelected = props.selectedEdgeIdsSet.has(edge.id);
-
-        // 设置样式
-        ctx.strokeStyle = isSelected ? EDGE_COLORS.SELECTED : EDGE_COLORS.DEFAULT;
-        const zoom = props.viewport.zoom;
-        const baseLineWidth = isSelected ? STROKE_WIDTHS.SELECTED : STROKE_WIDTHS.BASE;
-        // 使用工具函数计算线条宽度
-        ctx.lineWidth = calculateStrokeWidth(baseLineWidth, zoom);
-        ctx.lineCap = CANVAS_CONSTANTS.LINE_CAP;
-        ctx.lineJoin = CANVAS_CONSTANTS.LINE_JOIN;
-
-        // 使用端口位置或节点中心
-        const startX = positions.sourceHandleX ?? positions.sourceX;
-        const startY = positions.sourceHandleY ?? positions.sourceY;
-        let endX = positions.targetHandleX ?? positions.targetX;
-        let endY = positions.targetHandleY ?? positions.targetY;
-
-        // 如果显示箭头，缩短路径终点
-        const showArrow = edge.showArrow !== false;
-        if (showArrow) {
-          // 使用工具函数计算箭头大小
-          const currentArrowSize = calculateArrowSize(zoom);
-          const ARROW_LENGTH = (currentArrowSize / ARROW_SIZES.BASE) * ARROW_SIZES.LENGTH_RATIO;
-
-          const dx = endX - startX;
-          const dy = endY - startY;
-          const length = Math.sqrt(dx * dx + dy * dy);
-          if (length > 0) {
-            endX -= (dx / length) * ARROW_LENGTH;
-            endY -= (dy / length) * ARROW_LENGTH;
-          }
-        }
-
-        // 绘制路径（简单直线，Canvas 渲染不支持贝塞尔曲线）
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
+      drawEdgesOnCanvas(ctx, {
+        edges: props.visibleEdges,
+        getEdgePositions: props.getEdgePositions,
+        viewport: props.viewport,
+        selectedEdgeIds: props.selectedEdgeIdsSet,
+        clearWidth: width,
+        clearHeight: height
       });
     };
 
-    /** 节流渲染函数 */
-    const renderCanvasThrottled = () => {
-      if (canvasRef.value) {
-        renderCanvas();
-      }
-    };
+    const { throttled: scheduleRender } = useRafThrottle(renderCanvas);
 
-    // 使用 RAF 节流渲染
-    const { throttled: scheduleRender } = useRafThrottle(renderCanvasThrottled);
-
-    // 监听变化，重新渲染
     onMounted(() => {
       scheduleRender();
+
+      const container = canvasRef.value?.parentElement;
+      if (container && typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          scheduleRender();
+        });
+        resizeObserver.observe(container);
+      }
+    });
+
+    onUnmounted(() => {
+      resizeObserver?.disconnect();
+      resizeObserver = null;
     });
 
     watch(
       [
-        () => props.visibleEdges.length,
+        visibleEdgeIdsKey,
+        selectedIdsKey,
         () => props.viewport.zoom,
         () => props.viewport.x,
         () => props.viewport.y
       ],
       () => {
         scheduleRender();
-      },
-      { deep: false }
+      }
     );
 
     return () => (

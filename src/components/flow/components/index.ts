@@ -14,6 +14,12 @@ export type { FlowNodesProps } from './FlowNodes';
 export type { FlowEdgesProps } from './FlowEdges';
 export type { FlowBackgroundProps } from './FlowBackground';
 export type { FlowViewportContainerProps } from './FlowViewportContainer';
-export type { FlowMinimapProps } from './FlowMinimap';
+export type {
+  FlowMinimapProps,
+  MinimapPosition,
+  MinimapSize,
+  MinimapTheme,
+  ResolveMinimapNodeColor
+} from './FlowMinimap';
 export type { FlowToolbarProps } from './FlowToolbar';
 export type { FlowEmptyStateProps } from './FlowEmptyState';

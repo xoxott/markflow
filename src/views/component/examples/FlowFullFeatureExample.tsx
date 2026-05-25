@@ -1,17 +1,24 @@
-/** Flow 示例 4: 完整功能（带工具组件） */
+/** Flow 示例 4: 完整功能（小地图、工具栏，viewport 与 FlowCanvas 同步） */
 
 import { defineComponent, ref } from 'vue';
 import { NCard, NH3, NText, useMessage } from 'naive-ui';
 import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import FlowBackground from '@/components/flow/components/FlowBackground';
 import FlowMinimap from '@/components/flow/components/FlowMinimap';
 import FlowToolbar from '@/components/flow/components/FlowToolbar';
 import type { FlowEdge, FlowNode, FlowViewport } from '@/components/flow';
+
+/** FlowCanvas expose 的最小类型 */
+interface FlowCanvasExposed {
+  setViewport: (viewport: Partial<FlowViewport>) => void;
+  zoomViewport: (zoom: number, centerX?: number, centerY?: number) => void;
+}
 
 export default defineComponent({
   name: 'FlowFullFeatureExample',
   setup() {
     const message = useMessage();
+    const flowRef = ref<FlowCanvasExposed | null>(null);
+    const canvasHostRef = ref<HTMLDivElement | null>(null);
 
     const fullFeatureNodes = ref<FlowNode[]>([
       {
@@ -65,52 +72,55 @@ export default defineComponent({
       }
     ]);
 
-    const fullFeatureViewport = ref<FlowViewport>({ x: 0, y: 0, zoom: 1 });
+    const toolbarViewport = ref<FlowViewport>({ x: 0, y: 0, zoom: 1 });
 
     const handleViewportChange = (newViewport: FlowViewport) => {
-      fullFeatureViewport.value = newViewport;
+      toolbarViewport.value = newViewport;
     };
 
     const handleResetView = () => {
-      fullFeatureViewport.value = { x: 0, y: 0, zoom: 1 };
+      flowRef.value?.setViewport({ x: 0, y: 0, zoom: 1 });
       message.info('视图已重置');
     };
 
     const handleFitView = () => {
-      // 计算所有节点的边界框并适应视图
-      if (fullFeatureNodes.value.length > 0) {
-        const minX = Math.min(...fullFeatureNodes.value.map(n => n.position.x));
-        const minY = Math.min(...fullFeatureNodes.value.map(n => n.position.y));
-        const maxX = Math.max(
-          ...fullFeatureNodes.value.map(n => n.position.x + (n.size?.width || 220))
-        );
-        const maxY = Math.max(
-          ...fullFeatureNodes.value.map(n => n.position.y + (n.size?.height || 72))
-        );
-
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
-        const width = maxX - minX;
-        const height = maxY - minY;
-
-        // 简单的适应视图逻辑
-        const scale = Math.min(800 / width, 400 / height, 1);
-        fullFeatureViewport.value = {
-          x: 400 - centerX * scale,
-          y: 200 - centerY * scale,
-          zoom: scale
-        };
-        message.success('已适应视图');
+      if (fullFeatureNodes.value.length === 0) {
+        return;
       }
+      const minX = Math.min(...fullFeatureNodes.value.map(n => n.position.x));
+      const minY = Math.min(...fullFeatureNodes.value.map(n => n.position.y));
+      const maxX = Math.max(
+        ...fullFeatureNodes.value.map(n => n.position.x + (n.size?.width || 150))
+      );
+      const maxY = Math.max(
+        ...fullFeatureNodes.value.map(n => n.position.y + (n.size?.height || 60))
+      );
+
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      const width = Math.max(maxX - minX, 1);
+      const height = Math.max(maxY - minY, 1);
+
+      const scale = Math.min(700 / width, 350 / height, 1);
+      flowRef.value?.setViewport({
+        x: 350 - centerX * scale,
+        y: 175 - centerY * scale,
+        zoom: scale
+      });
+      message.success('已适应视图');
     };
 
     return () => (
       <NCard bordered>
-        <NH3 class="border-b pb-2 text-lg font-semibold">Flow 示例 4: 完整功能（带工具组件）</NH3>
+        <NH3 class="border-b pb-2 text-lg font-semibold">
+          Flow 示例：完整功能（小地图 + 工具栏）
+        </NH3>
         <NText class="mb-4 block text-gray-500">
-          包含网格背景、小地图、工具栏等完整功能的 Flow 画布
+          小地图通过 FlowCanvas inject 读取视口；工具栏百分比由{' '}
+          <code class="rounded bg-gray-100 px-1">viewport-change</code> 更新。
         </NText>
         <div
+          ref={canvasHostRef}
           style={{
             height: '500px',
             border: '1px solid #e0e0e0',
@@ -119,37 +129,39 @@ export default defineComponent({
           }}
         >
           <FlowCanvas
+            ref={flowRef}
             id="full-feature-flow"
             initialNodes={fullFeatureNodes.value}
             initialEdges={fullFeatureEdges.value}
-            initialViewport={fullFeatureViewport.value}
             width="100%"
             height="100%"
+            config={{
+              canvas: {
+                showGrid: true,
+                gridType: 'dots',
+                gridSize: 20,
+                panOnDrag: true,
+                zoomOnScroll: true
+              }
+            }}
             onViewport-change={handleViewportChange}
           >
-            <FlowBackground gridType="dots" gridSize={20} viewport={fullFeatureViewport.value} />
-            <FlowMinimap
-              nodes={fullFeatureNodes.value}
-              viewport={fullFeatureViewport.value}
-              onViewportChange={handleViewportChange}
-              style={{
-                position: 'absolute',
-                bottom: '20px',
-                right: '20px',
-                width: '200px',
-                height: '150px'
-              }}
-            />
+            <FlowMinimap size={{ width: 200, height: 150 }} position="bottom-right" />
             <FlowToolbar
-              viewport={fullFeatureViewport.value}
+              viewport={toolbarViewport.value}
               minZoom={0.1}
               maxZoom={4}
               onZoomChange={(zoom: number) => {
-                fullFeatureViewport.value = { ...fullFeatureViewport.value, zoom };
+                const host = canvasHostRef.value?.querySelector(
+                  '.flow-canvas'
+                ) as HTMLElement | null;
+                const w = host?.clientWidth ?? canvasHostRef.value?.clientWidth ?? 700;
+                const h = host?.clientHeight ?? canvasHostRef.value?.clientHeight ?? 500;
+                flowRef.value?.zoomViewport(zoom, w / 2, h / 2);
               }}
               onResetView={handleResetView}
               onFitView={handleFitView}
-              style={{ position: 'absolute', top: '20px', right: '20px' }}
+              style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}
             />
           </FlowCanvas>
         </div>

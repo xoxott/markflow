@@ -1,5 +1,22 @@
 # Flow 组件代码审查与优化建议
 
+## 实施状态（2026-05）
+
+以下项已在主渲染路径落地：
+
+- `useFlowCanvasCore` + `useFlowCanvasInteractions` 拆分；`FlowCanvas` 瘦身为壳
+- pan 期间 `stableViewportRef` 同步用于节点、边、背景网格
+- `useEdgeViewportCulling` 与节点裁剪策略对齐（`shallowRef` + RAF）
+- `useEdgePositions` 接入 `draggingNodeId`；Canvas 阈值基于可见边数量
+- `ConnectionPreview` 使用 `getNodeById`；`FlowCanvasContext` provide/inject（`FlowNodes`/`FlowEdges` 已消费 context）
+- `edge-canvas-draw` 统一 Canvas 边绘制；`vue-state-bridge` / `selection-bridge` 拆分
+- `enableRAFThrottle` 接入拖拽/连接；`enableVirtualScroll` / `useSelection` 标记弃用
+- 边渲染：`BaseEdge` 合并 computed、`withMemo`、`EdgeCanvasRenderer` watch/resize 修复
+
+后续计划与 Phase D 已落地：inject 消费、`edge-canvas-draw`、store 适配器、边 hover、Pinia 示例注释。可选跟进：Playwright 帧率抽检（见 [`docs/TESTING.md`](TESTING.md)）。
+
+---
+
 ## 📋 审查概览
 
 本次代码审查针对 Flow 组件的核心代码进行了全面分析，识别出以下优化点：
@@ -14,7 +31,7 @@
 
 ## 🚀 性能优化
 
-### 1. FlowCanvas 组件响应式数据过多 ⚠️ 高优先级
+### 1. FlowCanvas 组件响应式数据过多 ✅ 已实施
 
 **问题**：
 
@@ -74,7 +91,7 @@ const nodeStyle = computed(() => getStyle(node.value));
 
 ---
 
-### 2. ConnectionPreview 组件重复计算 ⚠️ 中优先级
+### 2. ConnectionPreview 组件重复计算 ✅ 已实施
 
 **问题**：
 
@@ -405,17 +422,15 @@ const getEdgePositions = (edge: FlowEdge): EdgePositions | null => {
 
 ## 🏗️ 架构优化
 
-### 1. FlowCanvas 组件职责过重 ⚠️ 高优先级
+### 1. FlowCanvas 组件职责过重 ✅ 已实施（组合式 Hook）
 
-**问题**：
+**原问题**：`FlowCanvas.tsx` 超过 400 行，包含 10+ 个 hooks 初始化。
 
-- `FlowCanvas.tsx` 超过 400 行
-- 包含 10+ 个 hooks 初始化
-- 组件 setup 函数过于复杂
+**已实施**：逻辑已提取至 [`hooks/useFlowCanvasCore.ts`](../hooks/useFlowCanvasCore.ts)，`FlowCanvas.tsx` 仅负责 props/render/expose。
 
-**优化建议**：
+**后续可选优化**：
 
-#### 方案 A：创建组合式 Hook
+#### 方案 A（已完成）：创建组合式 Hook
 
 ```typescript
 // hooks/useFlowCanvasCore.ts

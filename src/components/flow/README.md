@@ -251,6 +251,8 @@ if (!result.valid) {
 
 ### 性能优化
 
+生产环境边渲染由 `<FlowEdges>` 自动选择 SVG 或 `EdgeCanvasRenderer`（`enableEdgeCanvasRendering`）。细粒度导入可使用别名：`@/components/flow/hooks`、`@/components/flow/core`。
+
 ```typescript
 import { ViewportCuller, VirtualScroller, CanvasRenderer, FlowCache } from '@/components/flow';
 
@@ -262,21 +264,18 @@ const bounds = culler.calculateViewportBounds(viewport);
 const visibleNodes = culler.cullNodes(nodes, bounds);
 const visibleEdges = culler.cullEdges(edges, nodes, bounds);
 
-// 虚拟滚动器
-const scroller = new VirtualScroller(culler);
-scroller.setOptions({ threshold: 100, buffer: 200 });
+// 虚拟滚动器（已弃用：请使用 enableViewportCulling + useViewportCulling）
+// const scroller = new VirtualScroller(culler);
 
-const { visibleNodes, totalCount, visibleCount } = scroller.getVisibleNodes(nodes, viewport);
+// Canvas 边渲染（类 API，bench / 自定义集成；生产路径见 FlowEdges → EdgeCanvasRenderer）
+import { CanvasRenderer } from '@/components/flow';
 
-// Canvas 渲染器
 const canvasRenderer = new CanvasRenderer();
 canvasRenderer.setCanvas(canvasElement);
 canvasRenderer.setOptions({ threshold: 200, enableClickDetection: true });
 
 if (canvasRenderer.shouldUseCanvas(edges.length)) {
   canvasRenderer.render(edges, nodes, viewport, selectedEdgeIds);
-
-  // 点击检测
   const clickedEdgeId = canvasRenderer.detectClick(event.clientX, event.clientY);
 }
 
@@ -631,6 +630,31 @@ import {
   description="点击添加节点开始创建"
 />
 ```
+
+### FlowCanvas 上下文（inject）
+
+在 `<FlowCanvas>` 子树内（自定义节点、插件、工具栏等）可通过 `useFlowCanvasContext` 读取画布状态，无需经 `FlowCanvas` 逐层传 props：
+
+```typescript
+import { defineComponent } from 'vue';
+import { useFlowCanvasContext } from '@/components/flow';
+
+export default defineComponent({
+  name: 'MyCustomNodeOverlay',
+  setup() {
+    const { config, stableViewport, draggingNodeId, getNodeById } = useFlowCanvasContext();
+
+    return () => (
+      <div>
+        当前缩放: {stableViewport.value.zoom}
+        {draggingNodeId.value ? `拖拽中: ${draggingNodeId.value}` : null}
+      </div>
+    );
+  }
+});
+```
+
+`FlowNodes` / `FlowEdges` 已默认从上下文解析 `config`、`stableViewport`、`isPanning`、`draggingNodeId` 等；显式 props 仍可覆盖上下文值。
 
 ## 注意事项
 

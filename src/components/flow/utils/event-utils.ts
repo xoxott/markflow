@@ -103,6 +103,23 @@ export function createEventDelegation<T>(
  * @param options 额外选项
  * @returns 事件处理函数或 undefined
  */
+/** 边列表事件委托（data-edge-id） */
+export function createEdgeEventDelegation<T extends { id: string }>(
+  items: Ref<T[]>,
+  handler: ((item: T, event: MouseEvent) => void) | undefined
+): ((event: MouseEvent) => void) | undefined {
+  if (!handler) return undefined;
+
+  return createEventDelegation(
+    {
+      items,
+      getId: item => item.id,
+      dataAttribute: 'data-edge-id'
+    },
+    handler
+  );
+}
+
 export function createNodeEventDelegation<T extends { id: string }>(
   items: Ref<T[]>,
   handler: ((item: T, event: MouseEvent) => void) | undefined,
