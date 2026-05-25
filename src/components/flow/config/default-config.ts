@@ -23,9 +23,10 @@ export const DEFAULT_CANVAS_CONFIG: FlowCanvasConfig = {
   showGrid: true,
   gridType: 'dots',
   gridSize: 20,
-  gridColor: '#d1d5db',
-  gridOpacity: 0.8,
-  backgroundColor: '#ffffff',
+  gridColor: undefined,
+  gridOpacity: undefined,
+  /** 不设默认值，由 syncAppTheme + --flow-background-color 决定 */
+  backgroundColor: undefined,
   fitViewOnInit: false,
   fitViewOnResize: false,
   fitViewPadding: 0.2,
@@ -58,8 +59,10 @@ export const DEFAULT_EDGE_CONFIG: FlowEdgeConfig = {
   defaultType: 'bezier',
   defaultStrokeWidth: 2.5,
   defaultStrokeColor: '#cbd5e1',
-  selectedStrokeWidth: 3.5,
-  selectedStrokeColor: '#f5576c',
+  /** 与 defaultStrokeWidth 一致，选中仅改色不加粗 */
+  selectedStrokeWidth: 2.5,
+  /** 由 --flow-edge-selected / syncAppTheme 决定 */
+  selectedStrokeColor: undefined,
   hoverStrokeWidth: 3,
   hoverStrokeColor: '#94a3b8',
   showArrow: true,

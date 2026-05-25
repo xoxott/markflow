@@ -2,13 +2,9 @@
 
 import type { FlowEdge, FlowViewport } from '../types';
 import type { EdgePositions } from '../hooks/useEdgePositions';
-import {
-  ARROW_SIZES,
-  CANVAS_CONSTANTS,
-  EDGE_COLORS,
-  STROKE_WIDTHS
-} from '../constants/edge-constants';
+import { ARROW_SIZES, CANVAS_CONSTANTS, STROKE_WIDTHS } from '../constants/edge-constants';
 import { calculateArrowSize, calculateStrokeWidth } from './edge-style-utils';
+import { resolveEdgeColors } from './edge-theme-utils';
 
 export interface DrawEdgesOnCanvasOptions {
   edges: FlowEdge[];
@@ -17,6 +13,8 @@ export interface DrawEdgesOnCanvasOptions {
   selectedEdgeIds: Set<string> | string[];
   clearWidth: number;
   clearHeight: number;
+  /** 主题根元素（通常为 .flow-canvas） */
+  themeRoot?: HTMLElement | null;
 }
 
 function isEdgeSelected(edgeId: string, selected: Set<string> | string[]): boolean {
@@ -31,9 +29,11 @@ export function drawEdgesOnCanvas(
   ctx: CanvasRenderingContext2D,
   options: DrawEdgesOnCanvasOptions
 ): void {
-  const { edges, getEdgePositions, viewport, selectedEdgeIds, clearWidth, clearHeight } = options;
+  const { edges, getEdgePositions, viewport, selectedEdgeIds, clearWidth, clearHeight, themeRoot } =
+    options;
 
   ctx.clearRect(0, 0, clearWidth, clearHeight);
+  const colors = resolveEdgeColors(themeRoot);
 
   edges.forEach(edge => {
     const positions = getEdgePositions(edge);
@@ -42,9 +42,9 @@ export function drawEdgesOnCanvas(
     }
 
     const isSelected = isEdgeSelected(edge.id, selectedEdgeIds);
-    ctx.strokeStyle = isSelected ? EDGE_COLORS.SELECTED : EDGE_COLORS.DEFAULT;
+    ctx.strokeStyle = isSelected ? colors.selected : colors.default;
     const zoom = viewport.zoom;
-    const baseLineWidth = isSelected ? STROKE_WIDTHS.SELECTED : STROKE_WIDTHS.BASE;
+    const baseLineWidth = STROKE_WIDTHS.BASE;
     ctx.lineWidth = calculateStrokeWidth(baseLineWidth, zoom);
     ctx.lineCap = CANVAS_CONSTANTS.LINE_CAP;
     ctx.lineJoin = CANVAS_CONSTANTS.LINE_JOIN;

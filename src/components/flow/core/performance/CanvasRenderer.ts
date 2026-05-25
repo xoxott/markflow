@@ -107,7 +107,8 @@ export class CanvasRenderer {
       viewport,
       selectedEdgeIds,
       clearWidth: width,
-      clearHeight: height
+      clearHeight: height,
+      themeRoot: this.canvas?.closest('.flow-canvas') as HTMLElement | null
     });
 
     if (this.options.enableClickDetection) {

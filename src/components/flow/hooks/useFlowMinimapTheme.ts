@@ -9,7 +9,7 @@ import type { MinimapTheme } from '../minimap/types';
 import { DEFAULT_MINIMAP_THEME } from '../minimap/types';
 
 /** 视口框半透明填充（勿用 primaryColorSuppl，会挡住节点） */
-function viewportFillFromPrimary(primaryColor: string, alphaPercent = 14): string {
+export function viewportFillFromPrimary(primaryColor: string, alphaPercent = 14): string {
   return `color-mix(in srgb, ${primaryColor} ${alphaPercent}%, transparent)`;
 }
 

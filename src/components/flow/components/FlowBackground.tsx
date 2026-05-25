@@ -57,15 +57,15 @@ export default defineComponent({
     },
     gridColor: {
       type: String,
-      default: GRID_CONSTANTS.DEFAULT_GRID_COLOR
+      default: undefined
     },
     gridOpacity: {
       type: Number,
-      default: GRID_CONSTANTS.DEFAULT_GRID_OPACITY
+      default: undefined
     },
     backgroundColor: {
       type: String,
-      default: GRID_CONSTANTS.DEFAULT_BACKGROUND_COLOR
+      default: undefined
     },
     viewport: {
       type: Object as PropType<FlowViewport>,
@@ -118,10 +118,15 @@ export default defineComponent({
       return baseStyle;
     });
 
+    const resolvedGridColor = computed(() => props.gridColor ?? 'var(--flow-grid-color, #d1d5db)');
+    const resolvedGridOpacity = computed(
+      () => props.gridOpacity ?? GRID_CONSTANTS.DEFAULT_GRID_OPACITY
+    );
+
     // 计算背景样式
     const backgroundStyle = computed(() => {
       const baseStyle: Record<string, any> = {
-        backgroundColor: props.backgroundColor,
+        backgroundColor: props.backgroundColor ?? 'var(--flow-background-color)',
         ...props.style
       };
 
@@ -196,8 +201,8 @@ export default defineComponent({
 
       return generateGridPattern(props.gridType, {
         patternSize: patternSize.value,
-        gridColor: props.gridColor,
-        gridOpacity: props.gridOpacity,
+        gridColor: resolvedGridColor.value,
+        gridOpacity: resolvedGridOpacity.value,
         zoom: props.viewport.zoom,
         idPrefix: idPrefix.value,
         patternX: patternX.value,

@@ -41,4 +41,6 @@ export interface FlowCanvasProps {
   style?: Record<string, string | number> | import('vue').CSSProperties;
   /** CSS 类名 */
   class?: string;
+  /** 跟随应用 Naive / themeStore 主题（默认 true） */
+  syncAppTheme?: boolean;
 }

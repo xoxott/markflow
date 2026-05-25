@@ -8,10 +8,9 @@
 import '../styles/index.scss';
 
 import type { CSSProperties, PropType } from 'vue';
-import { defineComponent, provide, watchEffect } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useThemeStore } from '@/store/modules/theme';
+import { computed, defineComponent, provide } from 'vue';
 import { type FlowCanvasEmit, useFlowCanvasCore } from '../hooks/useFlowCanvasCore';
+import { useFlowCanvasTheme } from '../hooks/useFlowCanvasTheme';
 import type { FlowCanvasProps } from '../types/flow-canvas';
 import type { FlowEdge, FlowNode, FlowViewport } from '../types';
 import { flowCanvasContextKey } from '../context/flow-canvas-context';
@@ -62,6 +61,11 @@ export default defineComponent({
     class: {
       type: String,
       default: ''
+    },
+    /** 跟随应用 Naive / themeStore 主题（默认 true） */
+    syncAppTheme: {
+      type: Boolean,
+      default: true
     }
   },
   emits: [
@@ -78,13 +82,20 @@ export default defineComponent({
       emit: emit as FlowCanvasEmit
     });
 
-    const { darkMode } = storeToRefs(useThemeStore());
+    const flowTheme = useFlowCanvasTheme({
+      syncAppTheme: props.syncAppTheme,
+      canvasRef: core.canvasRef
+    });
 
-    watchEffect(() => {
-      const el = core.canvasRef.value;
-      if (el) {
-        el.setAttribute('data-flow-theme', darkMode.value ? 'dark' : 'light');
-      }
+    const canvasStyle = computed(() => {
+      const fromCore = core.canvasStyle.value as CSSProperties;
+      const themedBg = flowTheme.resolvedColors.value.backgroundColor;
+
+      return {
+        ...flowTheme.cssVars.value,
+        ...fromCore,
+        backgroundColor: fromCore.backgroundColor ?? themedBg
+      };
     });
 
     provide(flowCanvasContextKey, {
@@ -117,6 +128,7 @@ export default defineComponent({
       setViewport: core.setViewport,
       panViewport: core.panViewport,
       zoomViewport: core.zoomViewport,
+      fitView: core.fitView,
       selectNode: core.selectNode,
       selectNodes: core.selectNodes,
       selectEdge: core.selectEdge,
@@ -134,8 +146,8 @@ export default defineComponent({
     return () => (
       <div
         ref={core.canvasRef}
-        class={`flow-canvas ${props.class}`}
-        style={core.canvasStyle.value as CSSProperties}
+        class={['flow-canvas', flowTheme.themeClass.value, props.class]}
+        style={canvasStyle.value}
       >
         {slots.background
           ? slots.background({ viewport: core.viewport.value })
@@ -144,9 +156,17 @@ export default defineComponent({
                 showGrid={core.config.value.canvas?.showGrid}
                 gridType={core.config.value.canvas?.gridType || 'dots'}
                 gridSize={core.config.value.canvas?.gridSize || 20}
-                gridColor={core.config.value.canvas?.gridColor}
-                gridOpacity={core.config.value.canvas?.gridOpacity}
-                backgroundColor={core.config.value.canvas?.backgroundColor}
+                gridColor={
+                  core.config.value.canvas?.gridColor ?? flowTheme.resolvedColors.value.gridColor
+                }
+                gridOpacity={
+                  core.config.value.canvas?.gridOpacity ??
+                  flowTheme.resolvedColors.value.gridOpacity
+                }
+                backgroundColor={
+                  core.config.value.canvas?.backgroundColor ??
+                  flowTheme.resolvedColors.value.backgroundColor
+                }
                 viewport={core.stableViewportRef.value}
                 instanceId={core.defaultInstanceId.value}
                 isPanning={core.isPanning.value}

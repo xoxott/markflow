@@ -4,20 +4,19 @@
  * 集中管理连接线渲染相关的所有常量，提高可维护性
  */
 
-/**
- * 连接线颜色常量
- *
- * 注意：这些值仅作为默认值，实际颜色应该从 CSS 变量中获取 使用 getCssVariable() 函数可以获取当前主题的颜色值 CSS 变量名：--flow-edge-default,
- * --flow-edge-selected, --flow-edge-hovered, --flow-edge-label
- */
+/** 连接线颜色（SVG / 内联样式用 CSS 变量，继承 .flow-canvas 主题） */
+export const EDGE_CSS_VARS = {
+  DEFAULT: 'var(--flow-edge-default, #cbd5e1)',
+  SELECTED: 'var(--flow-edge-selected, #2080f0)',
+  HOVERED: 'var(--flow-edge-hovered, #94a3b8)',
+  LABEL: 'var(--flow-edge-label, #64748b)'
+} as const;
+
+/** Canvas 等无法使用 var() 时的回退色（与 light 主题一致） */
 export const EDGE_COLORS = {
-  /** 默认连接线颜色 */
   DEFAULT: '#cbd5e1',
-  /** 选中连接线颜色 */
-  SELECTED: '#f5576c',
-  /** 悬停连接线颜色 */
+  SELECTED: '#2080f0',
   HOVERED: '#94a3b8',
-  /** 标签文字颜色 */
   LABEL: '#64748b'
 } as const;
 

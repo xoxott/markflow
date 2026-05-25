@@ -10,7 +10,7 @@ import type { FlowEdge } from '../../types/flow-edge';
 import {
   ANIMATION_CONSTANTS,
   EDGE_CLASS_NAMES,
-  EDGE_COLORS,
+  EDGE_CSS_VARS,
   ID_PREFIXES,
   LABEL_STYLES,
   MARKER_SUFFIXES,
@@ -141,7 +141,7 @@ export default defineComponent({
       const edgeStyle: CSSProperties = {
         fill: 'none',
         strokeWidth: scaledStrokeWidth,
-        stroke: EDGE_COLORS.DEFAULT,
+        stroke: EDGE_CSS_VARS.DEFAULT,
         pointerEvents: 'stroke',
         cursor: 'pointer',
         ...props.edge.style,
@@ -149,11 +149,10 @@ export default defineComponent({
       };
 
       if (props.selected) {
-        edgeStyle.strokeWidth = calculateStrokeWidth(STROKE_WIDTHS.SELECTED, zoom);
-        edgeStyle.stroke = EDGE_COLORS.SELECTED;
+        edgeStyle.stroke = EDGE_CSS_VARS.SELECTED;
       } else if (props.hovered) {
         edgeStyle.strokeWidth = calculateStrokeWidth(STROKE_WIDTHS.HOVERED, zoom);
-        edgeStyle.stroke = EDGE_COLORS.HOVERED;
+        edgeStyle.stroke = EDGE_CSS_VARS.HOVERED;
       }
 
       if (props.edge.animated) {
@@ -251,7 +250,7 @@ export default defineComponent({
               dominant-baseline={LABEL_STYLES.DOMINANT_BASELINE}
               style={{
                 fontSize: LABEL_STYLES.FONT_SIZE,
-                fill: EDGE_COLORS.LABEL,
+                fill: EDGE_CSS_VARS.LABEL,
                 pointerEvents: 'none',
                 ...props.edge.labelStyle
               }}

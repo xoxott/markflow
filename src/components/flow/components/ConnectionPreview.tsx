@@ -9,7 +9,7 @@ import { getHandlePositionScreen } from '../utils/node-utils';
 import { generateEdgePath } from '../utils/edge-path-generator';
 import {
   ANIMATION_CONSTANTS,
-  EDGE_COLORS,
+  EDGE_CSS_VARS,
   ID_PREFIXES,
   MARKER_SUFFIXES
 } from '../constants/edge-constants';
@@ -196,7 +196,7 @@ export default defineComponent({
               orient="auto"
               markerUnits="userSpaceOnUse"
             >
-              <path d={arrowConfig.path} fill={EDGE_COLORS.DEFAULT} />
+              <path d={arrowConfig.path} fill={EDGE_CSS_VARS.DEFAULT} />
             </marker>
           </defs>
 

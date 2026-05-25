@@ -63,6 +63,7 @@ export default defineComponent({
       }
 
       const { width, height } = ensureCanvasLayoutSize(canvas, ctx);
+      const themeRoot = canvas.closest('.flow-canvas') as HTMLElement | null;
 
       drawEdgesOnCanvas(ctx, {
         edges: props.visibleEdges,
@@ -70,7 +71,8 @@ export default defineComponent({
         viewport: props.viewport,
         selectedEdgeIds: props.selectedEdgeIdsSet,
         clearWidth: width,
-        clearHeight: height
+        clearHeight: height,
+        themeRoot
       });
     };
 

@@ -10,6 +10,7 @@ import { FlowEventEmitter } from '../core/events/FlowEventEmitter';
 import type { FlowEdge, FlowNode, FlowViewport } from '../types';
 import type { FlowCanvasProps } from '../types/flow-canvas';
 import { warnUnusedPerformanceFlags } from '../utils/flow-config-warnings';
+import { computeFitViewViewport } from '../utils/viewport-utils';
 import { registerFlowCanvasShortcuts } from './useFlowCanvasKeyboard';
 import { useFlowConfig } from './useFlowConfig';
 import { useFlowState } from './useFlowState';
@@ -84,6 +85,7 @@ export interface UseFlowCanvasCoreReturn {
   setViewport: ReturnType<typeof useFlowState>['setViewport'];
   panViewport: ReturnType<typeof useFlowState>['panViewport'];
   zoomViewport: ReturnType<typeof useFlowState>['zoomViewport'];
+  fitView: (padding?: number) => boolean;
   selectNode: ReturnType<typeof useFlowState>['selectNode'];
   selectNodes: ReturnType<typeof useFlowState>['selectNodes'];
   selectEdge: ReturnType<typeof useFlowState>['selectEdge'];
@@ -251,7 +253,7 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
       width: typeof props.width === 'number' ? `${props.width}px` : props.width,
       height: typeof props.height === 'number' ? `${props.height}px` : props.height,
       overflow: 'hidden',
-      backgroundColor: config.value.canvas?.backgroundColor || '#ffffff',
+      backgroundColor: config.value.canvas?.backgroundColor,
       ...(props.style as CSSProperties | undefined)
     })
   );
@@ -309,10 +311,54 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     handlePortMouseDownHook(nodeId, handleId, handleType, event);
   };
 
+  const resolveFitViewPadding = (override?: number): number => {
+    if (override !== undefined) {
+      return override;
+    }
+    const cfgPad = config.value.canvas?.fitViewPadding;
+    if (typeof cfgPad === 'number') {
+      return cfgPad;
+    }
+    if (cfgPad && typeof cfgPad === 'object') {
+      return Math.max(cfgPad.x, cfgPad.y);
+    }
+    return 0.2;
+  };
+
+  const fitView = (padding?: number): boolean => {
+    const el = canvasRef.value;
+    if (!el || nodes.value.length === 0) {
+      return false;
+    }
+
+    const canvasCfg = config.value.canvas;
+    const nodeCfg = config.value.nodes;
+    const vp = computeFitViewViewport(nodes.value, {
+      width: el.clientWidth,
+      height: el.clientHeight,
+      padding: resolveFitViewPadding(padding),
+      minZoom: canvasCfg?.minZoom,
+      maxZoom: canvasCfg?.maxZoom,
+      defaultNodeWidth: nodeCfg?.defaultWidth,
+      defaultNodeHeight: nodeCfg?.defaultHeight
+    });
+
+    if (!vp) {
+      return false;
+    }
+
+    setViewport(vp);
+    emit('viewport-change', vp);
+    return true;
+  };
+
   onMounted(() => {
     warnUnusedPerformanceFlags(config.value);
     startPropsSync();
     startConfigSync();
+    if (config.value.canvas?.fitViewOnInit) {
+      requestAnimationFrame(() => fitView());
+    }
   });
 
   onUnmounted(() => {
@@ -358,6 +404,7 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     setViewport,
     panViewport,
     zoomViewport,
+    fitView,
     selectNode,
     selectNodes,
     selectEdge,

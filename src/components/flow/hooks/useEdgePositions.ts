@@ -5,6 +5,7 @@
  */
 
 import { type Ref, computed } from 'vue';
+import { resolveEdgeHandles } from '../utils/edge-handle-utils';
 import { getHandlePositionScreen, getNodeCenterScreen } from '../utils/node-utils';
 import { createCache } from '../utils/cache-utils';
 import { floorCoordinate, roundZoomKey } from '../utils/cache-key-utils';
@@ -126,22 +127,23 @@ function calculateEdgePositions(
   targetNode: FlowNode,
   viewport: FlowViewport
 ): EdgePositions {
-  // 获取源节点/端口位置
-  const sourcePos = getNodeOrHandlePosition(sourceNode, edge.sourceHandle, viewport);
+  const { sourceHandle, targetHandle } = resolveEdgeHandles(edge, sourceNode, targetNode);
 
-  // 获取目标节点/端口位置
-  const targetPos = getNodeOrHandlePosition(targetNode, edge.targetHandle, viewport);
+  const sourcePos = getNodeOrHandlePosition(sourceNode, sourceHandle, viewport);
+  const targetPos = getNodeOrHandlePosition(targetNode, targetHandle, viewport);
+
+  const sourceAtHandle = Boolean(sourceHandle);
+  const targetAtHandle = Boolean(targetHandle);
 
   return {
     sourceX: sourcePos.x,
     sourceY: sourcePos.y,
     targetX: targetPos.x,
     targetY: targetPos.y,
-    // 确保端口位置正确传递
-    sourceHandleX: edge.sourceHandle ? sourcePos.x : undefined,
-    sourceHandleY: edge.sourceHandle ? sourcePos.y : undefined,
-    targetHandleX: edge.targetHandle ? targetPos.x : undefined,
-    targetHandleY: edge.targetHandle ? targetPos.y : undefined
+    sourceHandleX: sourceAtHandle ? sourcePos.x : undefined,
+    sourceHandleY: sourceAtHandle ? sourcePos.y : undefined,
+    targetHandleX: targetAtHandle ? targetPos.x : undefined,
+    targetHandleY: targetAtHandle ? targetPos.y : undefined
   };
 }
 

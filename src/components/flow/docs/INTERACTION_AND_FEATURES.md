@@ -127,7 +127,7 @@ components/FlowMinimap.tsx # 薄 UI + node 插槽
 
 与 [`ai-workflow/canvas/Minimap.tsx`](../../ai-workflow/canvas/Minimap.tsx) 同链路：`bounds → scale → viewportRect`。扩展点：`theme`、`padding`、`maxScale`、`resolveNodeColor`、`#node` 插槽。
 
-- **主题**：默认 `syncAppTheme` 跟随应用 `themeStore` + Naive `themeVars`（主色、卡片色、边框色）；CSS 变量 `--flow-minimap-*`，`html.dark` / `data-flow-theme` 双通道
+- **主题**：`FlowCanvas` / `FlowMinimap` 默认 `syncAppTheme`，经 `useFlowCanvasTheme` 注入 `--flow-*`（背景、网格、节点、边、小地图）；`html.dark` + `data-flow-theme` 静态兜底
 - inject：`nodes`、`viewport`、`canvasRef`、`setViewport`（勿传 `nodes={arr.value}`）
 - 拖节点时关闭红框过渡，跟手更新（`draggingNodeId`）
 

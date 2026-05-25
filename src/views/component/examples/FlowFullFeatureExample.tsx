@@ -11,6 +11,7 @@ import type { FlowEdge, FlowNode, FlowViewport } from '@/components/flow';
 interface FlowCanvasExposed {
   setViewport: (viewport: Partial<FlowViewport>) => void;
   zoomViewport: (zoom: number, centerX?: number, centerY?: number) => void;
+  fitView: (padding?: number) => boolean;
 }
 
 export default defineComponent({
@@ -41,7 +42,7 @@ export default defineComponent({
         handles: [
           { id: 'target-f2', type: 'target', position: 'left' },
           { id: 'source-f2', type: 'source', position: 'right' },
-          { id: 'target-f2-bottom', type: 'target', position: 'bottom' }
+          { id: 'source-f2-bottom', type: 'source', position: 'bottom' }
         ]
       },
       {
@@ -62,12 +63,16 @@ export default defineComponent({
         id: 'full-edge-1',
         source: 'full-1',
         target: 'full-2',
+        sourceHandle: 'source-f1',
+        targetHandle: 'target-f2',
         type: 'bezier'
       },
       {
         id: 'full-edge-2',
         source: 'full-2',
         target: 'full-3',
+        sourceHandle: 'source-f2-bottom',
+        targetHandle: 'target-f3',
         type: 'bezier'
       }
     ]);
@@ -84,30 +89,9 @@ export default defineComponent({
     };
 
     const handleFitView = () => {
-      if (fullFeatureNodes.value.length === 0) {
-        return;
+      if (flowRef.value?.fitView()) {
+        message.success('已适应视图');
       }
-      const minX = Math.min(...fullFeatureNodes.value.map(n => n.position.x));
-      const minY = Math.min(...fullFeatureNodes.value.map(n => n.position.y));
-      const maxX = Math.max(
-        ...fullFeatureNodes.value.map(n => n.position.x + (n.size?.width || 150))
-      );
-      const maxY = Math.max(
-        ...fullFeatureNodes.value.map(n => n.position.y + (n.size?.height || 60))
-      );
-
-      const centerX = (minX + maxX) / 2;
-      const centerY = (minY + maxY) / 2;
-      const width = Math.max(maxX - minX, 1);
-      const height = Math.max(maxY - minY, 1);
-
-      const scale = Math.min(700 / width, 350 / height, 1);
-      flowRef.value?.setViewport({
-        x: 350 - centerX * scale,
-        y: 175 - centerY * scale,
-        zoom: scale
-      });
-      message.success('已适应视图');
     };
 
     return () => (

@@ -25,7 +25,7 @@ $flow-handle-border-default: var(--flow-handle-border-default, #2080f0) !default
 
 // 连接线相关颜色
 $flow-edge-default: var(--flow-edge-default, #cbd5e1) !default;
-$flow-edge-selected: var(--flow-edge-selected, #f5576c) !default;
+$flow-edge-selected: var(--flow-edge-selected, #2080f0) !default;
 $flow-edge-hovered: var(--flow-edge-hovered, #94a3b8) !default;
 $flow-edge-label: var(--flow-edge-label, #64748b) !default;
 
@@ -44,6 +44,14 @@ $flow-minimap-node-fill: var(--flow-minimap-node-fill, #2080f0) !default;
 $flow-minimap-node-opacity: var(--flow-minimap-node-opacity, 0.75) !default;
 $flow-minimap-viewport-stroke: var(--flow-minimap-viewport-stroke, #2080f0) !default;
 $flow-minimap-viewport-fill: var(--flow-minimap-viewport-fill, rgba(32, 128, 240, 0.12)) !default;
+
+// 工具栏
+$flow-toolbar-bg: var(--flow-toolbar-bg, rgba(255, 255, 255, 0.92)) !default;
+$flow-toolbar-border: var(--flow-toolbar-border, #e5e7eb) !default;
+$flow-toolbar-text: var(--flow-toolbar-text, #64748b) !default;
+$flow-toolbar-button-bg: var(--flow-toolbar-button-bg, #ffffff) !default;
+$flow-toolbar-button-border: var(--flow-toolbar-button-border, #e5e7eb) !default;
+$flow-toolbar-shadow: var(--flow-toolbar-shadow, 0 2px 8px rgba(0, 0, 0, 0.1)) !default;
 
 // ==================== 尺寸变量 ====================
 

@@ -13,7 +13,7 @@ import type { FlowEdge, FlowViewport } from '../../types';
 import type { EdgePositions } from '../../hooks/useEdgePositions';
 import {
   EDGE_CLASS_NAMES,
-  EDGE_COLORS,
+  EDGE_CSS_VARS,
   ID_PREFIXES,
   MARKER_PATH_SUFFIXES,
   MARKER_SUFFIXES
@@ -163,17 +163,17 @@ export default defineComponent({
             <path
               id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`}
               d={arrowConfig.value.path}
-              fill={EDGE_COLORS.DEFAULT}
+              fill={EDGE_CSS_VARS.DEFAULT}
             />
             <path
               id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.SELECTED}`}
               d={arrowConfig.value.path}
-              fill={EDGE_COLORS.SELECTED}
+              fill={EDGE_CSS_VARS.SELECTED}
             />
             <path
               id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`}
               d={arrowConfig.value.path}
-              fill={EDGE_COLORS.HOVERED}
+              fill={EDGE_CSS_VARS.HOVERED}
             />
 
             {/* 箭头标记 */}

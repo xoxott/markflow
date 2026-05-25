@@ -5,7 +5,6 @@
  */
 
 import { type PropType, computed, defineComponent } from 'vue';
-import { createCache } from '../../utils/cache-utils';
 import { calculateNodeClass, calculateNodeContainerStyle } from '../../utils/node-style-utils';
 import {
   calculateHandlePositionStyle,
@@ -71,28 +70,12 @@ export default defineComponent({
   },
   emits: ['port-mousedown', 'port-mouseup', 'port-mouseenter', 'port-mouseleave'],
   setup(props, { emit, slots }) {
-    // 使用缓存,避免不必要的重新渲染
-    const styleCache = createCache<string, Record<string, any>>({
-      maxSize: 50,
-      cleanupSize: 10
-    });
-
-    // 计算节点样式
-    const nodeStyle = computed(() => {
-      const cacheKey = `${props.selected}-${props.dragging}-${props.hovered}-${props.locked}-${props.node.size?.width || 150}-${props.node.size?.height || 60}`;
-      const cached = styleCache.get(cacheKey);
-      if (cached) return cached;
-      const baseStyle = calculateNodeContainerStyle({
+    const nodeStyle = computed(() =>
+      calculateNodeContainerStyle({
         node: props.node,
-        selected: props.selected,
-        locked: props.locked,
-        hovered: props.hovered,
-        dragging: props.dragging,
         customStyle: props.style
-      });
-      styleCache.set(cacheKey, baseStyle);
-      return baseStyle;
-    });
+      })
+    );
 
     // 计算节点类名
     const nodeClass = computed(() => {
@@ -171,41 +154,9 @@ export default defineComponent({
               textAlign: 'center'
             }}
           >
-            <div
-              class="flow-node-title"
-              style={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: 'var(--flow-node-text, #333333)',
-                lineHeight: '1.4',
-                wordBreak: 'break-word',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical'
-              }}
-            >
-              {props.node.data?.label || props.node.id}
-            </div>
+            <div class="flow-node-title">{props.node.data?.label || props.node.id}</div>
             {props.node.data?.description && (
-              <div
-                class="flow-node-description"
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--flow-node-text-secondary, #666666)',
-                  marginTop: '4px',
-                  lineHeight: '1.3',
-                  wordBreak: 'break-word',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 1,
-                  WebkitBoxOrient: 'vertical'
-                }}
-              >
-                {props.node.data.description}
-              </div>
+              <div class="flow-node-description">{props.node.data.description}</div>
             )}
           </div>
         )}

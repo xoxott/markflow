@@ -27,7 +27,7 @@
 
     // 连接线颜色
     --flow-edge-default: #cbd5e1;
-    --flow-edge-selected: #f5576c;
+    --flow-edge-selected: #2080f0;
     --flow-edge-hovered: #94a3b8;
     --flow-edge-label: #64748b;
 
@@ -45,6 +45,13 @@
     --flow-minimap-node-opacity: 0.75;
     --flow-minimap-viewport-stroke: #2080f0;
     --flow-minimap-viewport-fill: rgba(32, 128, 240, 0.1);
+
+    --flow-toolbar-bg: rgba(255, 255, 255, 0.92);
+    --flow-toolbar-border: #e5e7eb;
+    --flow-toolbar-text: #64748b;
+    --flow-toolbar-button-bg: #ffffff;
+    --flow-toolbar-button-border: #e5e7eb;
+    --flow-toolbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -66,7 +73,7 @@
 
     // 连接线颜色
     --flow-edge-default: #4a5568;
-    --flow-edge-selected: #f87171;
+    --flow-edge-selected: #4a9eff;
     --flow-edge-hovered: #64748b;
     --flow-edge-label: #94a3b8;
 
@@ -84,5 +91,12 @@
     --flow-minimap-node-opacity: 0.8;
     --flow-minimap-viewport-stroke: #4a9eff;
     --flow-minimap-viewport-fill: rgba(74, 158, 255, 0.12);
+
+    --flow-toolbar-bg: rgba(30, 30, 30, 0.92);
+    --flow-toolbar-border: #404040;
+    --flow-toolbar-text: #94a3b8;
+    --flow-toolbar-button-bg: #2a2a2a;
+    --flow-toolbar-button-border: #404040;
+    --flow-toolbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   }
 }
