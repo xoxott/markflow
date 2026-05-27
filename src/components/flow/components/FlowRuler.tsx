@@ -1,13 +1,5 @@
-import type { PropType } from 'vue';
-import {
-  CSSProperties,
-  Fragment,
-  computed,
-  defineComponent,
-  onMounted,
-  onUnmounted,
-  ref
-} from 'vue';
+import type { CSSProperties, PropType } from 'vue';
+import { Fragment, computed, defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import type { FlowConfig, FlowPosition, FlowViewport } from '../types';
 import type { FlowGuideAxis } from '../types/flow-guide';
 import {
