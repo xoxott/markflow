@@ -11,7 +11,6 @@ import type { FlowNode, FlowViewport } from '../types';
 import { filterNodesByOriginalOrder } from '../utils/node-order-utils';
 import { isBoolean, isFunction } from '../utils/type-utils';
 import { performanceMonitor } from '../utils/performance-monitor';
-import { devPerfLog, devPerfWarn } from '../utils/dev-log';
 import { useRafThrottle } from './useRafThrottle';
 
 /** 视口裁剪 Hook 选项 */
@@ -185,17 +184,6 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
         filterTime: filterTime - filterStart,
         isPanning: isPanning?.value
       });
-
-      // 如果视口裁剪耗时超过阈值，立即输出警告
-      if (totalTime > 5) {
-        devPerfWarn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
-          nodesCount: nodes.value.length,
-          visibleCount: newVisibleNodes.length,
-          queryTime: `${(queryTime - queryStart).toFixed(2)}ms`,
-          filterTime: `${(filterTime - filterStart).toFixed(2)}ms`,
-          isPanning: isPanning?.value
-        });
-      }
     } else {
       // 线性查找（节点数量少时使用）
       newVisibleNodes = nodes.value.filter(node =>
@@ -209,15 +197,6 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
         usedSpatialIndex: false,
         isPanning: isPanning?.value
       });
-
-      // 如果视口裁剪耗时超过阈值，立即输出警告
-      if (totalTime > 5) {
-        devPerfWarn('[Performance] viewportCulling 耗时:', `${totalTime.toFixed(2)}ms`, {
-          nodesCount: nodes.value.length,
-          visibleCount: newVisibleNodes.length,
-          isPanning: isPanning?.value
-        });
-      }
     }
 
     return newVisibleNodes;
@@ -246,7 +225,6 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
    * 注意：即使节点 ID 集合没变，如果节点对象引用变化了（比如节点位置更新）， 也需要更新 visibleNodesRef，否则 FlowNodes 无法检测到节点位置变化
    */
   const updateVisibleNodes = () => {
-    const updateStart = performance.now();
     const newVisibleNodes = calculateVisibleNodes();
     const newIds = new Set(newVisibleNodes.map(n => n.id));
 
@@ -267,27 +245,6 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
       visibleNodesRef.value = newVisibleNodes;
       lastVisibleNodeIds.clear();
       newIds.forEach(id => lastVisibleNodeIds.add(id));
-
-      const updateTime = performance.now() - updateStart;
-      if (updateTime > 1 || idsChanged) {
-        devPerfLog('[Performance] useViewportCulling 更新可见节点:', {
-          time: `${updateTime.toFixed(3)}ms`,
-          visibleCount: newVisibleNodes.length,
-          idsChanged,
-          nodesRefChanged
-        });
-      }
-    } else {
-      // 节点 ID 集合和节点对象引用都没变化，不更新引用，避免 FlowNodes 重新渲染
-      const updateTime = performance.now() - updateStart;
-      if (updateTime > 1) {
-        devPerfLog('[Performance] useViewportCulling 跳过更新（可见节点未变化）:', {
-          time: `${updateTime.toFixed(3)}ms`,
-          visibleCount: newVisibleNodes.length,
-          idsChanged: false,
-          nodesRefChanged: false
-        });
-      }
     }
   };
 
@@ -311,13 +268,6 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
         nodesCount: nodes.value.length,
         enabled: enabledRef.value,
         hasSpatialIndex: Boolean(spatialIndex?.value)
-      });
-
-      // 记录所有 watch 触发（用于调试）
-      devPerfLog('[Performance] nodesWatch 触发:', {
-        time: `${watchTime.toFixed(3)}ms`,
-        nodesCount: nodes.value.length,
-        enabled: enabledRef.value
       });
     },
     { immediate: true, deep: false }

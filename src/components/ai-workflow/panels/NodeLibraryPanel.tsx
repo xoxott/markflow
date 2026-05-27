@@ -1,7 +1,8 @@
 import { defineComponent, ref } from 'vue';
 import { NCollapse, NCollapseItem, NEmpty, NIcon, NScrollbar } from 'naive-ui';
 import { Icon } from '@iconify/vue';
-import { getNodesByCategory } from '../nodes/NodeRegistry';
+import { WORKFLOW_DRAG_MIME } from '../constants/workflow-layout';
+import { getNodesByCategory } from '../registry/node-registry';
 
 export default defineComponent({
   name: 'NodeLibraryPanel',
@@ -19,7 +20,7 @@ export default defineComponent({
     const handleDragStart = (type: Api.Workflow.NodeType, e: DragEvent) => {
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = 'copy';
-        e.dataTransfer.setData('application/workflow-node', type);
+        e.dataTransfer.setData(WORKFLOW_DRAG_MIME, type);
 
         // 创建自定义拖拽预览
         const target = e.currentTarget as HTMLElement;

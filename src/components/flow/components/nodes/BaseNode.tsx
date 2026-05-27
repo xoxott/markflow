@@ -25,6 +25,34 @@ export interface BaseNodeProps {
   hovered?: boolean;
   /** 是否正在拖拽 */
   dragging?: boolean;
+  /** 端口鼠标按下 */
+  onPortMousedown?: (
+    nodeId: string,
+    handleId: string,
+    handleType: 'source' | 'target',
+    event: MouseEvent
+  ) => void;
+  /** 端口鼠标抬起 */
+  onPortMouseup?: (
+    nodeId: string,
+    handleId: string,
+    handleType: 'source' | 'target',
+    event: MouseEvent
+  ) => void;
+  /** 端口鼠标进入 */
+  onPortMouseenter?: (
+    nodeId: string,
+    handleId: string,
+    handleType: 'source' | 'target',
+    event: MouseEvent
+  ) => void;
+  /** 端口鼠标离开 */
+  onPortMouseleave?: (
+    nodeId: string,
+    handleId: string,
+    handleType: 'source' | 'target',
+    event: MouseEvent
+  ) => void;
   /** 自定义样式 */
   style?: Record<string, any>;
   /** CSS 类名 */
@@ -59,6 +87,22 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
+    onPortMousedown: {
+      type: Function as PropType<BaseNodeProps['onPortMousedown']>,
+      default: undefined
+    },
+    onPortMouseup: {
+      type: Function as PropType<BaseNodeProps['onPortMouseup']>,
+      default: undefined
+    },
+    onPortMouseenter: {
+      type: Function as PropType<BaseNodeProps['onPortMouseenter']>,
+      default: undefined
+    },
+    onPortMouseleave: {
+      type: Function as PropType<BaseNodeProps['onPortMouseleave']>,
+      default: undefined
+    },
     style: {
       type: Object as PropType<Record<string, any>>,
       default: () => ({})
@@ -68,7 +112,32 @@ export default defineComponent({
       default: ''
     }
   },
-  emits: ['port-mousedown', 'port-mouseup', 'port-mouseenter', 'port-mouseleave'],
+  emits: {
+    'port-mousedown': (
+      _nodeId: string,
+      _handleId: string,
+      _handleType: 'source' | 'target',
+      _event: MouseEvent
+    ) => true,
+    'port-mouseup': (
+      _nodeId: string,
+      _handleId: string,
+      _handleType: 'source' | 'target',
+      _event: MouseEvent
+    ) => true,
+    'port-mouseenter': (
+      _nodeId: string,
+      _handleId: string,
+      _handleType: 'source' | 'target',
+      _event: MouseEvent
+    ) => true,
+    'port-mouseleave': (
+      _nodeId: string,
+      _handleId: string,
+      _handleType: 'source' | 'target',
+      _event: MouseEvent
+    ) => true
+  },
   setup(props, { emit, slots }) {
     const nodeStyle = computed(() =>
       calculateNodeContainerStyle({
@@ -92,20 +161,36 @@ export default defineComponent({
     // 处理端口鼠标事件
     const handlePortMouseDown = (handle: FlowHandle, event: MouseEvent) => {
       if (props.locked) return;
-      emit('port-mousedown', props.node.id, handle.id, handle.type, event);
+      if (props.onPortMousedown) {
+        props.onPortMousedown(props.node.id, handle.id, handle.type, event);
+      } else {
+        emit('port-mousedown', props.node.id, handle.id, handle.type, event);
+      }
     };
 
     const handlePortMouseUp = (handle: FlowHandle, event: MouseEvent) => {
       if (props.locked) return;
-      emit('port-mouseup', props.node.id, handle.id, handle.type, event);
+      if (props.onPortMouseup) {
+        props.onPortMouseup(props.node.id, handle.id, handle.type, event);
+      } else {
+        emit('port-mouseup', props.node.id, handle.id, handle.type, event);
+      }
     };
 
     const handlePortMouseEnter = (handle: FlowHandle, event: MouseEvent) => {
-      emit('port-mouseenter', props.node.id, handle.id, handle.type, event);
+      if (props.onPortMouseenter) {
+        props.onPortMouseenter(props.node.id, handle.id, handle.type, event);
+      } else {
+        emit('port-mouseenter', props.node.id, handle.id, handle.type, event);
+      }
     };
 
     const handlePortMouseLeave = (handle: FlowHandle, event: MouseEvent) => {
-      emit('port-mouseleave', props.node.id, handle.id, handle.type, event);
+      if (props.onPortMouseleave) {
+        props.onPortMouseleave(props.node.id, handle.id, handle.type, event);
+      } else {
+        emit('port-mouseleave', props.node.id, handle.id, handle.type, event);
+      }
     };
 
     // 渲染端口

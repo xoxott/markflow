@@ -166,6 +166,9 @@ declare module 'vue' {
     VersionHistoryDialog: typeof import('./../components/ai-workflow/dialogs/VersionHistoryDialog.tsx')['default']
     WaveBg: typeof import('./../components/custom/wave-bg/index.tsx')['default']
     WorkflowCanvas: typeof import('./../components/ai-workflow/canvas/WorkflowCanvas.tsx')['default']
+    WorkflowCanvasOverlays: typeof import('./../components/ai-workflow/editor/WorkflowCanvasOverlays.tsx')['default']
+    WorkflowEditorCanvas: typeof import('./../components/ai-workflow/editor/WorkflowEditorCanvas.tsx')['default']
+    WorkflowEditorToolbar: typeof import('./../components/ai-workflow/editor/WorkflowEditorToolbar.tsx')['default']
     WorkflowFormDialog: typeof import('./../components/ai-workflow/dialogs/WorkflowFormDialog.tsx')['default']
   }
 }

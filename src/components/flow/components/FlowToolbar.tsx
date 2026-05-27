@@ -4,7 +4,7 @@
  * 提供画布操作工具栏，包括缩放、适应视图等操作 外观由 .flow-toolbar + --flow-toolbar-*（在 FlowCanvas 上注入）控制
  */
 
-import { type PropType, computed, defineComponent } from 'vue';
+import { type CSSProperties, type PropType, computed, defineComponent } from 'vue';
 import type { FlowViewport } from '../types';
 
 /** FlowToolbar 组件属性 */
@@ -22,7 +22,7 @@ export interface FlowToolbarProps {
   /** 是否显示 */
   visible?: boolean;
   /** 自定义样式（布局覆盖，勿写死颜色） */
-  style?: Record<string, unknown>;
+  style?: CSSProperties;
   /** CSS 类名 */
   class?: string;
   /** 缩放变化事件 */
@@ -39,7 +39,7 @@ export default defineComponent({
   props: {
     viewport: {
       type: Object as PropType<FlowViewport>,
-      required: true
+      default: () => ({ x: 0, y: 0, zoom: 1 })
     },
     minZoom: {
       type: Number,
@@ -62,7 +62,7 @@ export default defineComponent({
       default: true
     },
     style: {
-      type: Object as PropType<Record<string, unknown>>,
+      type: Object as PropType<CSSProperties>,
       default: () => ({})
     },
     class: {
@@ -83,19 +83,25 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const zoomPercent = computed(() => Math.round(props.viewport.zoom * 100));
+    const safeViewport = computed<FlowViewport>(() => {
+      const vp = props.viewport;
+      if (vp && typeof vp.zoom === 'number') return vp;
+      return { x: 0, y: 0, zoom: 1 };
+    });
+
+    const zoomPercent = computed(() => Math.round(safeViewport.value.zoom * 100));
 
     const toolbarClass = computed(() =>
       `flow-toolbar flow-toolbar--${props.position} ${props.class}`.trim()
     );
 
     const handleZoomIn = () => {
-      const newZoom = Math.min(props.maxZoom, props.viewport.zoom + props.zoomStep);
+      const newZoom = Math.min(props.maxZoom, safeViewport.value.zoom + props.zoomStep);
       props.onZoomChange?.(newZoom);
     };
 
     const handleZoomOut = () => {
-      const newZoom = Math.max(props.minZoom, props.viewport.zoom - props.zoomStep);
+      const newZoom = Math.max(props.minZoom, safeViewport.value.zoom - props.zoomStep);
       props.onZoomChange?.(newZoom);
     };
 
@@ -110,7 +116,7 @@ export default defineComponent({
             class="flow-toolbar-button"
             type="button"
             onClick={handleZoomOut}
-            disabled={props.viewport.zoom <= props.minZoom}
+            disabled={safeViewport.value.zoom <= props.minZoom}
           >
             −
           </button>
@@ -121,7 +127,7 @@ export default defineComponent({
             class="flow-toolbar-button"
             type="button"
             onClick={handleZoomIn}
-            disabled={props.viewport.zoom >= props.maxZoom}
+            disabled={safeViewport.value.zoom >= props.maxZoom}
           >
             +
           </button>

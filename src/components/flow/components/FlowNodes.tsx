@@ -16,14 +16,6 @@ import { performanceMonitor } from '../utils/performance-monitor';
 import type { FlowConfig, FlowNode, FlowViewport } from '../types';
 import BaseNode from './nodes/BaseNode';
 
-/** 性能监控配置 */
-const PERFORMANCE_CONFIG = {
-  /** 渲染耗时警告阈值（毫秒） */
-  RENDER_WARNING_THRESHOLD: 10,
-  /** 是否启用调试日志 */
-  ENABLE_DEBUG_LOG: import.meta.env.DEV
-} as const;
-
 /** FlowNodes 组件属性 */
 export interface FlowNodesProps {
   /** 节点列表 */
@@ -317,10 +309,10 @@ export default defineComponent({
               locked={state.locked}
               hovered={state.hovered}
               dragging={state.dragging}
-              onPort-mousedown={props.onPortMouseDown}
-              onPort-mouseup={props.onPortMouseUp}
-              onPort-mouseenter={props.onPortMouseEnter}
-              onPort-mouseleave={props.onPortMouseLeave}
+              onPortMousedown={props.onPortMouseDown}
+              onPortMouseup={props.onPortMouseUp}
+              onPortMouseenter={props.onPortMouseEnter}
+              onPortMouseleave={props.onPortMouseLeave}
             />
           </div>
         );
@@ -336,26 +328,6 @@ export default defineComponent({
         renderCount,
         nodesTime
       });
-
-      if (PERFORMANCE_CONFIG.ENABLE_DEBUG_LOG) {
-        console.log('[Performance] FlowNodes 渲染:', {
-          time: `${renderTime.toFixed(3)}ms`,
-          nodesTime: `${nodesTime.toFixed(3)}ms`,
-          nodeCount,
-          avgPerNode: nodeCount > 0 ? `${(nodesTime / nodeCount).toFixed(3)}ms` : '0ms',
-          isPanning: isPanningRef.value,
-          renderCount
-        });
-      }
-
-      if (renderTime > PERFORMANCE_CONFIG.RENDER_WARNING_THRESHOLD) {
-        console.warn('[Performance] FlowNodes 渲染过慢:', {
-          total: `${renderTime.toFixed(2)}ms`,
-          nodesTime: `${nodesTime.toFixed(2)}ms`,
-          nodeCount,
-          avgPerNode: nodeCount > 0 ? `${(nodesTime / nodeCount).toFixed(3)}ms` : '0ms'
-        });
-      }
 
       return (
         <div

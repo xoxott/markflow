@@ -4,20 +4,12 @@
  * 提供 Ref 更新相关的工具函数
  */
 
-import type { Ref } from 'vue';
+import { type Ref, isRef, unref } from 'vue';
 
 /**
  * 安全更新 Ref（只在值变化时更新）
  *
  * 使用引用比较，避免不必要的响应式更新
- *
- * @example
- *   ```typescript
- *   safeUpdateRef(nodesRef, newNodes);
- *   ```;
- *
- * @param ref 要更新的 Ref
- * @param newValue 新值
  */
 export function safeUpdateRef<T>(ref: Ref<T>, newValue: T): void {
   if (ref.value !== newValue) {
@@ -25,20 +17,7 @@ export function safeUpdateRef<T>(ref: Ref<T>, newValue: T): void {
   }
 }
 
-/**
- * 浅层比较更新 Ref（用于对象）
- *
- * 比较指定键的值，只在有变化时更新
- *
- * @example
- *   ```typescript
- *   shallowUpdateRef(viewportRef, newViewport, ['x', 'y', 'zoom']);
- *   ```;
- *
- * @param ref 要更新的 Ref
- * @param newValue 新值
- * @param keys 要比较的键
- */
+/** 浅层比较更新 Ref（用于对象） */
 export function shallowUpdateRef<T extends Record<string, any>>(
   ref: Ref<T>,
   newValue: T,
@@ -55,4 +34,33 @@ export function shallowUpdateRef<T extends Record<string, any>>(
   if (hasChanged) {
     ref.value = newValue;
   }
+}
+
+/** 从 expose / ref / 普通值中安全读取（兼容 Vue 对 expose Ref 的自动解包） */
+export function readExposedRef<T>(source: Ref<T> | T | undefined | null, fallback: T): T {
+  if (source === null || source === undefined) return fallback;
+  if (isRef(source)) return source.value;
+  return source as T;
+}
+
+/** 读取可能为 Ref 的布尔 expose 值 */
+export function readExposedBool(
+  source: Ref<boolean> | boolean | undefined | null,
+  fallback = false
+): boolean {
+  return readExposedRef(source, fallback);
+}
+
+/** 读取 FlowCanvas expose 上的 viewport */
+export function readExposedViewport(
+  source:
+    | Ref<{ x: number; y: number; zoom: number }>
+    | { x: number; y: number; zoom: number }
+    | undefined
+    | null
+): { x: number; y: number; zoom: number } | null {
+  if (source === null || source === undefined) return null;
+  const vp = unref(source);
+  if (vp && typeof vp.zoom === 'number') return vp;
+  return null;
 }

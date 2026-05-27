@@ -1,0 +1,83 @@
+@import '../../../styles/ai-workflow-theme.scss';
+
+.workflow-editor-canvas {
+  background: $canvas-bg;
+
+  .dark & {
+    background: $canvas-bg-dark;
+  }
+
+  &__stage {
+    overflow: hidden;
+  }
+}
+
+/* Flow 节点业务皮肤（通过 node.class 挂载） */
+.workflow-flow-node {
+  .flow-node-content {
+    align-items: flex-start !important;
+    text-align: left !important;
+    padding: 10px 12px 10px 14px !important;
+    gap: 4px;
+  }
+
+  .flow-node-title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: $text-color-1;
+  }
+
+  .flow-node-description {
+    font-size: 11px;
+    line-height: 1.35;
+    color: $text-color-3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &.selected .flow-node-container,
+  &.flow-node-selected .flow-node-container {
+    box-shadow: 0 0 0 2px rgba(32, 128, 240, 0.35);
+  }
+}
+
+.workflow-flow-node--start {
+  --wf-accent: #18a058;
+}
+.workflow-flow-node--end {
+  --wf-accent: #d03050;
+}
+.workflow-flow-node--ai {
+  --wf-accent: #2080f0;
+}
+.workflow-flow-node--http {
+  --wf-accent: #f0a020;
+}
+.workflow-flow-node--database {
+  --wf-accent: #7c3aed;
+}
+.workflow-flow-node--condition {
+  --wf-accent: #f59e0b;
+}
+.workflow-flow-node--transform {
+  --wf-accent: #10b981;
+}
+.workflow-flow-node--file {
+  --wf-accent: #6366f1;
+}
+
+[class*='workflow-flow-node--'] {
+  .flow-node-container {
+    border-left: 3px solid var(--wf-accent, #2080f0) !important;
+  }
+}
+
+.node-library-panel {
+  .node-library-item {
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+}

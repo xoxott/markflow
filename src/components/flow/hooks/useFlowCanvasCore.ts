@@ -79,9 +79,14 @@ export interface UseFlowCanvasCoreReturn {
     event: MouseEvent
   ) => void;
   addNode: ReturnType<typeof useFlowState>['addNode'];
+  updateNode: ReturnType<typeof useFlowState>['updateNode'];
   removeNode: ReturnType<typeof useFlowState>['removeNode'];
   addEdge: ReturnType<typeof useFlowState>['addEdge'];
   removeEdge: ReturnType<typeof useFlowState>['removeEdge'];
+  undo: ReturnType<typeof useFlowState>['undo'];
+  redo: ReturnType<typeof useFlowState>['redo'];
+  canUndo: ReturnType<typeof useFlowState>['canUndo'];
+  canRedo: ReturnType<typeof useFlowState>['canRedo'];
   setViewport: ReturnType<typeof useFlowState>['setViewport'];
   panViewport: ReturnType<typeof useFlowState>['panViewport'];
   zoomViewport: ReturnType<typeof useFlowState>['zoomViewport'];
@@ -147,6 +152,10 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     cancelBoxSelection,
     isBoxSelecting,
     setSelectionOptions,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     stateStore,
     historyManager
   } = flowState;
@@ -398,6 +407,7 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     handleEdgeDoubleClick,
     handlePortMouseDown,
     addNode,
+    updateNode,
     removeNode,
     addEdge,
     removeEdge,
@@ -409,6 +419,10 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     selectNodes,
     selectEdge,
     deselectAll,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     startBoxSelection,
     updateBoxSelection,
     finishBoxSelection,
