@@ -1,6 +1,4 @@
-/**
- * 画布布局锁定：锁定后仅可平移/缩放视口，不可拖拽节点或改连线
- */
+/** 画布布局锁定：锁定后仅可平移/缩放视口，不可拖拽节点或改连线 */
 
 import { ref } from 'vue';
 import type { PartialFlowConfig } from '../types';
