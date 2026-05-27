@@ -95,10 +95,7 @@ export function getEdgeDeleteButtonSize(config?: Readonly<FlowConfig>): number {
 }
 
 /** 选中连接线时是否显示删除按钮 */
-export function shouldShowEdgeDeleteButton(
-  edge: FlowEdge,
-  config?: Readonly<FlowConfig>
-): boolean {
+export function shouldShowEdgeDeleteButton(edge: FlowEdge, config?: Readonly<FlowConfig>): boolean {
   if (!isEdgeDeletable(edge, config)) {
     return false;
   }

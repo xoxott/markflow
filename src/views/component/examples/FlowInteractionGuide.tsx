@@ -13,7 +13,8 @@ export default defineComponent({
         </NH3>
         <NText class="mb-3 block text-sm text-gray-600">
           算法基准请用 <code class="rounded bg-white px-1">pnpm bench:compare</code>
-          ；下方示例用于在浏览器里验证<strong>绘制、平移、拖节点、拉线、连接线标签、选中/删除连接线</strong>
+          ；下方示例用于在浏览器里验证
+          <strong>绘制、平移、拖节点、拉线、连接线标签、选中/删除连接线</strong>
           。高配 Mac 建议 Chrome Performance 里开 <strong>CPU 4×</strong> 再测。
         </NText>
         <NAlert type="info" class="mb-3" title="控制台性能采样">

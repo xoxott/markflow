@@ -1,4 +1,5 @@
-import {
+import type {
+  CSSProperties,
   Fragment,
   type PropType,
   computed,
@@ -7,14 +8,13 @@ import {
   onUnmounted,
   ref
 } from 'vue';
-import type { CSSProperties } from 'vue';
 import type { FlowConfig, FlowPosition, FlowViewport } from '../types';
 import type { FlowGuideAxis } from '../types/flow-guide';
 import {
+  type RulerTick,
   computeRulerTicks,
   flowToScreen,
-  formatRulerLabel,
-  type RulerTick
+  formatRulerLabel
 } from '../utils/ruler-utils';
 
 export interface FlowRulerProps {

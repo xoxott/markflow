@@ -9,7 +9,7 @@ import { computed, defineComponent, withMemo } from 'vue';
 import { getGpuAccelerationStyle } from '../../utils/style-utils';
 import { useEventHandlers } from '../../hooks/useEventHandlers';
 import { generateEdgePath } from '../../utils/edge-path-generator';
-import type { FlowEdge, FlowViewport, FlowConfig } from '../../types';
+import type { FlowConfig, FlowEdge, FlowViewport } from '../../types';
 import type { EdgePositions } from '../../hooks/useEdgePositions';
 import {
   EDGE_CLASS_NAMES,
@@ -19,7 +19,12 @@ import {
   MARKER_SUFFIXES
 } from '../../constants/edge-constants';
 import { calculateArrowMarkerConfig } from '../../utils/edge-style-utils';
-import { getEdgeClickAreaWidth, getEdgeDeleteButtonSize, isEdgeSelectable, shouldShowEdgeDeleteButton } from '../../utils/edge-interaction-utils';
+import {
+  getEdgeClickAreaWidth,
+  getEdgeDeleteButtonSize,
+  isEdgeSelectable,
+  shouldShowEdgeDeleteButton
+} from '../../utils/edge-interaction-utils';
 import BaseEdge from './BaseEdge';
 
 /** EdgeSvgRenderer 组件属性 */
@@ -146,9 +151,7 @@ export default defineComponent({
     const resolvedClickAreaWidth = computed(
       () => props.clickAreaWidth ?? getEdgeClickAreaWidth(props.config)
     );
-    const resolvedDeleteButtonSize = computed(
-      () => getEdgeDeleteButtonSize(props.config)
-    );
+    const resolvedDeleteButtonSize = computed(() => getEdgeDeleteButtonSize(props.config));
 
     // 使用工具函数计算箭头标记配置
     const arrowConfig = computed(() => calculateArrowMarkerConfig(zoom.value));
@@ -201,60 +204,60 @@ export default defineComponent({
             <>
               {/* 共享的箭头标记定义 */}
               <defs>
-            {/* 共享的箭头路径定义 */}
-            <path
-              id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`}
-              d={arrowConfig.value.path}
-              fill={EDGE_CSS_VARS.DEFAULT}
-            />
-            <path
-              id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.SELECTED}`}
-              d={arrowConfig.value.path}
-              fill={EDGE_CSS_VARS.SELECTED}
-            />
-            <path
-              id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`}
-              d={arrowConfig.value.path}
-              fill={EDGE_CSS_VARS.HOVERED}
-            />
+                {/* 共享的箭头路径定义 */}
+                <path
+                  id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`}
+                  d={arrowConfig.value.path}
+                  fill={EDGE_CSS_VARS.DEFAULT}
+                />
+                <path
+                  id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.SELECTED}`}
+                  d={arrowConfig.value.path}
+                  fill={EDGE_CSS_VARS.SELECTED}
+                />
+                <path
+                  id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`}
+                  d={arrowConfig.value.path}
+                  fill={EDGE_CSS_VARS.HOVERED}
+                />
 
-            {/* 箭头标记 */}
-            <marker
-              id={`${idPrefix.value}${MARKER_SUFFIXES.DEFAULT}`}
-              markerWidth={arrowConfig.value.arrowSize}
-              markerHeight={arrowConfig.value.arrowSize}
-              refX={arrowConfig.value.refX}
-              refY={arrowConfig.value.refY}
-              orient="auto"
-              markerUnits="userSpaceOnUse"
-            >
-              <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`} />
-            </marker>
+                {/* 箭头标记 */}
+                <marker
+                  id={`${idPrefix.value}${MARKER_SUFFIXES.DEFAULT}`}
+                  markerWidth={arrowConfig.value.arrowSize}
+                  markerHeight={arrowConfig.value.arrowSize}
+                  refX={arrowConfig.value.refX}
+                  refY={arrowConfig.value.refY}
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`} />
+                </marker>
 
-            <marker
-              id={`${idPrefix.value}${MARKER_SUFFIXES.SELECTED}`}
-              markerWidth={arrowConfig.value.arrowSize}
-              markerHeight={arrowConfig.value.arrowSize}
-              refX={arrowConfig.value.refX}
-              refY={arrowConfig.value.refY}
-              orient="auto"
-              markerUnits="userSpaceOnUse"
-            >
-              <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.SELECTED}`} />
-            </marker>
+                <marker
+                  id={`${idPrefix.value}${MARKER_SUFFIXES.SELECTED}`}
+                  markerWidth={arrowConfig.value.arrowSize}
+                  markerHeight={arrowConfig.value.arrowSize}
+                  refX={arrowConfig.value.refX}
+                  refY={arrowConfig.value.refY}
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.SELECTED}`} />
+                </marker>
 
-            <marker
-              id={`${idPrefix.value}${MARKER_SUFFIXES.HOVERED}`}
-              markerWidth={arrowConfig.value.arrowSize}
-              markerHeight={arrowConfig.value.arrowSize}
-              refX={arrowConfig.value.refX}
-              refY={arrowConfig.value.refY}
-              orient="auto"
-              markerUnits="userSpaceOnUse"
-            >
-              <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`} />
-            </marker>
-          </defs>
+                <marker
+                  id={`${idPrefix.value}${MARKER_SUFFIXES.HOVERED}`}
+                  markerWidth={arrowConfig.value.arrowSize}
+                  markerHeight={arrowConfig.value.arrowSize}
+                  refX={arrowConfig.value.refX}
+                  refY={arrowConfig.value.refY}
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`} />
+                </marker>
+              </defs>
             </>
           )}
 

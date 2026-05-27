@@ -1,6 +1,6 @@
 /** Flow 示例 3: 状态管理 */
 
-import { defineComponent, ref, type Ref } from 'vue';
+import { type Ref, defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NSpace, NText, useMessage } from 'naive-ui';
 import FlowCanvas from '@/components/flow/components/FlowCanvas';
 import { readExposedRef } from '@/components/flow/utils/ref-utils';

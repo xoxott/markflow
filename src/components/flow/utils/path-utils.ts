@@ -194,9 +194,7 @@ export function calculatePathLength(pathData: string): number {
   return length;
 }
 
-/**
- * 获取 SVG 路径中点（用于删除按钮等元素定位）
- */
+/** 获取 SVG 路径中点（用于删除按钮等元素定位） */
 export function getPathMidpoint(
   pathData: string,
   fallback: { x: number; y: number }
@@ -204,9 +202,7 @@ export function getPathMidpoint(
   return getPathPointAt(pathData, 0.5, fallback);
 }
 
-/**
- * 获取 SVG 路径上某比例位置的点（t: 0~1）
- */
+/** 获取 SVG 路径上某比例位置的点（t: 0~1） */
 export function getPathPointAt(
   pathData: string,
   t: number,

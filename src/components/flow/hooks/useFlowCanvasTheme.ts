@@ -1,4 +1,5 @@
-/** Flow 画布主题：跟随 Naive UI 主题 token，注入 --flow-* CSS 变量
+/**
+ * Flow 画布主题：跟随 Naive UI 主题 token，注入 --flow-* CSS 变量
  *
  * 解耦说明：
  *

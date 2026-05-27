@@ -1,10 +1,8 @@
-/**
- * 辅助线工具（吸附、坐标换算）
- */
+/** 辅助线工具（吸附、坐标换算） */
 
 import type { FlowGuideLine } from '../types/flow-guide';
 import type { FlowPosition, FlowViewport } from '../types';
-import { snapPositionToGrid, screenToFlow } from './ruler-utils';
+import { screenToFlow, snapPositionToGrid } from './ruler-utils';
 
 export function createGuideId(): string {
   return `guide-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

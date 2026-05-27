@@ -1,6 +1,4 @@
-/**
- * 刻度尺与网格吸附工具
- */
+/** 刻度尺与网格吸附工具 */
 
 import type { FlowPosition, FlowViewport } from '../types';
 
@@ -25,7 +23,7 @@ const LABEL_CELL_STEPS = [1, 2, 5, 10, 20, 50, 100];
 export function getNiceTickInterval(zoom: number, targetScreenSpacing = 56): number {
   const safeZoom = Math.max(zoom, 0.01);
   const raw = targetScreenSpacing / safeZoom;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
   const normalized = raw / magnitude;
   const step = NICE_STEPS.find(value => normalized <= value) ?? 10;
   return step * magnitude;
@@ -73,10 +71,7 @@ function resolveTickLevel(
 }
 
 /** 将坐标吸附到网格 */
-export function snapPositionToGrid(
-  position: FlowPosition,
-  gridSize: number
-): FlowPosition {
+export function snapPositionToGrid(position: FlowPosition, gridSize: number): FlowPosition {
   const size = Math.max(gridSize, 1);
   return {
     x: Math.round(position.x / size) * size,
@@ -90,10 +85,7 @@ export function flowToScreen(flowCoord: number, viewportOffset: number, zoom: nu
 }
 
 /** 画布点 → 屏幕坐标 */
-export function flowPointToScreen(
-  point: FlowPosition,
-  viewport: FlowViewport
-): FlowPosition {
+export function flowPointToScreen(point: FlowPosition, viewport: FlowViewport): FlowPosition {
   return {
     x: flowToScreen(point.x, viewport.x, viewport.zoom),
     y: flowToScreen(point.y, viewport.y, viewport.zoom)
@@ -121,8 +113,7 @@ export function computeRulerTicks(options: ComputeRulerTicksOptions): RulerTick[
   const zoom = Math.max(viewport.zoom, 0.01);
   const viewportOffset = axis === 'horizontal' ? viewport.x : viewport.y;
   const baseGrid = gridSize && gridSize > 0 ? gridSize : getNiceTickInterval(zoom);
-  const labelInterval =
-    gridSize && gridSize > 0 ? getNiceLabelInterval(zoom, gridSize) : baseGrid;
+  const labelInterval = gridSize && gridSize > 0 ? getNiceLabelInterval(zoom, gridSize) : baseGrid;
 
   /**
    * 显示步长（决定要在刻度尺上画多少根线）：

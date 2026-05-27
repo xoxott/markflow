@@ -1,6 +1,4 @@
-/**
- * 辅助线：从刻度尺拖出、移动、删除
- */
+/** 辅助线：从刻度尺拖出、移动、删除 */
 
 import { type Ref, ref } from 'vue';
 import { useEventListener } from '@vueuse/core';

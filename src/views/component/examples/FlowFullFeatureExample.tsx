@@ -104,8 +104,8 @@ export default defineComponent({
         <NText class="mb-4 block text-gray-500">
           小地图通过 FlowCanvas inject 读取视口；工具栏百分比由{' '}
           <code class="rounded bg-gray-100 px-1">viewport-change</code> 更新。边上配置了{' '}
-          <code class="rounded bg-gray-100 px-1">label</code> 描述文本；选中连接线后，点击路径中点的 ×
-          按钮即可删除。
+          <code class="rounded bg-gray-100 px-1">label</code> 描述文本；选中连接线后，点击路径中点的
+          × 按钮即可删除。
         </NText>
         <div
           ref={canvasHostRef}

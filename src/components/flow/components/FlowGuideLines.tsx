@@ -1,6 +1,4 @@
-/**
- * 用户辅助线（从刻度尺拖出，可移动 / 双击删除）
- */
+/** 用户辅助线（从刻度尺拖出，可移动 / 双击删除） */
 
 import { type PropType, computed, defineComponent } from 'vue';
 import type { FlowGuideDraft, FlowGuideLine } from '../types/flow-guide';
@@ -48,9 +46,7 @@ export default defineComponent({
       const flowPos = guide.position * zoom.value;
       const className = [
         'flow-guide-lines__hit',
-        isHorizontal
-          ? 'flow-guide-lines__hit--horizontal'
-          : 'flow-guide-lines__hit--vertical',
+        isHorizontal ? 'flow-guide-lines__hit--horizontal' : 'flow-guide-lines__hit--vertical',
         isDraft && 'flow-guide-lines__hit--draft'
       ]
         .filter(Boolean)

@@ -1,6 +1,4 @@
-/**
- * 连接线标签样式解析（边数据 + 全局 config 合并）
- */
+/** 连接线标签样式解析（边数据 + 全局 config 合并） */
 
 import type { FlowConfig } from '../types/flow-config';
 import type { FlowEdge } from '../types/flow-edge';
@@ -18,7 +16,7 @@ export interface ResolvedEdgeLabelStyle {
   backgroundStyle: Record<string, unknown>;
 }
 
-const CJK_CHAR_PATTERN = /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef]/;
+const CJK_CHAR_PATTERN = /[\u4E00-\u9FFF\u3400-\u4DBF\uFF00-\uFFEF]/;
 
 /** 估算文本宽度（SVG 无 DOM 测量时的近似值，中文按 1em 计） */
 export function estimateEdgeLabelWidth(text: string, fontSize: number): number {
@@ -37,7 +35,10 @@ export function resolveEdgeLabelStyle(
   const edgeCfg = config?.edges;
   const fontSize = edgeCfg?.labelFontSize ?? DEFAULT_EDGE_CONFIG.labelFontSize ?? 12;
   const showBackground =
-    edge.labelShowBackground ?? edgeCfg?.labelShowBackground ?? DEFAULT_EDGE_CONFIG.labelShowBackground ?? true;
+    edge.labelShowBackground ??
+    edgeCfg?.labelShowBackground ??
+    DEFAULT_EDGE_CONFIG.labelShowBackground ??
+    true;
   const padding =
     edgeCfg?.labelBackgroundPadding ?? DEFAULT_EDGE_CONFIG.labelBackgroundPadding ?? 4;
   const borderRadius =

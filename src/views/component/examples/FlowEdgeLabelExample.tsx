@@ -117,9 +117,10 @@ export default defineComponent({
           在连接线路径中点显示描述文本，常用于分支名、条件说明等。每条边通过{' '}
           <code class="rounded bg-gray-100 px-1">edge.label</code> 配置文字，用{' '}
           <code class="rounded bg-gray-100 px-1">labelStyle</code> /{' '}
-          <code class="rounded bg-gray-100 px-1">labelBackgroundStyle</code> 覆盖单条样式；全局默认见{' '}
-          <code class="rounded bg-gray-100 px-1">config.edges.label*</code>。富文本或图标请注册{' '}
-          <code class="rounded bg-gray-100 px-1">edgeTypes</code> 自定义边组件。
+          <code class="rounded bg-gray-100 px-1">labelBackgroundStyle</code>{' '}
+          覆盖单条样式；全局默认见 <code class="rounded bg-gray-100 px-1">config.edges.label*</code>
+          。富文本或图标请注册 <code class="rounded bg-gray-100 px-1">edgeTypes</code>{' '}
+          自定义边组件。
         </NText>
 
         <NSpace class="mb-3" align="center">
@@ -132,9 +133,7 @@ export default defineComponent({
           <NTag size="small" type="info">
             labelShowBackground: {String(labelConfig.value.edges?.labelShowBackground ?? true)}
           </NTag>
-          <NTag size="small">
-            labelFontSize: {labelConfig.value.edges?.labelFontSize ?? 13}px
-          </NTag>
+          <NTag size="small">labelFontSize: {labelConfig.value.edges?.labelFontSize ?? 13}px</NTag>
         </NSpace>
 
         <div style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>

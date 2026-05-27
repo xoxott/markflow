@@ -7,8 +7,8 @@
 import type { Ref } from 'vue';
 import type { FlowConfig, FlowEdge, FlowNode } from '../types';
 import type { KeyHandler } from '../core/interaction/FlowKeyboardHandler';
-import type { UseKeyboardReturn } from './useKeyboard';
 import { isEdgeDeletable, isNodeDeletable } from '../utils/edge-interaction-utils';
+import type { UseKeyboardReturn } from './useKeyboard';
 
 export interface FlowCanvasKeyboardDeps {
   config: Ref<Readonly<FlowConfig>>;

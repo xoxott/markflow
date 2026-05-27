@@ -1,6 +1,4 @@
-/**
- * 拖拽吸附对齐参考线（网格 / 辅助线吸附指示）
- */
+/** 拖拽吸附对齐参考线（网格 / 辅助线吸附指示） */
 
 import { type PropType, computed, defineComponent } from 'vue';
 import type { FlowPosition, FlowViewport } from '../types';

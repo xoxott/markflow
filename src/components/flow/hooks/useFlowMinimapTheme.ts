@@ -1,4 +1,5 @@
-/** 小地图主题：跟随 Naive UI 主题 token
+/**
+ * 小地图主题：跟随 Naive UI 主题 token
  *
  * 解耦说明同 `useFlowCanvasTheme`：darkMode 通过 `useFlowDarkMode` 解析。
  */

@@ -92,11 +92,14 @@ export default defineComponent({
       <NCard bordered>
         <NH3 class="border-b pb-2 text-lg font-semibold">Flow 示例：画布背景 / 网格 / 刻度尺</NH3>
         <NText class="mb-4 block text-gray-500">
-          背景：<code class="rounded bg-gray-100 px-1">gridType</code> 支持点状 / 线状 / 十字 / 无网格。刻度尺：{' '}
-          <code class="rounded bg-gray-100 px-1">showRuler</code> 显示坐标刻度——从<strong>顶部尺向下拖</strong>
-          出水平辅助线，从<strong>左侧尺向右拖</strong>出垂直辅助线；可拖动已有辅助线，拖回刻度尺删除，双击也可删除。吸附：{' '}
+          背景：<code class="rounded bg-gray-100 px-1">gridType</code> 支持点状 / 线状 / 十字 /
+          无网格。刻度尺： <code class="rounded bg-gray-100 px-1">showRuler</code> 显示坐标刻度——从
+          <strong>顶部尺向下拖</strong>
+          出水平辅助线，从<strong>左侧尺向右拖</strong>
+          出垂直辅助线；可拖动已有辅助线，拖回刻度尺删除，双击也可删除。吸附：{' '}
           <code class="rounded bg-gray-100 px-1">snapToGrid</code> /{' '}
-          <code class="rounded bg-gray-100 px-1">snapToGuides</code> 在拖节点时对齐网格与用户辅助线。
+          <code class="rounded bg-gray-100 px-1">snapToGuides</code>{' '}
+          在拖节点时对齐网格与用户辅助线。
         </NText>
         <NSpace class="mb-4" vertical>
           <NSpace wrap>
@@ -147,12 +150,8 @@ export default defineComponent({
               gridType: {currentGridType()}
             </NTag>
             <NTag size="small">gridSize: {flowConfig.value.canvas?.gridSize ?? 20}px</NTag>
-            <NTag size="small">
-              刻度尺: {flowConfig.value.canvas?.showRuler ? '开' : '关'}
-            </NTag>
-            <NTag size="small">
-              吸附: {flowConfig.value.canvas?.snapToGrid ? '开' : '关'}
-            </NTag>
+            <NTag size="small">刻度尺: {flowConfig.value.canvas?.showRuler ? '开' : '关'}</NTag>
+            <NTag size="small">吸附: {flowConfig.value.canvas?.snapToGrid ? '开' : '关'}</NTag>
           </NSpace>
         </NSpace>
         <div style={{ height: '320px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>

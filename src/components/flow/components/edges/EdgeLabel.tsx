@@ -35,7 +35,9 @@ export default defineComponent({
 
     const resolved = computed(() => resolveEdgeLabelStyle(props.edge, props.config));
 
-    const textWidth = computed(() => estimateEdgeLabelWidth(labelText.value, resolved.value.fontSize));
+    const textWidth = computed(() =>
+      estimateEdgeLabelWidth(labelText.value, resolved.value.fontSize)
+    );
 
     return () => {
       const text = labelText.value;
