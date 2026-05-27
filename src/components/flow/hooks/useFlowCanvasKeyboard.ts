@@ -5,11 +5,13 @@
  */
 
 import type { Ref } from 'vue';
-import type { FlowEdge, FlowNode } from '../types';
+import type { FlowConfig, FlowEdge, FlowNode } from '../types';
 import type { KeyHandler } from '../core/interaction/FlowKeyboardHandler';
 import type { UseKeyboardReturn } from './useKeyboard';
+import { isEdgeDeletable, isNodeDeletable } from '../utils/edge-interaction-utils';
 
 export interface FlowCanvasKeyboardDeps {
+  config: Ref<Readonly<FlowConfig>>;
   selection: {
     getSelectedNodes: (nodes: FlowNode[]) => FlowNode[];
     getSelectedEdges: (edges: FlowEdge[]) => FlowEdge[];
@@ -37,6 +39,7 @@ export function registerFlowCanvasShortcuts(
   deps: FlowCanvasKeyboardDeps
 ): () => void {
   const {
+    config,
     selection,
     historyOperations,
     selectedNodeIds,
@@ -50,14 +53,20 @@ export function registerFlowCanvasShortcuts(
   const unregisters: (() => void)[] = [];
 
   const handleDelete: KeyHandler = () => {
-    const selectedNodes = selection.getSelectedNodes(nodes.value);
-    const selectedEdges = selection.getSelectedEdges(edges.value);
+    const cfg = config.value;
+    const selectedNodes = selection
+      .getSelectedNodes(nodes.value)
+      .filter(node => isNodeDeletable(node, cfg));
+    const selectedEdges = selection
+      .getSelectedEdges(edges.value)
+      .filter(edge => isEdgeDeletable(edge, cfg));
 
     selectedNodes.forEach(node => removeNode(node.id));
     selectedEdges.forEach(edge => removeEdge(edge.id));
 
     if (selectedNodes.length > 0 || selectedEdges.length > 0) {
       selection.deselectAll();
+      return true;
     }
     return undefined;
   };

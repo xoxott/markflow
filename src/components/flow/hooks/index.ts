@@ -25,6 +25,7 @@ export * from './useFlowCanvasKeyboard';
 export * from './useFlowCanvasContext';
 export * from './useFlowMinimapTheme';
 export * from './useFlowCanvasTheme';
+export * from './useFlowGuides';
 export * from './useNodeState';
 export * from './useNodeStyle';
 export * from './useNodesMap';

@@ -47,7 +47,8 @@ export default defineComponent({
         target: 'node-2',
         sourceHandle: 'source-1',
         targetHandle: 'target-2',
-        type: 'bezier'
+        type: 'bezier',
+        label: '成功'
       },
       {
         id: 'edge-2',
@@ -55,7 +56,9 @@ export default defineComponent({
         target: 'node-3',
         sourceHandle: 'source-2',
         targetHandle: 'target-3',
-        type: 'bezier'
+        type: 'bezier',
+        label: '默认分支',
+        labelStyle: { fontWeight: '600' }
       }
     ]);
 
@@ -67,11 +70,17 @@ export default defineComponent({
       message.success(`创建连接: ${connection.source} -> ${connection.target}`);
     };
 
+    const handleBasicEdgeClick = (edge: FlowEdge, _event: MouseEvent) => {
+      message.info(`选中连接线: ${edge.id}（点击线上的 × 可删除）`);
+    };
+
     return () => (
       <NCard bordered>
         <NH3 class="border-b pb-2 text-lg font-semibold">Flow 示例 1: 基础使用</NH3>
         <NText class="mb-4 block text-gray-500">
-          最基本的 Flow 画布，包含节点和连接线，支持点击和连接事件
+          最基本的 Flow 画布，包含节点和连接线。边上可通过 <code class="rounded bg-gray-100 px-1">edge.label</code>{' '}
+          配置描述文本；全局默认样式见 <code class="rounded bg-gray-100 px-1">config.edges.label*</code>
+          。复杂标签 UI 可注册 <code class="rounded bg-gray-100 px-1">edgeTypes</code> 自定义边组件。
         </NText>
         <div style={{ height: '300px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
           <FlowCanvas
@@ -81,6 +90,7 @@ export default defineComponent({
             width="100%"
             height="100%"
             onNode-click={handleBasicNodeClick}
+            onEdge-click={handleBasicEdgeClick}
             onConnect={handleBasicConnect}
           />
         </div>

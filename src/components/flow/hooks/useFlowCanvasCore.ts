@@ -7,9 +7,11 @@
 import type { CSSProperties, ComputedRef, Ref } from 'vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { FlowEventEmitter } from '../core/events/FlowEventEmitter';
-import type { FlowEdge, FlowNode, FlowViewport } from '../types';
+import type { FlowEdge, FlowNode, FlowPosition, FlowViewport } from '../types';
+import type { FlowGuideLine } from '../types/flow-guide';
 import type { FlowCanvasProps } from '../types/flow-canvas';
 import { warnUnusedPerformanceFlags } from '../utils/flow-config-warnings';
+import { shouldHandleFlowKeyboardEvent } from '../utils/edge-interaction-utils';
 import { computeFitViewViewport } from '../utils/viewport-utils';
 import { registerFlowCanvasShortcuts } from './useFlowCanvasKeyboard';
 import { useFlowConfig } from './useFlowConfig';
@@ -20,6 +22,7 @@ import { useFlowCanvasPropsSync } from './useFlowCanvasPropsSync';
 import { useFlowCanvasConfigSync } from './useFlowCanvasConfigSync';
 import { useFlowCanvasEvents } from './useFlowCanvasEvents';
 import { useFlowCanvasInteractions } from './useFlowCanvasInteractions';
+import { useFlowGuides } from './useFlowGuides';
 import { useLayoutLock } from './useLayoutLock';
 
 /** FlowCanvas 组件 emit 事件映射 */
@@ -30,6 +33,7 @@ export interface FlowCanvasEmitMap {
   'edge-double-click': [edge: FlowEdge, event: MouseEvent];
   'connect': [edge: FlowEdge];
   'viewport-change': [viewport: FlowViewport];
+  'guides-change': [guides: FlowGuideLine[]];
 }
 
 /** 与 defineComponent setup 中的 emit 兼容 */
@@ -61,6 +65,15 @@ export interface UseFlowCanvasCoreReturn {
   stableViewportRef: Ref<FlowViewport>;
   isPanning: Ref<boolean>;
   draggingNodeId: Ref<string | null>;
+  snapGuidePosition: Ref<FlowPosition | null>;
+  guides: Ref<FlowGuideLine[]>;
+  draftGuide: ReturnType<typeof useFlowGuides>['draftGuide'];
+  setGuides: ReturnType<typeof useFlowGuides>['setGuides'];
+  clearGuides: ReturnType<typeof useFlowGuides>['clearGuides'];
+  removeGuide: ReturnType<typeof useFlowGuides>['removeGuide'];
+  handleRulerPointerDown: ReturnType<typeof useFlowGuides>['handleRulerPointerDown'];
+  handleGuidePointerDown: ReturnType<typeof useFlowGuides>['handleGuidePointerDown'];
+  handleGuideDoubleClick: ReturnType<typeof useFlowGuides>['handleGuideDoubleClick'];
   elevatedNodeIds: Ref<Map<string, number>>;
   allocateZIndex: ReturnType<typeof useFlowCanvasInteractions>['nodeDrag']['allocateZIndex'];
   removeZIndex: ReturnType<typeof useFlowCanvasInteractions>['nodeDrag']['removeZIndex'];
@@ -73,6 +86,7 @@ export interface UseFlowCanvasCoreReturn {
   handleNodeMouseDown: ReturnType<typeof useFlowCanvasEvents>['handleNodeMouseDown'];
   handleEdgeClick: ReturnType<typeof useFlowCanvasEvents>['handleEdgeClick'];
   handleEdgeDoubleClick: ReturnType<typeof useFlowCanvasEvents>['handleEdgeDoubleClick'];
+  handleEdgeDelete: ReturnType<typeof useFlowCanvasEvents>['handleEdgeDelete'];
   handlePortMouseDown: (
     nodeId: string,
     handleId: string,
@@ -179,6 +193,14 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
   const defaultInstanceId = computed(() => props.id || 'default');
   const eventEmitter = new FlowEventEmitter();
 
+  const guidesManager = useFlowGuides({
+    config,
+    viewport,
+    canvasRef,
+    initialGuides: props.initialGuides,
+    onGuidesChange: guides => emit('guides-change', guides)
+  });
+
   const { connection, nodeDrag, canvasPan, canvasZoom, stableViewportRef } =
     useFlowCanvasInteractions({
       config,
@@ -192,11 +214,13 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
       zoomViewport,
       getViewport: () => stateStore.getViewport(),
       emit,
-      eventEmitter
+      eventEmitter,
+      getGuides: () => guidesManager.guides.value
     });
 
   const {
     draggingNodeId,
+    snapGuidePosition,
     elevatedNodeIds,
     allocateZIndex,
     removeZIndex,
@@ -226,10 +250,12 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
 
   const keyboard = useKeyboard({
     enabled: true,
-    target: canvasRef
+    target: document,
+    guard: event => shouldHandleFlowKeyboardEvent(event, canvasRef.value)
   });
 
   const unregisterShortcuts = registerFlowCanvasShortcuts(keyboard, {
+    config,
     selection: {
       getSelectedNodes: (nodeList: FlowNode[]) =>
         nodeList.filter(n => selectedNodeIds.value.includes(n.id)),
@@ -279,6 +305,7 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     handleNodeDoubleClick,
     handleEdgeClick,
     handleEdgeDoubleClick,
+    handleEdgeDelete,
     cleanup: cleanupEvents
   } = useFlowCanvasEvents({
     canvasRef,
@@ -301,7 +328,9 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     },
     handleWheel,
     viewport,
+    config,
     eventEmitter,
+    removeEdge,
     selection: {
       shouldMultiSelect,
       selectNode,
@@ -401,6 +430,15 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     stableViewportRef,
     isPanning,
     draggingNodeId,
+    snapGuidePosition,
+    guides: guidesManager.guides,
+    draftGuide: guidesManager.draftGuide,
+    setGuides: guidesManager.setGuides,
+    clearGuides: guidesManager.clearGuides,
+    removeGuide: guidesManager.removeGuide,
+    handleRulerPointerDown: guidesManager.handleRulerPointerDown,
+    handleGuidePointerDown: guidesManager.handleGuidePointerDown,
+    handleGuideDoubleClick: guidesManager.handleGuideDoubleClick,
     elevatedNodeIds,
     allocateZIndex,
     removeZIndex,
@@ -411,6 +449,7 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     handleNodeMouseDown,
     handleEdgeClick,
     handleEdgeDoubleClick,
+    handleEdgeDelete,
     handlePortMouseDown,
     addNode,
     updateNode,

@@ -12,11 +12,14 @@ import { computed, defineComponent, provide } from 'vue';
 import { type FlowCanvasEmit, useFlowCanvasCore } from '../hooks/useFlowCanvasCore';
 import { useFlowCanvasTheme } from '../hooks/useFlowCanvasTheme';
 import type { FlowCanvasProps } from '../types/flow-canvas';
-import type { FlowEdge, FlowNode, FlowViewport } from '../types';
+import type { FlowEdge, FlowGuideLine, FlowNode, FlowViewport } from '../types';
 import { flowCanvasContextKey } from '../context/flow-canvas-context';
 import FlowNodes from './FlowNodes';
 import FlowEdges from './FlowEdges';
 import FlowBackground from './FlowBackground';
+import FlowRuler from './FlowRuler';
+import FlowGuideLines from './FlowGuideLines';
+import FlowSnapGuides from './FlowSnapGuides';
 import FlowViewportContainer from './FlowViewportContainer';
 import ConnectionPreview from './ConnectionPreview';
 
@@ -46,6 +49,10 @@ export default defineComponent({
       type: Object as PropType<FlowViewport>,
       default: () => ({ x: 0, y: 0, zoom: 1 })
     },
+    initialGuides: {
+      type: Array as PropType<FlowGuideLine[]>,
+      default: () => []
+    },
     width: {
       type: [String, Number] as PropType<string | number>,
       default: '100%'
@@ -74,7 +81,8 @@ export default defineComponent({
     'edge-click',
     'edge-double-click',
     'connect',
-    'viewport-change'
+    'viewport-change',
+    'guides-change'
   ],
   setup(props, { emit, expose, slots }) {
     const core = useFlowCanvasCore({
@@ -148,10 +156,39 @@ export default defineComponent({
       isBoxSelecting: core.isBoxSelecting,
       registerKeyboardShortcut: core.registerKeyboardShortcut,
       unregisterKeyboardShortcut: core.unregisterKeyboardShortcut,
+      guides: core.guides,
+      setGuides: core.setGuides,
+      clearGuides: core.clearGuides,
+      removeGuide: core.removeGuide,
       eventEmitter: core.eventEmitter,
       layoutLocked: core.layoutLocked,
       setLayoutLocked: core.setLayoutLocked,
       toggleLayoutLock: core.toggleLayoutLock
+    });
+
+    const showSnapGuides = computed(() => {
+      const canvas = core.config.value.canvas;
+      if (canvas?.showSnapGuides === false) {
+        return false;
+      }
+      return Boolean(canvas?.snapToGrid) || canvas?.snapToGuides !== false;
+    });
+
+    const showGuideLines = computed(() => {
+      const canvas = core.config.value.canvas;
+      return Boolean(canvas?.showRuler) && canvas?.enableGuides !== false;
+    });
+
+    /** 拖拽时用节点实际位置作指示，与画布参考线 / 刻度尺保持一致 */
+    const dragSnapGuide = computed(() => {
+      const draggingId = core.draggingNodeId.value;
+      if (draggingId) {
+        const node = core.getNodeById(draggingId);
+        if (node) {
+          return node.position;
+        }
+      }
+      return core.snapGuidePosition.value;
     });
 
     return () => (
@@ -164,6 +201,14 @@ export default defineComponent({
           props.class
         ]}
         style={canvasStyle.value}
+        tabIndex={-1}
+        onMousedown={(event: MouseEvent) => {
+          const target = event.target as HTMLElement;
+          if (target.closest('input, textarea, select, [contenteditable="true"]')) {
+            return;
+          }
+          core.canvasRef.value?.focus({ preventScroll: true });
+        }}
       >
         {slots.background
           ? slots.background({ viewport: core.viewport.value })
@@ -183,13 +228,31 @@ export default defineComponent({
                   core.config.value.canvas?.backgroundColor ??
                   flowTheme.resolvedColors.value.backgroundColor
                 }
-                viewport={core.stableViewportRef.value}
+                viewport={core.viewport.value}
                 instanceId={core.defaultInstanceId.value}
                 isPanning={core.isPanning.value}
               />
             )}
 
+        {core.config.value.canvas?.showRuler && (
+          <FlowRuler
+            viewport={core.viewport.value}
+            config={core.config.value}
+            snapGuide={dragSnapGuide.value}
+            onRulerPointerDown={core.handleRulerPointerDown}
+          />
+        )}
+
         <FlowViewportContainer viewport={core.viewport.value}>
+          {showGuideLines.value && (
+            <FlowGuideLines
+              viewport={core.viewport.value}
+              guides={core.guides.value}
+              draftGuide={core.draftGuide.value}
+              onGuidePointerDown={core.handleGuidePointerDown}
+              onGuideDoubleClick={core.handleGuideDoubleClick}
+            />
+          )}
           <FlowNodes
             nodes={core.nodes.value}
             selectedNodeIds={core.selectedNodeIds.value}
@@ -204,12 +267,21 @@ export default defineComponent({
           />
         </FlowViewportContainer>
 
+        {showSnapGuides.value && (
+          <FlowSnapGuides
+            viewport={core.viewport.value}
+            snapGuide={dragSnapGuide.value}
+            visible={Boolean(core.draggingNodeId.value)}
+          />
+        )}
+
         <FlowEdges
           edges={core.edges.value}
           nodes={core.nodes.value}
           selectedEdgeIds={core.selectedEdgeIds.value}
           onEdgeClick={core.handleEdgeClick}
           onEdgeDoubleClick={core.handleEdgeDoubleClick}
+          onEdgeDelete={core.handleEdgeDelete}
         />
 
         {core.connectionDraft.value && core.connectionPreviewPos.value && (

@@ -29,7 +29,10 @@
     --flow-edge-default: #cbd5e1;
     --flow-edge-selected: #2080f0;
     --flow-edge-hovered: #2080f0;
-    --flow-edge-label: #64748b;
+    --flow-edge-label: #334155;
+    --flow-edge-label-bg: #ffffff;
+    --flow-edge-label-halo: #ffffff;
+    --flow-edge-label-border: #cbd5e1;
 
     // 网格背景颜色
     --flow-grid-color: #d1d5db;
@@ -75,7 +78,10 @@
     --flow-edge-default: #4a5568;
     --flow-edge-selected: #4a9eff;
     --flow-edge-hovered: #4a9eff;
-    --flow-edge-label: #94a3b8;
+    --flow-edge-label: #e2e8f0;
+    --flow-edge-label-bg: #1e1e1e;
+    --flow-edge-label-halo: #1e1e1e;
+    --flow-edge-label-border: #52525b;
 
     // 网格背景颜色
     --flow-grid-color: #3a3a3a;

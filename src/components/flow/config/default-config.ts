@@ -33,7 +33,14 @@ export const DEFAULT_CANVAS_CONFIG: FlowCanvasConfig = {
   panOnDrag: true, // 允许左键拖拽
   zoomOnScroll: true,
   zoomOnPinch: true,
-  zoomOnDoubleClick: false
+  zoomOnDoubleClick: false,
+  showRuler: false,
+  rulerSize: 24,
+  snapToGrid: false,
+  showSnapGuides: true,
+  enableGuides: true,
+  snapToGuides: true,
+  guideSnapThreshold: 8
 };
 
 /** 默认节点配置 */
@@ -77,7 +84,13 @@ export const DEFAULT_EDGE_CONFIG: FlowEdgeConfig = {
   animated: false,
   edgeTypes: {},
   edgePathGenerators: {},
-  renderBehindNodes: true // 默认连接线在节点后面
+  renderBehindNodes: true, // 默认连接线在节点后面
+  showDeleteButtonOnSelect: true,
+  deleteButtonSize: 20,
+  labelFontSize: 13,
+  labelShowBackground: true,
+  labelBackgroundPadding: 6,
+  labelBackgroundRadius: 4
 };
 
 /** 默认交互配置 */

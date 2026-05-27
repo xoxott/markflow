@@ -66,6 +66,8 @@ export const PERFORMANCE_CONSTANTS = {
   Z_INDEX_NODE_BASE: 1,
   /** 连接线的 */
   Z_INDEX_EDGE: 0,
+  /** 选中连接线（置于节点之上，便于查看与点击） */
+  Z_INDEX_EDGE_SELECTED: 10,
   /** z-index 基础值（用于递增分配，拖拽结束后提升的节点从此值开始，需高于选中节点） */
   Z_INDEX_BASE: 1000
 } as const;

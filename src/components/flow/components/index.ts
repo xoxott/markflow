@@ -7,6 +7,9 @@ export { default as FlowBackground } from './FlowBackground';
 export { default as FlowViewportContainer } from './FlowViewportContainer';
 export { default as FlowMinimap } from './FlowMinimap';
 export { default as FlowToolbar } from './FlowToolbar';
+export { default as FlowRuler } from './FlowRuler';
+export { default as FlowGuideLines } from './FlowGuideLines';
+export { default as FlowSnapGuides } from './FlowSnapGuides';
 export { default as FlowEmptyState } from './FlowEmptyState';
 export { default as FlowPerformanceMonitor } from './FlowPerformanceMonitor';
 export type { FlowCanvasProps } from './FlowCanvas';
@@ -22,4 +25,7 @@ export type {
   ResolveMinimapNodeColor
 } from './FlowMinimap';
 export type { FlowToolbarProps } from './FlowToolbar';
+export type { FlowRulerProps } from './FlowRuler';
+export type { FlowGuideLinesProps } from './FlowGuideLines';
+export type { FlowSnapGuidesProps } from './FlowSnapGuides';
 export type { FlowEmptyStateProps } from './FlowEmptyState';

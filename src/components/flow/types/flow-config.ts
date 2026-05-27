@@ -59,6 +59,20 @@ export interface FlowCanvasConfig {
   zoomOnPinch?: boolean;
   /** 是否启用双击缩放 */
   zoomOnDoubleClick?: boolean;
+  /** 是否显示刻度尺（顶部 + 左侧） */
+  showRuler?: boolean;
+  /** 刻度尺厚度（px） */
+  rulerSize?: number;
+  /** 拖拽节点时吸附到 gridSize 网格 */
+  snapToGrid?: boolean;
+  /** 吸附时显示对齐参考线（默认 true，需 snapToGrid） */
+  showSnapGuides?: boolean;
+  /** 允许从刻度尺拖出辅助线（默认 true，需 showRuler） */
+  enableGuides?: boolean;
+  /** 拖拽节点时吸附到用户辅助线 */
+  snapToGuides?: boolean;
+  /** 辅助线吸附阈值（画布坐标 px） */
+  guideSnapThreshold?: number;
 }
 
 /** 节点配置 */
@@ -140,6 +154,18 @@ export interface FlowEdgeConfig {
   edgeClassName?: string;
   /** 连接线是否渲染在节点后面（z-index 更低），默认为 true */
   renderBehindNodes?: boolean;
+  /** 选中时在连接线上显示删除按钮 */
+  showDeleteButtonOnSelect?: boolean;
+  /** 删除按钮直径（屏幕像素） */
+  deleteButtonSize?: number;
+  /** 标签默认字号（px） */
+  labelFontSize?: number;
+  /** 标签默认是否显示背景（提高可读性） */
+  labelShowBackground?: boolean;
+  /** 标签背景内边距（px） */
+  labelBackgroundPadding?: number;
+  /** 标签背景圆角（px） */
+  labelBackgroundRadius?: number;
 }
 
 /** 交互配置 */

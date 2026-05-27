@@ -1,10 +1,16 @@
-/** Flow 画布主题：跟随应用 Naive UI / themeStore，注入 --flow-* CSS 变量 */
+/** Flow 画布主题：跟随 Naive UI 主题 token，注入 --flow-* CSS 变量
+ *
+ * 解耦说明：
+ *
+ * - 不再直接依赖 `@/store/modules/theme`，方便在任意项目 / 测试环境复用
+ * - darkMode 通过 `useFlowDarkMode` 解析：宿主注入 > OS 偏好
+ * - 宿主想跟随业务 themeStore，只需 `provide(flowDarkModeKey, themeStore.darkMode)`
+ */
 
 import { computed, watchEffect } from 'vue';
 import type { CSSProperties, Ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { useThemeVars } from 'naive-ui';
-import { useThemeStore } from '@/store/modules/theme';
+import { useFlowDarkMode } from '../context/flow-theme-context';
 import { viewportFillFromPrimary } from './useFlowMinimapTheme';
 
 export interface UseFlowCanvasThemeOptions {
@@ -12,6 +18,8 @@ export interface UseFlowCanvasThemeOptions {
   syncAppTheme?: boolean;
   /** 画布根元素，用于 data-flow-theme */
   canvasRef?: Ref<HTMLElement | null>;
+  /** 显式覆盖 darkMode，可选；未传则从注入或 OS 偏好解析 */
+  darkMode?: Ref<boolean>;
 }
 
 export interface FlowCanvasResolvedColors {
@@ -22,8 +30,7 @@ export interface FlowCanvasResolvedColors {
 
 export function useFlowCanvasTheme(options: UseFlowCanvasThemeOptions = {}) {
   const { syncAppTheme = true, canvasRef } = options;
-  const themeStore = useThemeStore();
-  const { darkMode } = storeToRefs(themeStore);
+  const darkMode = useFlowDarkMode(options.darkMode);
   const themeVars = useThemeVars();
 
   /** 与 Markdown 容器一致：浅色 baseColor，暗色 cardColor */
@@ -62,7 +69,18 @@ export function useFlowCanvasTheme(options: UseFlowCanvasThemeOptions = {}) {
       '--flow-edge-default': divider,
       '--flow-edge-selected': primary,
       '--flow-edge-hovered': primary,
-      '--flow-edge-label': themeVars.value.textColor3,
+      '--flow-edge-label': themeVars.value.textColor1,
+      '--flow-edge-label-bg': themeVars.value.cardColor,
+      '--flow-edge-label-halo': themeVars.value.cardColor,
+      '--flow-edge-label-border': themeVars.value.borderColor,
+      '--flow-ruler-bg': themeVars.value.cardColor,
+      '--flow-ruler-border': themeVars.value.borderColor,
+      '--flow-ruler-text': themeVars.value.textColor2,
+      '--flow-ruler-tick': themeVars.value.textColor3,
+      '--flow-ruler-tick-major': themeVars.value.textColor2,
+      '--flow-ruler-snap': primary,
+      '--flow-snap-guide': primary,
+      '--flow-guide-line': themeVars.value.warningColor,
       '--flow-preview-color': primary,
       '--flow-minimap-surface-bg': themeVars.value.cardColor,
       '--flow-minimap-surface-border': themeVars.value.borderColor,

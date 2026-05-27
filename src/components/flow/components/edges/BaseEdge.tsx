@@ -7,16 +7,19 @@
 import { type CSSProperties, type PropType, computed, defineComponent } from 'vue';
 import { getConditionalGpuAccelerationStyle } from '../../utils/style-utils';
 import type { FlowEdge } from '../../types/flow-edge';
+import type { FlowConfig } from '../../types/flow-config';
 import {
   ANIMATION_CONSTANTS,
   EDGE_CLASS_NAMES,
   EDGE_CSS_VARS,
   ID_PREFIXES,
-  LABEL_STYLES,
   MARKER_SUFFIXES,
   STROKE_WIDTHS
 } from '../../constants/edge-constants';
 import { calculateStrokeWidth } from '../../utils/edge-style-utils';
+import { getPathMidpoint, getPathPointAt } from '../../utils/path-utils';
+import EdgeDeleteButton from './EdgeDeleteButton';
+import EdgeLabel from './EdgeLabel';
 
 /** BaseEdge 组件属性 */
 export interface BaseEdgeProps {
@@ -123,9 +126,43 @@ export default defineComponent({
     markerEnd: {
       type: String,
       default: undefined
+    },
+    /** 点击热区宽度（屏幕像素，独立于可见线宽） */
+    clickAreaWidth: {
+      type: Number,
+      default: undefined
+    },
+    /** 仅渲染交互热区（透明，用于 Canvas 视觉层之上的命中层） */
+    interactionOnly: {
+      type: Boolean,
+      default: false
+    },
+    /** 仅渲染视觉层 + 删除按钮（命中检测留在下层，避免挡住节点） */
+    visualOnly: {
+      type: Boolean,
+      default: false
+    },
+    /** 是否响应指针交互（由上层根据 selectable 传入） */
+    interactive: {
+      type: Boolean,
+      default: true
+    },
+    /** 选中时是否显示删除按钮 */
+    showDeleteButton: {
+      type: Boolean,
+      default: false
+    },
+    /** 删除按钮尺寸（屏幕像素） */
+    deleteButtonSize: {
+      type: Number,
+      default: 20
+    },
+    config: {
+      type: Object as PropType<Readonly<FlowConfig>>,
+      default: undefined
     }
   },
-  emits: ['click', 'double-click', 'mouseenter', 'mouseleave', 'contextmenu'],
+  emits: ['click', 'double-click', 'mouseenter', 'mouseleave', 'contextmenu', 'delete'],
   setup(props, { emit, slots }) {
     const edgeRenderState = computed(() => {
       const arrowIdPrefix = `${ID_PREFIXES.ARROW}${props.instanceId}`;
@@ -137,15 +174,23 @@ export default defineComponent({
 
       const zoom = props.viewport?.zoom || 1;
       const scaledStrokeWidth = calculateStrokeWidth(STROKE_WIDTHS.BASE, zoom);
+      const hitStrokeWidth = props.clickAreaWidth ?? scaledStrokeWidth;
 
       const edgeStyle: CSSProperties = {
         fill: 'none',
         strokeWidth: scaledStrokeWidth,
         stroke: EDGE_CSS_VARS.DEFAULT,
-        pointerEvents: 'stroke',
-        cursor: 'pointer',
+        pointerEvents: 'none',
         ...props.edge.style,
         ...props.style
+      };
+
+      const hitStyle: CSSProperties = {
+        fill: 'none',
+        stroke: 'transparent',
+        strokeWidth: hitStrokeWidth,
+        pointerEvents: props.interactive ? 'stroke' : 'none',
+        cursor: props.interactive ? 'pointer' : 'default'
       };
 
       if (props.selected) {
@@ -184,6 +229,16 @@ export default defineComponent({
         includeBackfaceVisibility: false
       });
 
+      const endpointMidpoint = {
+        x: (startX + endX) / 2,
+        y: (startY + endY) / 2
+      };
+      const labelMidpoint = getPathMidpoint(pathData, endpointMidpoint);
+      const hasLabel = Boolean(props.edge.label?.trim());
+      const deleteButtonPosition = hasLabel
+        ? getPathPointAt(pathData, 0.62, labelMidpoint)
+        : labelMidpoint;
+
       return {
         startX,
         startY,
@@ -191,10 +246,14 @@ export default defineComponent({
         endY,
         pathData,
         edgeStyle,
+        hitStyle,
         edgeClass: classes.filter(Boolean).join(' '),
         markerEndId,
         showArrow,
-        containerStyle
+        containerStyle,
+        labelMidpoint,
+        deleteButtonPosition,
+        hasLabel
       };
     });
 
@@ -219,48 +278,64 @@ export default defineComponent({
       emit('contextmenu', event);
     };
 
+    const handleDelete = (event: MouseEvent) => {
+      emit('delete', event);
+    };
+
     return () => {
       const state = edgeRenderState.value;
 
       return (
         <g class={state.edgeClass} data-edge-id={props.edge.id} style={state.containerStyle}>
-          <path
-            d={state.pathData}
-            style={state.edgeStyle}
-            marker-end={
-              state.showArrow && state.markerEndId
-                ? state.markerEndId.startsWith('url(')
-                  ? state.markerEndId
-                  : `url(#${state.markerEndId})`
-                : undefined
-            }
-            onClick={handleClick}
-            onDblclick={handleDoubleClick}
-            onMouseenter={handleMouseEnter}
-            onMouseleave={handleMouseLeave}
-            onContextmenu={handleContextMenu}
-          />
-
-          {/* 连接线标签 */}
-          {props.edge.label && (
-            <text
-              x={(state.startX + state.endX) / 2}
-              y={(state.startY + state.endY) / 2}
-              text-anchor={LABEL_STYLES.TEXT_ANCHOR}
-              dominant-baseline={LABEL_STYLES.DOMINANT_BASELINE}
-              style={{
-                fontSize: LABEL_STYLES.FONT_SIZE,
-                fill: EDGE_CSS_VARS.LABEL,
-                pointerEvents: 'none',
-                ...props.edge.labelStyle
-              }}
-            >
-              {props.edge.label}
-            </text>
+          {!props.interactionOnly && (
+            <path
+              d={state.pathData}
+              style={state.edgeStyle}
+              marker-end={
+                state.showArrow && state.markerEndId
+                  ? state.markerEndId.startsWith('url(')
+                    ? state.markerEndId
+                    : `url(#${state.markerEndId})`
+                  : undefined
+              }
+            />
           )}
 
-          {/* 自定义内容插槽 */}
-          {slots.default && slots.default()}
+          {!props.visualOnly && (
+            <path
+              d={state.pathData}
+              style={state.hitStyle}
+              class={EDGE_CLASS_NAMES.HIT_AREA}
+              onClick={handleClick}
+              onDblclick={handleDoubleClick}
+              onMouseenter={handleMouseEnter}
+              onMouseleave={handleMouseLeave}
+              onContextmenu={handleContextMenu}
+            />
+          )}
+
+          {!props.interactionOnly && state.hasLabel && (
+            <EdgeLabel
+              edge={props.edge}
+              x={state.labelMidpoint.x}
+              y={state.labelMidpoint.y}
+              config={props.config}
+            />
+          )}
+
+          {!props.interactionOnly &&
+            props.selected &&
+            props.showDeleteButton &&
+            props.interactive && (
+              <EdgeDeleteButton
+                x={state.deleteButtonPosition.x}
+                y={state.deleteButtonPosition.y}
+                size={props.deleteButtonSize}
+                onDelete={handleDelete}
+              />
+            )}
+
+          {!props.interactionOnly && slots.default && slots.default()}
         </g>
       );
     };

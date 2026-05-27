@@ -3,6 +3,8 @@ import { defineComponent } from 'vue';
 import {
   FlowBasicExample,
   FlowBezierExample,
+  FlowConfigExample,
+  FlowEdgeLabelExample,
   FlowFullFeatureExample,
   FlowInteractionGuide,
   FlowPerformanceExample
@@ -16,6 +18,10 @@ export const FlowExamples = defineComponent({
         <FlowInteractionGuide />
 
         <FlowBasicExample />
+
+        <FlowEdgeLabelExample />
+
+        <FlowConfigExample />
 
         <FlowFullFeatureExample />
 

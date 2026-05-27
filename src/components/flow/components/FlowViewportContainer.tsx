@@ -65,6 +65,7 @@ export default defineComponent({
         top: 0,
         left: 0,
         zIndex: 1,
+        pointerEvents: 'none' as const,
         willChange: 'transform',
         ['--flow-zoom' as string]: String(zoom),
         ...props.style

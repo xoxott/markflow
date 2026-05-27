@@ -290,7 +290,7 @@ export default defineComponent({
       position: 'relative',
       width: '100%',
       height: '100%',
-      pointerEvents: 'auto'
+      pointerEvents: 'none'
     };
 
     // ==================== 性能监控 ====================

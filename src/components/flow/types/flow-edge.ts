@@ -38,8 +38,12 @@ export interface FlowEdge<T = any> {
   animated?: boolean;
   /** 连接线标签 */
   label?: string;
-  /** 标签样式 */
+  /** 标签样式（覆盖 FlowConfig.edges 中的默认标签样式） */
   labelStyle?: Record<string, any>;
+  /** 是否显示标签背景（未设置时跟随 config.edges.labelShowBackground） */
+  labelShowBackground?: boolean;
+  /** 标签背景样式 */
+  labelBackgroundStyle?: Record<string, any>;
   /** 贝塞尔曲线控制点偏移比例（用于 bezier 类型，0-1之间，值越大弧度越大，默认从配置读取） */
   bezierControlOffset?: number;
   /** 自定义属性 */

@@ -77,7 +77,7 @@ export const FlowCanvasConfigSchema = z.object({
   defaultZoom: z.number().positive().optional(),
   zoomStep: z.number().positive().optional(),
   showGrid: z.boolean().optional(),
-  gridType: z.enum(['dots', 'lines', 'none']).optional(),
+  gridType: z.enum(['dots', 'lines', 'cross', 'none']).optional(),
   gridSize: z.number().positive().optional(),
   gridColor: z.string().optional(),
   gridOpacity: z.number().min(0).max(1).optional(),
@@ -88,7 +88,14 @@ export const FlowCanvasConfigSchema = z.object({
   panOnDrag: z.union([z.boolean(), z.array(z.number())]).optional(),
   zoomOnScroll: z.boolean().optional(),
   zoomOnPinch: z.boolean().optional(),
-  zoomOnDoubleClick: z.boolean().optional()
+  zoomOnDoubleClick: z.boolean().optional(),
+  showRuler: z.boolean().optional(),
+  rulerSize: z.number().positive().optional(),
+  snapToGrid: z.boolean().optional(),
+  showSnapGuides: z.boolean().optional(),
+  enableGuides: z.boolean().optional(),
+  snapToGuides: z.boolean().optional(),
+  guideSnapThreshold: z.number().positive().optional()
 });
 
 /** 节点配置 Schema */

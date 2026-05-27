@@ -27,7 +27,7 @@ $flow-handle-border-default: var(--flow-handle-border-default, #2080f0) !default
 $flow-edge-default: var(--flow-edge-default, #cbd5e1) !default;
 $flow-edge-selected: var(--flow-edge-selected, #2080f0) !default;
 $flow-edge-hovered: var(--flow-edge-hovered, var(--flow-edge-selected, #2080f0)) !default;
-$flow-edge-label: var(--flow-edge-label, #64748b) !default;
+$flow-edge-label: var(--flow-edge-label, #334155) !default;
 
 // 网格背景相关颜色
 $flow-grid-color: var(--flow-grid-color, #d1d5db) !default;

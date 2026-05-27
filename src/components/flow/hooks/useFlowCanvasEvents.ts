@@ -7,7 +7,9 @@
 import { type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import type { FlowEdge, FlowNode, FlowViewport } from '../types';
+import type { FlowConfig } from '../types/flow-config';
 import type { FlowEventEmitter } from '../core/events/FlowEventEmitter';
+import { isEdgeDeletable, isEdgeSelectable } from '../utils/edge-interaction-utils';
 
 /** 连接创建事件处理器 */
 export interface ConnectionHandlers {
@@ -57,8 +59,12 @@ export interface UseFlowCanvasEventsOptions {
   handleWheel: (event: WheelEvent) => void;
   /** 视口状态 */
   viewport: Ref<FlowViewport>;
+  /** 画布配置（交互开关） */
+  config: Ref<Readonly<FlowConfig>>;
   /** 事件发射器 */
   eventEmitter: FlowEventEmitter;
+  /** 删除连接线 */
+  removeEdge: (edgeId: string) => void;
   /** 选择相关方法 */
   selection: {
     shouldMultiSelect: (event: MouseEvent | KeyboardEvent) => boolean;
@@ -88,6 +94,8 @@ export interface UseFlowCanvasEventsReturn {
   handleEdgeClick: (edge: FlowEdge, event: MouseEvent) => void;
   /** 连接线双击处理 */
   handleEdgeDoubleClick: (edge: FlowEdge, event: MouseEvent) => void;
+  /** 连接线删除按钮处理 */
+  handleEdgeDelete: (edge: FlowEdge, event: MouseEvent) => void;
   /** 清理事件监听器 */
   cleanup: () => void;
 }
@@ -131,7 +139,9 @@ export function useFlowCanvasEvents(
     canvasPan,
     handleWheel,
     viewport,
+    config,
     eventEmitter,
+    removeEdge,
     selection,
     emit
   } = options;
@@ -149,6 +159,9 @@ export function useFlowCanvasEvents(
     const target = event.target as HTMLElement;
     if (target.closest('.flow-node')) {
       return; // 节点拖拽由节点自己的 mousedown 事件处理
+    }
+    if (target.closest('.flow-edge-delete-button')) {
+      return;
     }
 
     // 处理画布平移
@@ -225,6 +238,10 @@ export function useFlowCanvasEvents(
 
   /** 处理连接线点击 */
   const handleEdgeClick = (edge: FlowEdge, event: MouseEvent) => {
+    if (!isEdgeSelectable(edge, config.value)) {
+      return;
+    }
+
     event.stopPropagation();
     const isMultiSelect = selection.shouldMultiSelect(event);
     selection.selectEdge(edge.id, isMultiSelect);
@@ -238,13 +255,28 @@ export function useFlowCanvasEvents(
     eventEmitter.emit('onEdgeDoubleClick', edge, event);
   };
 
+  /** 处理连接线删除按钮 */
+  const handleEdgeDelete = (edge: FlowEdge, event: MouseEvent) => {
+    event.stopPropagation();
+    if (!isEdgeDeletable(edge, config.value)) {
+      return;
+    }
+    removeEdge(edge.id);
+    selection.deselectAll();
+    eventEmitter.emit('onEdgeRemove', edge);
+  };
+
   // ==================== 画布点击（取消选择）====================
 
   /** 处理画布点击 */
   const handleCanvasClick = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     const isNode = target.closest('.flow-node');
-    const isEdge = target.closest('.flow-edge') || target.closest('path[stroke]');
+    const isEdge =
+      target.closest('.flow-edge') ||
+      target.closest('.flow-edge-hit-area') ||
+      target.closest('.flow-edge-delete-button') ||
+      target.closest('[data-edge-id]');
     const isHandle = target.closest('.flow-handle');
 
     if (!isNode && !isEdge && !isHandle) {
@@ -277,6 +309,7 @@ export function useFlowCanvasEvents(
     handleNodeDoubleClick,
     handleEdgeClick,
     handleEdgeDoubleClick,
+    handleEdgeDelete,
     cleanup
   };
 }

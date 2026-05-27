@@ -9,7 +9,7 @@ import { computed, defineComponent, withMemo } from 'vue';
 import { getGpuAccelerationStyle } from '../../utils/style-utils';
 import { useEventHandlers } from '../../hooks/useEventHandlers';
 import { generateEdgePath } from '../../utils/edge-path-generator';
-import type { FlowEdge, FlowViewport } from '../../types';
+import type { FlowEdge, FlowViewport, FlowConfig } from '../../types';
 import type { EdgePositions } from '../../hooks/useEdgePositions';
 import {
   EDGE_CLASS_NAMES,
@@ -19,6 +19,7 @@ import {
   MARKER_SUFFIXES
 } from '../../constants/edge-constants';
 import { calculateArrowMarkerConfig } from '../../utils/edge-style-utils';
+import { getEdgeClickAreaWidth, getEdgeDeleteButtonSize, isEdgeSelectable, shouldShowEdgeDeleteButton } from '../../utils/edge-interaction-utils';
 import BaseEdge from './BaseEdge';
 
 /** EdgeSvgRenderer 组件属性 */
@@ -41,6 +42,8 @@ export interface EdgeSvgRendererProps {
   onEdgeMouseEnter?: (edge: FlowEdge, event: MouseEvent) => void;
   /** 连接线鼠标离开 */
   onEdgeMouseLeave?: (edge: FlowEdge, event: MouseEvent) => void;
+  /** 连接线删除（点击删除按钮） */
+  onEdgeDelete?: (edge: FlowEdge, event: MouseEvent) => void;
   /** 当前悬停的边 ID */
   hoveredEdgeId?: string | null;
   /** SVG 容器 pointerover（边 hover 委托） */
@@ -89,6 +92,10 @@ export default defineComponent({
       type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
       default: undefined
     },
+    onEdgeDelete: {
+      type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
+      default: undefined
+    },
     zIndex: {
       type: Number,
       default: 0
@@ -96,6 +103,25 @@ export default defineComponent({
     bezierControlOffset: {
       type: Number,
       default: 0.5
+    },
+    clickAreaWidth: {
+      type: Number,
+      default: undefined
+    },
+    /** 仅渲染透明命中层（配合 Canvas 视觉层） */
+    interactionOnly: {
+      type: Boolean,
+      default: false
+    },
+    /** 选中边的视觉浮层（无命中区，不挡节点） */
+    visualOnly: {
+      type: Boolean,
+      default: false
+    },
+    /** 本层内：已选中的边只保留命中区（命中区留在节点下方） */
+    hitOnlySelected: {
+      type: Boolean,
+      default: false
     },
     hoveredEdgeId: {
       type: String as PropType<string | null>,
@@ -108,11 +134,21 @@ export default defineComponent({
     onEdgePointerOut: {
       type: Function as PropType<(event: MouseEvent) => void>,
       default: undefined
+    },
+    config: {
+      type: Object as PropType<Readonly<FlowConfig>>,
+      default: undefined
     }
   },
   setup(props) {
     const idPrefix = computed(() => `${ID_PREFIXES.ARROW}${props.instanceId}`);
     const zoom = computed(() => props.viewport?.zoom ?? 1);
+    const resolvedClickAreaWidth = computed(
+      () => props.clickAreaWidth ?? getEdgeClickAreaWidth(props.config)
+    );
+    const resolvedDeleteButtonSize = computed(
+      () => getEdgeDeleteButtonSize(props.config)
+    );
 
     // 使用工具函数计算箭头标记配置
     const arrowConfig = computed(() => calculateArrowMarkerConfig(zoom.value));
@@ -125,7 +161,8 @@ export default defineComponent({
       width: '100%',
       height: '100%',
       overflow: 'visible',
-      pointerEvents: 'auto',
+      // 容器不拦截事件，仅边/删除按钮自身响应（避免选中层盖住节点）
+      pointerEvents: 'none',
       zIndex: props.zIndex,
       ...getGpuAccelerationStyle({
         enabled: true,
@@ -152,13 +189,18 @@ export default defineComponent({
 
       return (
         <svg
-          class={EDGE_CLASS_NAMES.CONTAINER}
+          class={[
+            EDGE_CLASS_NAMES.CONTAINER,
+            props.interactionOnly && 'flow-edges-interaction-layer'
+          ]}
           style={svgStyle.value}
-          onMouseover={props.onEdgePointerOver}
-          onMouseout={props.onEdgePointerOut}
+          onMouseover={props.interactionOnly ? undefined : props.onEdgePointerOver}
+          onMouseout={props.interactionOnly ? undefined : props.onEdgePointerOut}
         >
-          {/* 共享的箭头标记定义 */}
-          <defs>
+          {!props.interactionOnly && (
+            <>
+              {/* 共享的箭头标记定义 */}
+              <defs>
             {/* 共享的箭头路径定义 */}
             <path
               id={`${idPrefix.value}${MARKER_PATH_SUFFIXES.DEFAULT}`}
@@ -213,6 +255,8 @@ export default defineComponent({
               <use href={`#${idPrefix.value}${MARKER_PATH_SUFFIXES.HOVERED}`} />
             </marker>
           </defs>
+            </>
+          )}
 
           {/* 渲染连接线 */}
           {props.visibleEdges.map((edge, index) => {
@@ -223,6 +267,9 @@ export default defineComponent({
 
             const isSelected = props.selectedEdgeIdsSet.has(edge.id);
             const isHovered = props.hoveredEdgeId === edge.id;
+            const edgeInteractionOnly =
+              props.interactionOnly || (props.hitOnlySelected && isSelected);
+            const edgeVisualOnly = props.visualOnly;
             const path = generateEdgePath(edge, positions, {
               showArrow: edge.showArrow !== false,
               viewport: props.viewport,
@@ -234,6 +281,8 @@ export default defineComponent({
               edge.id,
               isSelected,
               isHovered,
+              edgeInteractionOnly,
+              edgeVisualOnly,
               path,
               positions.sourceX,
               positions.sourceY,
@@ -265,10 +314,22 @@ export default defineComponent({
                   instanceId={props.instanceId}
                   selected={isSelected}
                   hovered={isHovered}
+                  clickAreaWidth={resolvedClickAreaWidth.value}
+                  deleteButtonSize={resolvedDeleteButtonSize.value}
+                  interactionOnly={edgeInteractionOnly}
+                  visualOnly={edgeVisualOnly}
+                  interactive={isEdgeSelectable(edge, props.config)}
+                  showDeleteButton={
+                    shouldShowEdgeDeleteButton(edge, props.config) &&
+                    isSelected &&
+                    !edgeInteractionOnly
+                  }
+                  config={props.config}
                   onClick={handler?.onClick}
                   onDouble-click={handler?.onDoubleClick}
                   onMouseenter={handler?.onMouseEnter}
                   onMouseleave={handler?.onMouseLeave}
+                  onDelete={(event: MouseEvent) => props.onEdgeDelete?.(edge, event)}
                 />
               ),
               edgeMemoCache,

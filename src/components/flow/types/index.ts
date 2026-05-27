@@ -18,6 +18,9 @@ export type {
 // 画布组件类型
 export type { FlowCanvasProps, FlowEdgesProps } from './flow-canvas';
 
+// 辅助线
+export type { FlowGuideAxis, FlowGuideDraft, FlowGuideLine } from './flow-guide';
+
 // 配置类型
 export type {
   FlowViewport,

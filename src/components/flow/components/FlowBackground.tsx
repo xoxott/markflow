@@ -194,10 +194,8 @@ export default defineComponent({
       return props.showGrid && props.gridType !== 'none';
     });
 
-    /** 计算网格图案中心位置 */
-    const patternCenter = computed(() => {
-      return patternSize.value * GRID_CONSTANTS.PATTERN_CENTER_RATIO;
-    });
+    /** 点状网格锚点在格子线交点（与 snap / 刻度尺一致） */
+    const patternCenter = computed(() => 0);
 
     /** 计算网格图案（使用策略模式，支持扩展） */
     const gridPatternResult = computed(() => {

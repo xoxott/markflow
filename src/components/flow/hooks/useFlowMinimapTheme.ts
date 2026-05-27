@@ -1,10 +1,12 @@
-/** 小地图主题：跟随应用 Naive UI / themeStore，与 Markdown 组件策略一致 */
+/** 小地图主题：跟随 Naive UI 主题 token
+ *
+ * 解耦说明同 `useFlowCanvasTheme`：darkMode 通过 `useFlowDarkMode` 解析。
+ */
 
 import { computed } from 'vue';
-import type { CSSProperties } from 'vue';
-import { storeToRefs } from 'pinia';
+import type { CSSProperties, Ref } from 'vue';
 import { useThemeVars } from 'naive-ui';
-import { useThemeStore } from '@/store/modules/theme';
+import { useFlowDarkMode } from '../context/flow-theme-context';
 import type { MinimapTheme } from '../minimap/types';
 import { DEFAULT_MINIMAP_THEME } from '../minimap/types';
 
@@ -17,12 +19,13 @@ export interface UseFlowMinimapThemeOptions {
   /** 是否跟随全局主题（默认 true） */
   syncAppTheme?: boolean;
   overrides?: Partial<MinimapTheme>;
+  /** 显式覆盖 darkMode，可选；未传则从注入或 OS 偏好解析 */
+  darkMode?: Ref<boolean>;
 }
 
 export function useFlowMinimapTheme(options: UseFlowMinimapThemeOptions = {}) {
   const { syncAppTheme = true, overrides } = options;
-  const themeStore = useThemeStore();
-  const { darkMode } = storeToRefs(themeStore);
+  const darkMode = useFlowDarkMode(options.darkMode);
   const themeVars = useThemeVars();
 
   const cssVars = computed<CSSProperties>(() => {

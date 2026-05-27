@@ -10,7 +10,7 @@ export const EDGE_CSS_VARS = {
   SELECTED: 'var(--flow-edge-selected, #2080f0)',
   /** 与选中同色，仅描边宽度可区分悬停 */
   HOVERED: 'var(--flow-edge-selected, #2080f0)',
-  LABEL: 'var(--flow-edge-label, #64748b)'
+  LABEL: 'var(--flow-edge-label, #334155)'
 } as const;
 
 /** Canvas 等无法使用 var() 时的回退色（与 light 主题一致） */
@@ -18,7 +18,7 @@ export const EDGE_COLORS = {
   DEFAULT: '#cbd5e1',
   SELECTED: '#2080f0',
   HOVERED: '#2080f0',
-  LABEL: '#64748b'
+  LABEL: '#334155'
 } as const;
 
 /** 箭头尺寸常量 */
@@ -86,7 +86,13 @@ export const EDGE_CLASS_NAMES = {
   /** 悬停状态类名 */
   HOVERED: 'flow-edge-hovered',
   /** 动画状态类名 */
-  ANIMATED: 'flow-edge-animated'
+  ANIMATED: 'flow-edge-animated',
+  /** 透明点击热区 */
+  HIT_AREA: 'flow-edge-hit-area',
+  /** 选中态删除按钮 */
+  DELETE_BUTTON: 'flow-edge-delete-button',
+  /** 连接线标签 */
+  LABEL: 'flow-edge-label'
 } as const;
 
 /** ID 前缀常量 */

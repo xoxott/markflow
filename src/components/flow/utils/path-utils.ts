@@ -195,27 +195,40 @@ export function calculatePathLength(pathData: string): number {
 }
 
 /**
- * 获取路径上的点（根据比例）
- *
- * @param pathData SVG path 字符串
- * @param t 比例（0-1）
- * @returns 点坐标
+ * 获取 SVG 路径中点（用于删除按钮等元素定位）
  */
-export function getPointOnPath(pathData: string, t: number): { x: number; y: number } | null {
-  // 简化实现：对于直线路径，直接计算
-  // 对于复杂路径，需要使用更精确的算法
-  const match = pathData.match(/M\s*([\d.-]+),([\d.-]+)\s*L\s*([\d.-]+),([\d.-]+)/);
-  if (match) {
-    const x1 = Number.parseFloat(match[1]);
-    const y1 = Number.parseFloat(match[2]);
-    const x2 = Number.parseFloat(match[3]);
-    const y2 = Number.parseFloat(match[4]);
-    return {
-      x: x1 + (x2 - x1) * t,
-      y: y1 + (y2 - y1) * t
-    };
+export function getPathMidpoint(
+  pathData: string,
+  fallback: { x: number; y: number }
+): { x: number; y: number } {
+  return getPathPointAt(pathData, 0.5, fallback);
+}
+
+/**
+ * 获取 SVG 路径上某比例位置的点（t: 0~1）
+ */
+export function getPathPointAt(
+  pathData: string,
+  t: number,
+  fallback: { x: number; y: number }
+): { x: number; y: number } {
+  const ratio = Math.min(1, Math.max(0, t));
+
+  if (typeof document !== 'undefined') {
+    try {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathData);
+      const total = path.getTotalLength();
+      if (total > 0) {
+        const point = path.getPointAtLength(total * ratio);
+        return { x: point.x, y: point.y };
+      }
+    } catch {
+      // fall through
+    }
   }
-  return null;
+
+  return fallback;
 }
 
 /**

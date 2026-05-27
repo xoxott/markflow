@@ -33,6 +33,8 @@ export interface FlowCanvasProps {
   initialEdges?: FlowEdge[];
   /** 初始视口 */
   initialViewport?: FlowViewport;
+  /** 初始辅助线 */
+  initialGuides?: import('./flow-guide').FlowGuideLine[];
   /** 画布宽度 */
   width?: string | number;
   /** 画布高度 */

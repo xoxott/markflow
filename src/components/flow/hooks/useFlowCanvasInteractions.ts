@@ -18,6 +18,7 @@ export interface UseFlowCanvasInteractionsOptions {
   canvasRef: Ref<HTMLElement | null>;
   updateNode: (nodeId: string, updates: Partial<FlowNode>) => void;
   addEdge: (edge: FlowEdge) => void;
+  getGuides?: () => import('../types/flow-guide').FlowGuideLine[];
   panViewport: (deltaX: number, deltaY: number) => void;
   zoomViewport: (zoom: number, centerX?: number, centerY?: number) => void;
   getViewport: () => FlowViewport;
@@ -38,7 +39,8 @@ export function useFlowCanvasInteractions(options: UseFlowCanvasInteractionsOpti
     zoomViewport,
     getViewport,
     emit,
-    eventEmitter
+    eventEmitter,
+    getGuides
   } = options;
 
   const emitViewportChange = (vp: FlowViewport) => {
@@ -66,7 +68,8 @@ export function useFlowCanvasInteractions(options: UseFlowCanvasInteractionsOpti
     nodesMap,
     onNodePositionUpdate: (nodeId, x, y) => {
       updateNode(nodeId, { position: { x, y } });
-    }
+    },
+    getGuides
   });
 
   const canvasPan = useCanvasPan({
@@ -86,7 +89,10 @@ export function useFlowCanvasInteractions(options: UseFlowCanvasInteractionsOpti
 
   watch(canvasPan.isPanning, (isPanningNow, wasPanning) => {
     if (!isPanningNow && wasPanning) {
-      stableViewportRef.value = viewport.value;
+      // 等 viewport RAF flush 后再同步，避免平移结束瞬间与节点层错位
+      requestAnimationFrame(() => {
+        stableViewportRef.value = { ...viewport.value };
+      });
     }
   });
 

@@ -13,9 +13,11 @@ export interface UseKeyboardOptions {
   /** 是否启用键盘快捷键 */
   enabled?: Ref<boolean> | (() => boolean) | boolean;
   /** 目标元素（默认为 document） */
-  target?: Ref<HTMLElement | null> | HTMLElement | null;
+  target?: Ref<HTMLElement | Document | null> | HTMLElement | Document | null;
   /** 键盘事件处理回调 */
   onKeyDown?: (event: KeyboardEvent) => void;
+  /** 额外守卫：返回 false 时不处理快捷键 */
+  guard?: (event: KeyboardEvent) => boolean;
 }
 
 export interface UseKeyboardReturn {
@@ -46,7 +48,7 @@ export interface UseKeyboardReturn {
 
 /** 键盘快捷键管理 Hook */
 export function useKeyboard(options: UseKeyboardOptions = {}): UseKeyboardReturn {
-  const { enabled = true, target, onKeyDown } = options;
+  const { enabled = true, target, onKeyDown, guard } = options;
 
   /** 创建键盘处理器实例 */
   const keyboardHandler = new FlowKeyboardHandler();
@@ -66,6 +68,10 @@ export function useKeyboard(options: UseKeyboardOptions = {}): UseKeyboardReturn
   const handleKeyDown = (event: KeyboardEvent) => {
     // 检查是否启用
     if (!checkEnabled()) {
+      return;
+    }
+
+    if (guard && !guard(event)) {
       return;
     }
 

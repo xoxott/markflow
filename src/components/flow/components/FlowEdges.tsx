@@ -18,6 +18,7 @@ import { useEdgePositions } from '../hooks/useEdgePositions';
 import { useEdgeViewportCulling } from '../hooks/useEdgeViewportCulling';
 import { useFlowCanvasContextOptional } from '../hooks/useFlowCanvasContext';
 import type { FlowConfig, FlowEdge, FlowNode, FlowViewport } from '../types';
+import { getEdgeClickAreaWidth } from '../utils/edge-interaction-utils';
 import { useCachedSet } from '../utils/set-utils';
 import EdgeCanvasRenderer from './edges/EdgeCanvasRenderer';
 import EdgeSvgRenderer from './edges/EdgeSvgRenderer';
@@ -73,6 +74,10 @@ export default defineComponent({
       default: undefined
     },
     onEdgeMouseLeave: {
+      type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
+      default: undefined
+    },
+    onEdgeDelete: {
       type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
       default: undefined
     },
@@ -199,6 +204,20 @@ export default defineComponent({
         : PERFORMANCE_CONSTANTS.Z_INDEX_NODE_BASE + 1;
     });
 
+    const renderSelectedEdgesOnTop = computed(
+      () => configRef.value?.edges?.renderBehindNodes !== false
+    );
+
+    const selectedEdgeFrontZIndex = PERFORMANCE_CONSTANTS.Z_INDEX_EDGE_SELECTED;
+
+    const clickAreaWidth = computed(() => getEdgeClickAreaWidth(configRef.value));
+
+    const selectedVisibleEdges = computed(() =>
+      renderSelectedEdgesOnTop.value
+        ? visibleEdges.value.filter(edge => selectedEdgeIdsSet.value.has(edge.id))
+        : []
+    );
+
     const hoveredEdgeId = ref<string | null>(null);
     const visibleEdgesRef = computed(() => visibleEdges.value);
 
@@ -245,44 +264,117 @@ export default defineComponent({
       }
     };
 
-    return () => {
-      const edgeViewport = edgePositionViewportRef.value;
-      const layerStyle = panLayerStyle.value;
+    const renderEdgeLayer = (options: {
+      edges: FlowEdge[];
+      zIndex: number;
+      interactionOnly?: boolean;
+      visualOnly?: boolean;
+      hitOnlySelected?: boolean;
+      enableHover?: boolean;
+      useCanvasRendering?: boolean;
+    }) => {
+      const {
+        edges: layerEdges,
+        zIndex,
+        interactionOnly = false,
+        visualOnly = false,
+        hitOnlySelected = false,
+        enableHover = true,
+        useCanvasRendering = false
+      } = options;
 
-      const edgeRenderer = useCanvas.value ? (
-        <EdgeCanvasRenderer
-          visibleEdges={visibleEdges.value}
-          getEdgePositions={getEdgePositions}
-          selectedEdgeIdsSet={selectedEdgeIdsSet.value}
-          viewport={edgeViewport}
-          zIndex={edgeZIndex.value}
-        />
-      ) : (
+      if (layerEdges.length === 0) {
+        return null;
+      }
+
+      const edgeViewport = edgePositionViewportRef.value;
+
+      const sharedProps = {
+        visibleEdges: layerEdges,
+        getEdgePositions,
+        selectedEdgeIdsSet: selectedEdgeIdsSet.value,
+        viewport: edgeViewport,
+        instanceId: defaultInstanceId.value,
+        zIndex,
+        clickAreaWidth: clickAreaWidth.value,
+        config: configRef.value,
+        bezierControlOffset: configRef.value?.edges?.bezierControlOffset,
+        onEdgeClick: props.onEdgeClick,
+        onEdgeDoubleClick: props.onEdgeDoubleClick,
+        onEdgeMouseEnter: props.onEdgeMouseEnter,
+        onEdgeMouseLeave: props.onEdgeMouseLeave,
+        onEdgeDelete: props.onEdgeDelete
+      };
+
+      if (useCanvasRendering && !interactionOnly) {
+        return (
+          <EdgeCanvasRenderer
+            visibleEdges={layerEdges}
+            getEdgePositions={getEdgePositions}
+            selectedEdgeIdsSet={selectedEdgeIdsSet.value}
+            viewport={edgeViewport}
+            zIndex={zIndex}
+          />
+        );
+      }
+
+      return (
         <EdgeSvgRenderer
-          visibleEdges={visibleEdges.value}
-          getEdgePositions={getEdgePositions}
-          selectedEdgeIdsSet={selectedEdgeIdsSet.value}
-          viewport={edgeViewport}
-          instanceId={defaultInstanceId.value}
-          zIndex={edgeZIndex.value}
-          hoveredEdgeId={hoveredEdgeId.value}
-          onEdgePointerOver={handleEdgePointerOver}
-          onEdgePointerOut={handleEdgePointerOut}
-          onEdgeClick={props.onEdgeClick}
-          onEdgeDoubleClick={props.onEdgeDoubleClick}
-          onEdgeMouseEnter={props.onEdgeMouseEnter}
-          onEdgeMouseLeave={props.onEdgeMouseLeave}
-          bezierControlOffset={configRef.value?.edges?.bezierControlOffset}
+          {...sharedProps}
+          interactionOnly={interactionOnly}
+          visualOnly={visualOnly}
+          hitOnlySelected={hitOnlySelected}
+          hoveredEdgeId={enableHover ? hoveredEdgeId.value : null}
+          onEdgePointerOver={enableHover ? handleEdgePointerOver : undefined}
+          onEdgePointerOut={enableHover ? handleEdgePointerOut : undefined}
         />
+      );
+    };
+
+    return () => {
+      const layerStyle = panLayerStyle.value;
+      const elevateSelected = renderSelectedEdgesOnTop.value;
+
+      const backLayer = renderEdgeLayer({
+        edges: visibleEdges.value,
+        zIndex: edgeZIndex.value,
+        hitOnlySelected: elevateSelected,
+        useCanvasRendering: useCanvas.value
+      });
+
+      const selectedVisualLayer =
+        elevateSelected &&
+        renderEdgeLayer({
+          edges: selectedVisibleEdges.value,
+          zIndex: selectedEdgeFrontZIndex,
+          visualOnly: true,
+          enableHover: false
+        });
+
+      const canvasHitLayer =
+        useCanvas.value &&
+        renderEdgeLayer({
+          edges: visibleEdges.value,
+          zIndex: edgeZIndex.value,
+          interactionOnly: true,
+          enableHover: false
+        });
+
+      const edgeContent = (
+        <>
+          {backLayer}
+          {selectedVisualLayer}
+          {canvasHitLayer}
+        </>
       );
 
       if (!layerStyle) {
-        return edgeRenderer;
+        return edgeContent;
       }
 
       return (
         <div class="flow-edges-pan-layer" style={layerStyle}>
-          {edgeRenderer}
+          {edgeContent}
         </div>
       );
     };

@@ -6,7 +6,9 @@
 
 import { type Ref, ref } from 'vue';
 import { logger } from '../utils/logger';
-import type { FlowConfig, FlowNode, FlowViewport } from '../types';
+import type { FlowConfig, FlowNode, FlowPosition, FlowViewport } from '../types';
+import type { FlowGuideLine } from '../types/flow-guide';
+import { applyFlowSnap } from '../utils/guide-utils';
 import { useDrag } from './useDrag';
 import { useClickDragDistinction } from './useClickDragDistinction';
 import { useZIndexAllocator } from './useZIndexAllocator';
@@ -22,6 +24,8 @@ export interface UseNodeDragOptions {
   nodesMap: Ref<Map<string, FlowNode>>;
   /** 更新节点位置的回调 */
   onNodePositionUpdate: (nodeId: string, x: number, y: number) => void;
+  /** 用户辅助线（用于吸附） */
+  getGuides?: () => FlowGuideLine[];
 }
 
 export interface UseNodeDragReturn {
@@ -41,6 +45,8 @@ export interface UseNodeDragReturn {
   handleNodeMouseMove: (event: MouseEvent) => void;
   /** 处理节点鼠标抬起事件 */
   handleNodeMouseUp: () => void;
+  /** 当前吸附参考位置（拖拽且 snapToGrid 时） */
+  snapGuidePosition: Ref<FlowPosition | null>;
   /** 清除样式缓存的回调（用于在拖拽时清除缓存） */
   clearStyleCache?: () => void;
 }
@@ -54,13 +60,38 @@ export interface UseNodeDragReturn {
  * @returns 节点拖拽相关的状态和方法
  */
 export function useNodeDrag(options: UseNodeDragOptions): UseNodeDragReturn {
-  const { config, viewport, onNodePositionUpdate } = options;
+  const { config, viewport, onNodePositionUpdate, getGuides } = options;
 
   /** 正在拖拽的节点 ID（用于 z-index 管理） */
   const draggingNodeId = ref<string | null>(null);
+  const snapGuidePosition = ref<FlowPosition | null>(null);
 
   /** 当前拖拽的节点 ID（内部使用） */
   let currentNodeId: string | null = null;
+
+  const applySnapIfEnabled = (x: number, y: number): FlowPosition => {
+    const canvas = config.value.canvas;
+    const snapToGuides = canvas?.snapToGuides !== false;
+    const snapToGrid = Boolean(canvas?.snapToGrid);
+
+    if (!snapToGuides && !snapToGrid) {
+      snapGuidePosition.value = null;
+      return { x, y };
+    }
+
+    const snapped = applyFlowSnap(
+      { x, y },
+      {
+        snapToGuides,
+        snapToGrid,
+        guides: getGuides?.() ?? [],
+        guideSnapThreshold: canvas?.guideSnapThreshold,
+        gridSize: canvas?.gridSize
+      }
+    );
+    snapGuidePosition.value = snapped;
+    return snapped;
+  };
 
   // 使用点击/拖拽区分 Hook
   const { isClickBlocked: nodeClickBlocked, markDragOccurred } = useClickDragDistinction({
@@ -94,9 +125,14 @@ export function useNodeDrag(options: UseNodeDragOptions): UseNodeDragReturn {
       const deltaY = screenDeltaY / viewport.value.zoom;
 
       // 计算新的节点位置（画布坐标）
-      return {
+      const raw = {
         x: startNodeX + deltaX,
-        y: startNodeY + deltaY,
+        y: startNodeY + deltaY
+      };
+      const snapped = applySnapIfEnabled(raw.x, raw.y);
+      return {
+        x: snapped.x,
+        y: snapped.y,
         deltaX: screenDeltaX,
         deltaY: screenDeltaY
       };
@@ -127,6 +163,7 @@ export function useNodeDrag(options: UseNodeDragOptions): UseNodeDragReturn {
       // 清除拖拽节点 ID
       draggingNodeId.value = null;
       currentNodeId = null;
+      snapGuidePosition.value = null;
     }
   });
 
@@ -169,6 +206,7 @@ export function useNodeDrag(options: UseNodeDragOptions): UseNodeDragReturn {
     nodeClickBlocked,
     handleNodeMouseDown,
     handleNodeMouseMove: drag.handleMouseMove,
-    handleNodeMouseUp: drag.handleMouseUp
+    handleNodeMouseUp: drag.handleMouseUp,
+    snapGuidePosition
   };
 }
