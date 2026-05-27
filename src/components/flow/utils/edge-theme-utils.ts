@@ -30,6 +30,6 @@ export function resolveEdgeColors(themeRoot?: HTMLElement | null): ResolvedEdgeC
   return {
     default: getCssVariable(CSS_VARIABLES.EDGE_DEFAULT, el, EDGE_COLORS.DEFAULT),
     selected: getCssVariable(CSS_VARIABLES.EDGE_SELECTED, el, EDGE_COLORS.SELECTED),
-    hovered: getCssVariable(CSS_VARIABLES.EDGE_HOVERED, el, EDGE_COLORS.HOVERED)
+    hovered: getCssVariable(CSS_VARIABLES.EDGE_SELECTED, el, EDGE_COLORS.SELECTED)
   };
 }

@@ -117,7 +117,7 @@
   }
 
   &.flow-edge-hovered {
-    stroke: $flow-edge-hovered;
+    stroke: $flow-edge-selected;
     stroke-width: $flow-edge-stroke-width-hovered;
   }
 }

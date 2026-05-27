@@ -8,7 +8,8 @@
 export const EDGE_CSS_VARS = {
   DEFAULT: 'var(--flow-edge-default, #cbd5e1)',
   SELECTED: 'var(--flow-edge-selected, #2080f0)',
-  HOVERED: 'var(--flow-edge-hovered, #94a3b8)',
+  /** 与选中同色，仅描边宽度可区分悬停 */
+  HOVERED: 'var(--flow-edge-selected, #2080f0)',
   LABEL: 'var(--flow-edge-label, #64748b)'
 } as const;
 
@@ -16,7 +17,7 @@ export const EDGE_CSS_VARS = {
 export const EDGE_COLORS = {
   DEFAULT: '#cbd5e1',
   SELECTED: '#2080f0',
-  HOVERED: '#94a3b8',
+  HOVERED: '#2080f0',
   LABEL: '#64748b'
 } as const;
 

@@ -61,7 +61,7 @@ export function useFlowCanvasTheme(options: UseFlowCanvasThemeOptions = {}) {
       '--flow-handle-border-default': primary,
       '--flow-edge-default': divider,
       '--flow-edge-selected': primary,
-      '--flow-edge-hovered': themeVars.value.textColor3,
+      '--flow-edge-hovered': primary,
       '--flow-edge-label': themeVars.value.textColor3,
       '--flow-preview-color': primary,
       '--flow-minimap-surface-bg': themeVars.value.cardColor,

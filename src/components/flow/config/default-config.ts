@@ -64,7 +64,8 @@ export const DEFAULT_EDGE_CONFIG: FlowEdgeConfig = {
   /** 由 --flow-edge-selected / syncAppTheme 决定 */
   selectedStrokeColor: undefined,
   hoverStrokeWidth: 3,
-  hoverStrokeColor: '#94a3b8',
+  /** 与选中同色，由 --flow-edge-selected 决定 */
+  hoverStrokeColor: undefined,
   showArrow: true,
   arrowSize: 10,
   clickAreaWidth: 24,
