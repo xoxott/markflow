@@ -247,4 +247,21 @@
   &--spaced {
     margin-left: $flow-spacing-sm;
   }
+
+  &--active {
+    border-color: $flow-node-border-selected;
+    background: color-mix(in srgb, $flow-node-border-selected 12%, $flow-toolbar-button-bg);
+    color: $flow-node-border-selected;
+  }
+}
+
+.flow-canvas--layout-locked {
+  .flow-node {
+    cursor: default;
+  }
+
+  .flow-handle {
+    cursor: default;
+    pointer-events: none;
+  }
 }

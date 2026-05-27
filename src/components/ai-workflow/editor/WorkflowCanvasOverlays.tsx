@@ -26,6 +26,8 @@ export default defineComponent({
         <FlowToolbar
           viewport={toolbarViewport.value}
           position="bottom"
+          layoutLocked={ctx.layoutLocked.value}
+          onLayoutLockChange={ctx.setLayoutLocked}
           onZoomChange={zoom => ctx.setViewport({ zoom })}
           onFitView={props.onFitView}
           onResetView={() => ctx.setViewport({ x: 0, y: 0, zoom: 1 })}

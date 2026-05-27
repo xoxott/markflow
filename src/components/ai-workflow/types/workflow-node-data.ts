@@ -44,6 +44,9 @@ export interface WorkflowFlowCanvasExpose {
   redo: () => boolean;
   canUndo: Ref<boolean> | boolean;
   canRedo: Ref<boolean> | boolean;
+  layoutLocked: Ref<boolean> | boolean;
+  setLayoutLocked: (locked: boolean) => void;
+  toggleLayoutLock: () => void;
 }
 
 /** WorkflowEditorCanvas 组件暴露 API */

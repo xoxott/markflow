@@ -28,3 +28,4 @@ export * from './useFlowCanvasTheme';
 export * from './useNodeState';
 export * from './useNodeStyle';
 export * from './useNodesMap';
+export * from './useLayoutLock';

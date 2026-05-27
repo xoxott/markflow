@@ -87,6 +87,10 @@ export function useConnectionCreation(
     handleType: 'source' | 'target',
     event: MouseEvent
   ) => {
+    if (config.value.nodes?.connectable === false) {
+      return;
+    }
+
     // 只有 source 端口可以开始连接
     if (handleType === 'source') {
       connectionHandler.startConnection(nodeId, handleId, event.clientX, event.clientY);

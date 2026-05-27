@@ -51,7 +51,10 @@ describe('FlowEdges mount', () => {
           isPanning: ref(false),
           instanceId: ref('test'),
           setViewport: () => {},
-          getViewport: () => ({ x: 0, y: 0, zoom: 1 })
+          getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+          layoutLocked: ref(false),
+          setLayoutLocked: () => {},
+          toggleLayoutLock: () => {}
         });
 
         return () => h(FlowEdges, { edges, nodes });

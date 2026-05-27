@@ -20,6 +20,7 @@ import { useFlowCanvasPropsSync } from './useFlowCanvasPropsSync';
 import { useFlowCanvasConfigSync } from './useFlowCanvasConfigSync';
 import { useFlowCanvasEvents } from './useFlowCanvasEvents';
 import { useFlowCanvasInteractions } from './useFlowCanvasInteractions';
+import { useLayoutLock } from './useLayoutLock';
 
 /** FlowCanvas 组件 emit 事件映射 */
 export interface FlowCanvasEmitMap {
@@ -103,6 +104,9 @@ export interface UseFlowCanvasCoreReturn {
   eventEmitter: FlowEventEmitter;
   registerKeyboardShortcut: ReturnType<typeof useKeyboard>['register'];
   unregisterKeyboardShortcut: ReturnType<typeof useKeyboard>['unregister'];
+  layoutLocked: ReturnType<typeof useLayoutLock>['layoutLocked'];
+  setLayoutLocked: ReturnType<typeof useLayoutLock>['setLayoutLocked'];
+  toggleLayoutLock: ReturnType<typeof useLayoutLock>['toggleLayoutLock'];
 }
 
 export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCanvasCoreReturn {
@@ -112,6 +116,8 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     id: props.id,
     initialConfig: props.config
   });
+
+  const { layoutLocked, setLayoutLocked, toggleLayoutLock } = useLayoutLock(updateConfig);
 
   const flowState = useFlowState({
     initialNodes: props.initialNodes,
@@ -430,6 +436,9 @@ export function useFlowCanvasCore(options: UseFlowCanvasCoreOptions): UseFlowCan
     isBoxSelecting,
     eventEmitter,
     registerKeyboardShortcut: keyboard.register,
-    unregisterKeyboardShortcut: keyboard.unregister
+    unregisterKeyboardShortcut: keyboard.unregister,
+    layoutLocked,
+    setLayoutLocked,
+    toggleLayoutLock
   };
 }

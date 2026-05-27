@@ -22,6 +22,10 @@ export interface FlowCanvasContextValue {
   /** 与画布 store 同步的视口写入（小地图、工具栏等） */
   setViewport: (viewport: Partial<FlowViewport>) => void;
   getViewport: () => FlowViewport;
+  /** 布局是否锁定（锁定后仅可平移/缩放画布） */
+  layoutLocked: Ref<boolean>;
+  setLayoutLocked: (locked: boolean) => void;
+  toggleLayoutLock: () => void;
 }
 
 export const flowCanvasContextKey: InjectionKey<FlowCanvasContextValue> =

@@ -85,11 +85,19 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     };
   }
 
+  function isLayoutLocked(): boolean {
+    const api = getCanvasApi();
+    return readExposedRef(api?.layoutLocked, false);
+  }
+
   function handleDragOver(e: DragEvent) {
-    if (e.dataTransfer?.types.includes(WORKFLOW_DRAG_MIME)) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
+    if (!e.dataTransfer?.types.includes(WORKFLOW_DRAG_MIME)) return;
+    if (isLayoutLocked()) {
+      e.dataTransfer.dropEffect = 'none';
+      return;
     }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
   }
 
   function handleDrop(e: DragEvent, canvasEl: HTMLElement | null) {
@@ -100,6 +108,11 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
 
     const api = getCanvasApi();
     if (!api) return;
+
+    if (isLayoutLocked()) {
+      message.warning('布局已锁定，请先解锁后再编辑节点');
+      return;
+    }
 
     const nodes = readExposedRef(api.nodes, [] as FlowNode<WorkflowNodeFlowData>[]);
     if (type === 'start' && nodes.some(n => n.data?.nodeType === 'start')) {

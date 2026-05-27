@@ -110,7 +110,10 @@ export default defineComponent({
       isPanning: core.isPanning,
       instanceId: core.defaultInstanceId,
       setViewport: core.setViewport,
-      getViewport: () => core.viewport.value
+      getViewport: () => core.viewport.value,
+      layoutLocked: core.layoutLocked,
+      setLayoutLocked: core.setLayoutLocked,
+      toggleLayoutLock: core.toggleLayoutLock
     });
 
     expose({
@@ -145,13 +148,21 @@ export default defineComponent({
       isBoxSelecting: core.isBoxSelecting,
       registerKeyboardShortcut: core.registerKeyboardShortcut,
       unregisterKeyboardShortcut: core.unregisterKeyboardShortcut,
-      eventEmitter: core.eventEmitter
+      eventEmitter: core.eventEmitter,
+      layoutLocked: core.layoutLocked,
+      setLayoutLocked: core.setLayoutLocked,
+      toggleLayoutLock: core.toggleLayoutLock
     });
 
     return () => (
       <div
         ref={core.canvasRef}
-        class={['flow-canvas', flowTheme.themeClass.value, props.class]}
+        class={[
+          'flow-canvas',
+          flowTheme.themeClass.value,
+          core.layoutLocked.value && 'flow-canvas--layout-locked',
+          props.class
+        ]}
         style={canvasStyle.value}
       >
         {slots.background

@@ -31,6 +31,12 @@ export interface FlowToolbarProps {
   onFitView?: () => void;
   /** 重置视图事件 */
   onResetView?: () => void;
+  /** 布局是否锁定（锁定后仅可平移/缩放画布） */
+  layoutLocked?: boolean;
+  /** 是否显示布局锁定按钮 */
+  showLayoutLock?: boolean;
+  /** 布局锁定状态变化 */
+  onLayoutLockChange?: (locked: boolean) => void;
 }
 
 /** Flow 工具栏组件 */
@@ -80,6 +86,18 @@ export default defineComponent({
     onResetView: {
       type: Function as PropType<() => void>,
       default: undefined
+    },
+    layoutLocked: {
+      type: Boolean,
+      default: false
+    },
+    showLayoutLock: {
+      type: Boolean,
+      default: true
+    },
+    onLayoutLockChange: {
+      type: Function as PropType<(locked: boolean) => void>,
+      default: undefined
     }
   },
   setup(props) {
@@ -103,6 +121,10 @@ export default defineComponent({
     const handleZoomOut = () => {
       const newZoom = Math.max(props.minZoom, safeViewport.value.zoom - props.zoomStep);
       props.onZoomChange?.(newZoom);
+    };
+
+    const handleToggleLayoutLock = () => {
+      props.onLayoutLockChange?.(!props.layoutLocked);
     };
 
     return () => {
@@ -131,6 +153,23 @@ export default defineComponent({
           >
             +
           </button>
+
+          {props.showLayoutLock && props.onLayoutLockChange && (
+            <button
+              class={[
+                'flow-toolbar-button',
+                'flow-toolbar-button--spaced',
+                props.layoutLocked && 'flow-toolbar-button--active'
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              type="button"
+              title={props.layoutLocked ? '解锁节点布局，可拖拽节点' : '锁定节点布局，仅可拖动画布'}
+              onClick={handleToggleLayoutLock}
+            >
+              {props.layoutLocked ? '解锁' : '锁定'}
+            </button>
+          )}
 
           {props.onFitView && (
             <button
