@@ -12,6 +12,12 @@ export const flowEnUS: FlowI18nMessages = {
     layoutUnlock: 'Unlock layout',
     layoutLockTitle: 'Lock node layout; only pan and zoom the canvas',
     layoutUnlockTitle: 'Unlock node layout; nodes can be dragged',
+    ruler: 'Ruler',
+    rulerShowTitle: 'Show top and left rulers',
+    rulerHideTitle: 'Hide rulers',
+    dragSnapGuides: 'Align',
+    dragSnapGuidesEnableTitle: 'Show alignment guides and snap while dragging nodes',
+    dragSnapGuidesDisableTitle: 'Hide alignment guides while dragging',
     fitView: 'Fit view',
     resetView: 'Reset view'
   },

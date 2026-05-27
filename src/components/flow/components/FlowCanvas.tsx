@@ -173,7 +173,11 @@ export default defineComponent({
       },
       layoutLocked: core.layoutLocked,
       setLayoutLocked: core.setLayoutLocked,
-      toggleLayoutLock: core.toggleLayoutLock
+      toggleLayoutLock: core.toggleLayoutLock,
+      setShowRuler: core.setShowRuler,
+      toggleShowRuler: core.toggleShowRuler,
+      setDragSnapGuidesEnabled: core.setDragSnapGuidesEnabled,
+      toggleDragSnapGuidesEnabled: core.toggleDragSnapGuidesEnabled
     });
 
     // Phase 3: 暴露 API 收敛到高频集合（≈ 17 项）
@@ -215,7 +219,13 @@ export default defineComponent({
       // 布局锁定
       layoutLocked: core.layoutLocked,
       setLayoutLocked: core.setLayoutLocked,
-      toggleLayoutLock: core.toggleLayoutLock
+      toggleLayoutLock: core.toggleLayoutLock,
+      // 刻度尺
+      setShowRuler: core.setShowRuler,
+      toggleShowRuler: core.toggleShowRuler,
+      // 拖拽对齐参考线
+      setDragSnapGuidesEnabled: core.setDragSnapGuidesEnabled,
+      toggleDragSnapGuidesEnabled: core.toggleDragSnapGuidesEnabled
     });
 
     const showSnapGuides = computed(() => {

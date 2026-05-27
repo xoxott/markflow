@@ -3,7 +3,7 @@
 import { type Ref, defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NSpace, NText, useMessage } from 'naive-ui';
 import { FlowCanvas, type FlowEdge, type FlowNode } from '@/components/flow';
-import { readExposedRef } from '@/components/flow/internal';
+import { readExposedBool, readExposedRef } from '@/components/flow/internal';
 
 interface FlowCanvasExposed {
   nodes: Ref<FlowNode[]> | FlowNode[];
@@ -16,8 +16,8 @@ interface FlowCanvasExposed {
   removeEdge: (edgeId: string) => void;
   undo: () => boolean;
   redo: () => boolean;
-  canUndo: () => boolean;
-  canRedo: () => boolean;
+  canUndo: Ref<boolean> | boolean;
+  canRedo: Ref<boolean> | boolean;
 }
 
 export default defineComponent({
@@ -127,6 +127,8 @@ export default defineComponent({
       const selectedNodes = readSelectedNodeIds().join(', ') || '无';
       const selectedEdges = readSelectedEdgeIds().join(', ') || '无';
       const hasSelectedEdge = readSelectedEdgeIds().length > 0;
+      const canUndo = readExposedBool(inst?.canUndo, false);
+      const canRedo = readExposedBool(inst?.canRedo, false);
 
       return (
         <NCard bordered>
@@ -162,10 +164,10 @@ export default defineComponent({
             >
               删除选中连接
             </NButton>
-            <NButton size="small" onClick={() => inst?.undo()} disabled={!inst?.canUndo()}>
+            <NButton size="small" onClick={() => inst?.undo()} disabled={!canUndo}>
               撤销
             </NButton>
-            <NButton size="small" onClick={() => inst?.redo()} disabled={!inst?.canRedo()}>
+            <NButton size="small" onClick={() => inst?.redo()} disabled={!canRedo}>
               重做
             </NButton>
           </NSpace>

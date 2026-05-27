@@ -128,7 +128,6 @@ export const FlowEdgeConfigSchema = z.object({
   arrowSize: z.number().positive().optional(),
   clickAreaWidth: z.number().positive().optional(),
   bezierControlOffset: z.number().min(0).max(1).optional(),
-  stepRadius: z.number().min(0).optional(),
   animationDuration: z.number().positive().optional(),
   selectable: z.boolean().optional(),
   deletable: z.boolean().optional(),

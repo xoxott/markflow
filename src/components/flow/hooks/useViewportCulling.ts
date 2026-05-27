@@ -136,6 +136,11 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
     canvasSize
   } = options;
 
+  const resolvedDefaultNodeWidth =
+    defaultNodeWidth ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH ?? 220;
+  const resolvedDefaultNodeHeight =
+    defaultNodeHeight ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT ?? 72;
+
   /** 视口屏幕尺寸：优先使用画布尺寸，否则回退 window，避免在非全屏画布下错算 */
   const getCanvasPx = (): { width: number; height: number } => {
     if (canvasSize?.value && canvasSize.value.width > 0 && canvasSize.value.height > 0) {
@@ -191,7 +196,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
       // 按照原始数组顺序过滤，确保 DOM 节点顺序不变
       const filterStart = performance.now();
       newVisibleNodes = filterNodesByOriginalOrder(nodes.value, queriedNodes, node =>
-        isNodeVisible(node, bounds, defaultNodeWidth, defaultNodeHeight)
+        isNodeVisible(node, bounds, resolvedDefaultNodeWidth, resolvedDefaultNodeHeight)
       );
       const filterTime = performance.now();
 
@@ -207,7 +212,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
     } else {
       // 线性查找（节点数量少时使用）
       newVisibleNodes = nodes.value.filter(node =>
-        isNodeVisible(node, bounds, defaultNodeWidth, defaultNodeHeight)
+        isNodeVisible(node, bounds, resolvedDefaultNodeWidth, resolvedDefaultNodeHeight)
       );
 
       const totalTime = performance.now() - perfStart;

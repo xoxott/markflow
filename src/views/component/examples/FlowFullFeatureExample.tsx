@@ -1,6 +1,6 @@
 /** Flow 示例 4: 完整功能（小地图、工具栏，viewport 与 FlowCanvas 同步） */
 
-import { defineComponent, ref } from 'vue';
+import { type PropType, computed, defineComponent, ref } from 'vue';
 import { NCard, NH3, NText, useMessage } from 'naive-ui';
 import {
   FlowCanvas,
@@ -8,7 +8,8 @@ import {
   FlowMinimap,
   type FlowNode,
   FlowToolbar,
-  type FlowViewport
+  type FlowViewport,
+  useFlowCanvasContext
 } from '@/components/flow';
 
 /** FlowCanvas expose 的最小类型 */
@@ -17,6 +18,58 @@ interface FlowCanvasExposed {
   zoomViewport: (zoom: number, centerX?: number, centerY?: number) => void;
   fitView: (padding?: number) => boolean;
 }
+
+/** 工具栏（读取 FlowCanvas 上下文，含刻度尺开关） */
+const FullFeatureToolbar = defineComponent({
+  name: 'FullFeatureToolbar',
+  props: {
+    viewport: {
+      type: Object as PropType<FlowViewport>,
+      required: true
+    },
+    onZoomChange: {
+      type: Function as PropType<(zoom: number) => void>,
+      required: true
+    },
+    onResetView: {
+      type: Function as PropType<() => void>,
+      required: true
+    },
+    onFitView: {
+      type: Function as PropType<() => void>,
+      required: true
+    },
+    style: {
+      type: Object as PropType<Record<string, string | number>>,
+      default: undefined
+    }
+  },
+  setup(props) {
+    const ctx = useFlowCanvasContext();
+    const dragSnapGuides = computed(() => {
+      const canvas = ctx.config.value.canvas;
+      return Boolean(canvas?.snapToGrid || canvas?.snapToGuides || canvas?.snapToAlignment);
+    });
+
+    return () => (
+      <FlowToolbar
+        viewport={props.viewport}
+        minZoom={0.1}
+        maxZoom={4}
+        layoutLocked={ctx.layoutLocked.value}
+        onLayoutLockChange={ctx.setLayoutLocked}
+        showRuler={Boolean(ctx.config.value.canvas?.showRuler)}
+        onShowRulerChange={ctx.setShowRuler}
+        dragSnapGuides={dragSnapGuides.value}
+        onDragSnapGuidesChange={ctx.setDragSnapGuidesEnabled}
+        onZoomChange={props.onZoomChange}
+        onResetView={props.onResetView}
+        onFitView={props.onFitView}
+        style={props.style}
+      />
+    );
+  }
+});
 
 export default defineComponent({
   name: 'FlowFullFeatureExample',
@@ -139,10 +192,8 @@ export default defineComponent({
             onViewport-change={handleViewportChange}
           >
             <FlowMinimap size={{ width: 200, height: 150 }} position="bottom-right" />
-            <FlowToolbar
+            <FullFeatureToolbar
               viewport={toolbarViewport.value}
-              minZoom={0.1}
-              maxZoom={4}
               onZoomChange={(zoom: number) => {
                 const host = canvasHostRef.value?.querySelector(
                   '.flow-canvas'

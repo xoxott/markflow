@@ -12,6 +12,7 @@ import {
   computed,
   defineComponent,
   h,
+  toRaw,
   toRef
 } from 'vue';
 import { useFlowCanvasContextOptional } from '../hooks/useFlowCanvasContext';
@@ -30,10 +31,10 @@ function resolveNodeComponent(entry: FlowNodeType | Component | undefined): Comp
   if (!entry) return null;
   // FlowNodeType 形式：{ name, component, defaultConfig? }
   if (typeof entry === 'object' && 'component' in entry && entry.component) {
-    return entry.component as Component;
+    return toRaw(entry.component as Component);
   }
   // 直接是组件
-  return entry as Component;
+  return toRaw(entry as Component);
 }
 
 /** FlowNodes 组件属性 */

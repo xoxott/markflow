@@ -11,6 +11,7 @@ import type { FlowEdge, FlowNode, FlowPosition, FlowViewport } from '../../types
 import type { FlowGuideLine } from '../../types/flow-guide';
 import type { FlowCanvasProps } from '../../types/flow-canvas';
 import type { FlowCanvasEmit } from '../../types/flow-events';
+import { dragSnapGuidesCanvasPatch, isDragSnapGuidesEnabled } from '../../utils/config-utils';
 import type { FlowSnapshot } from '../../utils/serialization-utils';
 import { useFlowConfig } from '../useFlowConfig';
 import { useFlowCanvasPropsSync } from '../useFlowCanvasPropsSync';
@@ -118,6 +119,10 @@ export interface UseFlowCanvasCoreReturn {
   layoutLocked: ReturnType<typeof useLayoutLock>['layoutLocked'];
   setLayoutLocked: ReturnType<typeof useLayoutLock>['setLayoutLocked'];
   toggleLayoutLock: ReturnType<typeof useLayoutLock>['toggleLayoutLock'];
+  setShowRuler: (show: boolean) => void;
+  toggleShowRuler: () => void;
+  setDragSnapGuidesEnabled: (enabled: boolean) => void;
+  toggleDragSnapGuidesEnabled: () => void;
   exportJSON: (options?: { includeViewport?: boolean; includeGuides?: boolean }) => FlowSnapshot;
   importJSON: (
     input: unknown,
@@ -139,6 +144,22 @@ export function useFlowCanvasOrchestrator(
   });
 
   const { layoutLocked, setLayoutLocked, toggleLayoutLock } = useLayoutLock(updateConfig);
+
+  const setShowRuler = (show: boolean) => {
+    updateConfig({ canvas: { showRuler: show } });
+  };
+
+  const toggleShowRuler = () => {
+    setShowRuler(!config.value.canvas?.showRuler);
+  };
+
+  const setDragSnapGuidesEnabled = (enabled: boolean) => {
+    updateConfig({ canvas: dragSnapGuidesCanvasPatch(enabled) });
+  };
+
+  const toggleDragSnapGuidesEnabled = () => {
+    setDragSnapGuidesEnabled(!isDragSnapGuidesEnabled(config.value.canvas));
+  };
 
   const canvasRef = ref<HTMLElement | null>(null);
   const defaultInstanceId = computed(() => props.id || 'default');
@@ -538,6 +559,10 @@ export function useFlowCanvasOrchestrator(
     layoutLocked,
     setLayoutLocked,
     toggleLayoutLock,
+    setShowRuler,
+    toggleShowRuler,
+    setDragSnapGuidesEnabled,
+    toggleDragSnapGuidesEnabled,
     exportJSON,
     importJSON,
     copySelection,

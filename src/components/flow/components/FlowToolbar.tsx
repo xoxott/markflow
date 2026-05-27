@@ -38,6 +38,18 @@ export interface FlowToolbarProps {
   showLayoutLock?: boolean;
   /** 布局锁定状态变化 */
   onLayoutLockChange?: (locked: boolean) => void;
+  /** 是否显示刻度尺 */
+  showRuler?: boolean;
+  /** 是否显示刻度尺开关 */
+  showRulerToggle?: boolean;
+  /** 刻度尺显示状态变化 */
+  onShowRulerChange?: (show: boolean) => void;
+  /** 拖拽对齐参考线是否开启 */
+  dragSnapGuides?: boolean;
+  /** 是否显示对齐线开关 */
+  showDragSnapGuidesToggle?: boolean;
+  /** 拖拽对齐参考线状态变化 */
+  onDragSnapGuidesChange?: (enabled: boolean) => void;
   /** 覆盖 config 中的 locale */
   locale?: FlowLocale;
 }
@@ -102,6 +114,30 @@ export default defineComponent({
       type: Function as PropType<(locked: boolean) => void>,
       default: undefined
     },
+    showRuler: {
+      type: Boolean,
+      default: false
+    },
+    showRulerToggle: {
+      type: Boolean,
+      default: true
+    },
+    onShowRulerChange: {
+      type: Function as PropType<(show: boolean) => void>,
+      default: undefined
+    },
+    dragSnapGuides: {
+      type: Boolean,
+      default: false
+    },
+    showDragSnapGuidesToggle: {
+      type: Boolean,
+      default: true
+    },
+    onDragSnapGuidesChange: {
+      type: Function as PropType<(enabled: boolean) => void>,
+      default: undefined
+    },
     locale: {
       type: String as PropType<FlowLocale>,
       default: undefined
@@ -133,6 +169,14 @@ export default defineComponent({
 
     const handleToggleLayoutLock = () => {
       props.onLayoutLockChange?.(!props.layoutLocked);
+    };
+
+    const handleToggleShowRuler = () => {
+      props.onShowRulerChange?.(!props.showRuler);
+    };
+
+    const handleToggleDragSnapGuides = () => {
+      props.onDragSnapGuidesChange?.(!props.dragSnapGuides);
     };
 
     return () => {
@@ -181,6 +225,54 @@ export default defineComponent({
               onClick={handleToggleLayoutLock}
             >
               {props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock')}
+            </button>
+          )}
+
+          {props.showRulerToggle && props.onShowRulerChange && (
+            <button
+              class={[
+                'flow-toolbar-button',
+                'flow-toolbar-button--spaced',
+                props.showRuler && 'flow-toolbar-button--active'
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              type="button"
+              aria-label={
+                props.showRuler ? t('toolbar.rulerHideTitle') : t('toolbar.rulerShowTitle')
+              }
+              aria-pressed={props.showRuler}
+              title={props.showRuler ? t('toolbar.rulerHideTitle') : t('toolbar.rulerShowTitle')}
+              onClick={handleToggleShowRuler}
+            >
+              {t('toolbar.ruler')}
+            </button>
+          )}
+
+          {props.showDragSnapGuidesToggle && props.onDragSnapGuidesChange && (
+            <button
+              class={[
+                'flow-toolbar-button',
+                'flow-toolbar-button--spaced',
+                props.dragSnapGuides && 'flow-toolbar-button--active'
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              type="button"
+              aria-label={
+                props.dragSnapGuides
+                  ? t('toolbar.dragSnapGuidesDisableTitle')
+                  : t('toolbar.dragSnapGuidesEnableTitle')
+              }
+              aria-pressed={props.dragSnapGuides}
+              title={
+                props.dragSnapGuides
+                  ? t('toolbar.dragSnapGuidesDisableTitle')
+                  : t('toolbar.dragSnapGuidesEnableTitle')
+              }
+              onClick={handleToggleDragSnapGuides}
+            >
+              {t('toolbar.dragSnapGuides')}
             </button>
           )}
 

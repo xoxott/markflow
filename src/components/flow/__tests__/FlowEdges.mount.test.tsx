@@ -70,7 +70,11 @@ describe('FlowEdges mount', () => {
           },
           layoutLocked: ref(false),
           setLayoutLocked: () => {},
-          toggleLayoutLock: () => {}
+          toggleLayoutLock: () => {},
+          setShowRuler: () => {},
+          toggleShowRuler: () => {},
+          setDragSnapGuidesEnabled: () => {},
+          toggleDragSnapGuidesEnabled: () => {}
         });
 
         return () => h(FlowEdges, { edges, nodes });

@@ -4,8 +4,61 @@
  * 提供配置相关的工具函数：合并、验证、规范化、克隆等
  */
 
-import type { FlowConfig, PartialFlowConfig } from '../types/flow-config';
+import type { Component } from 'vue';
+import { markRaw } from 'vue';
+import type { FlowCanvasConfig, FlowConfig, PartialFlowConfig } from '../types/flow-config';
+import type { FlowEdgeType } from '../types/flow-edge';
+import type { FlowNodeType } from '../types/flow-node';
 import { DEFAULT_FLOW_CONFIG } from '../config/default-config';
+
+function isVueComponent(value: unknown): value is Component {
+  return (
+    typeof value === 'function' || (typeof value === 'object' && value !== null && 'setup' in value)
+  );
+}
+
+/** 避免 nodeTypes / edgeTypes 中的 Component 被 reactive 深度代理 */
+function markRegistryComponentsRaw<T extends FlowNodeType | FlowEdgeType | Component>(
+  registry?: Record<string, T>
+): Record<string, T> | undefined {
+  if (!registry) {
+    return registry;
+  }
+
+  const next: Record<string, T> = {};
+  for (const [key, entry] of Object.entries(registry)) {
+    if (entry && typeof entry === 'object' && 'component' in entry && entry.component) {
+      next[key] = {
+        ...entry,
+        component: markRaw(entry.component as Component)
+      } as T;
+      continue;
+    }
+    if (isVueComponent(entry)) {
+      next[key] = markRaw(entry) as T;
+      continue;
+    }
+    next[key] = entry;
+  }
+  return next;
+}
+
+function applyNonCloneableRegistryFields(config: FlowConfig): FlowConfig {
+  const next = { ...config };
+  if (next.nodes?.nodeTypes) {
+    next.nodes = {
+      ...next.nodes,
+      nodeTypes: markRegistryComponentsRaw(next.nodes.nodeTypes)
+    };
+  }
+  if (next.edges?.edgeTypes) {
+    next.edges = {
+      ...next.edges,
+      edgeTypes: markRegistryComponentsRaw(next.edges.edgeTypes)
+    };
+  }
+  return next;
+}
 
 /**
  * 深度合并配置
@@ -18,7 +71,7 @@ import { DEFAULT_FLOW_CONFIG } from '../config/default-config';
  */
 export function mergeConfig(target: FlowConfig, source?: PartialFlowConfig): FlowConfig {
   if (!source) {
-    return { ...target };
+    return applyNonCloneableRegistryFields({ ...target });
   }
 
   const result: FlowConfig = { ...target };
@@ -35,11 +88,19 @@ export function mergeConfig(target: FlowConfig, source?: PartialFlowConfig): Flo
         !(sourceValue instanceof Date) &&
         !(sourceValue instanceof RegExp)
       ) {
+        const mergeBase =
+          targetValue &&
+          typeof targetValue === 'object' &&
+          !Array.isArray(targetValue) &&
+          !(targetValue instanceof Date) &&
+          !(targetValue instanceof RegExp)
+            ? targetValue
+            : {};
         // 深度合并对象
         result[key as keyof FlowConfig] = {
-          ...targetValue,
+          ...mergeBase,
           ...sourceValue
-        } as any;
+        } as never;
       } else if (sourceValue !== undefined) {
         // 直接赋值
         result[key as keyof FlowConfig] = sourceValue as any;
@@ -47,7 +108,7 @@ export function mergeConfig(target: FlowConfig, source?: PartialFlowConfig): Flo
     }
   }
 
-  return result;
+  return applyNonCloneableRegistryFields(result);
 }
 
 /**
@@ -65,24 +126,36 @@ export function normalizeConfig(partialConfig?: PartialFlowConfig): FlowConfig {
 /**
  * 深度克隆配置
  *
- * 优先使用 `structuredClone`（保留 Date / RegExp / 嵌套结构）； 如配置中包含函数（如 `isValidConnection`）或 Vue Component
- * 等不可结构化克隆的值， 自动回退到带特殊字段保留的浅克隆：函数与 Component 字段直接共享引用即可。
+ * 优先使用 `structuredClone`（保留 Date / RegExp / 嵌套结构）； 如配置中包含函数（如 `isValidConnection`）、Vue
+ * Component（`nodeTypes` / `edgeTypes`）或路径生成器等不可结构化克隆的值， 克隆前临时剥离这些字段，克隆后再按原引用写回。
  *
- * 注意：旧实现用 `JSON.parse(JSON.stringify(config))` 会静默吃掉 `isValidConnection` 等函数字段，造成配置回滚后用户回调消失。
+ * 注意：旧实现用 `JSON.parse(JSON.stringify(config))` 会静默丢失 `nodeTypes.component` 等注册表组件，导致自定义节点回退为
+ * BaseNode。
  *
  * @param config 要克隆的配置
  * @returns 克隆后的配置
  */
 export function cloneConfig(config: FlowConfig): FlowConfig {
-  // 抓出无法结构化克隆的引用字段（函数、Vue Component 等）单独保留
-  const fnFields: Partial<FlowConfig> = {};
-  if (typeof config.isValidConnection === 'function') {
-    fnFields.isValidConnection = config.isValidConnection;
-  }
+  const preserved = {
+    isValidConnection: config.isValidConnection,
+    nodeTypes: config.nodes?.nodeTypes,
+    edgeTypes: config.edges?.edgeTypes,
+    edgePathGenerators: config.edges?.edgePathGenerators
+  };
 
   const stripped: FlowConfig = { ...config };
-  if (fnFields.isValidConnection) {
+  if (typeof preserved.isValidConnection === 'function') {
     delete stripped.isValidConnection;
+  }
+  if (stripped.nodes?.nodeTypes) {
+    stripped.nodes = { ...stripped.nodes, nodeTypes: {} };
+  }
+  if (stripped.edges) {
+    stripped.edges = {
+      ...stripped.edges,
+      ...(stripped.edges.edgeTypes ? { edgeTypes: {} } : {}),
+      ...(stripped.edges.edgePathGenerators ? { edgePathGenerators: {} } : {})
+    };
   }
 
   let cloned: FlowConfig;
@@ -96,7 +169,21 @@ export function cloneConfig(config: FlowConfig): FlowConfig {
     cloned = JSON.parse(JSON.stringify(stripped));
   }
 
-  return { ...cloned, ...fnFields };
+  if (preserved.nodeTypes) {
+    cloned.nodes = { ...cloned.nodes, nodeTypes: preserved.nodeTypes };
+  }
+  if (preserved.edgeTypes || preserved.edgePathGenerators) {
+    cloned.edges = {
+      ...cloned.edges,
+      ...(preserved.edgeTypes ? { edgeTypes: preserved.edgeTypes } : {}),
+      ...(preserved.edgePathGenerators ? { edgePathGenerators: preserved.edgePathGenerators } : {})
+    };
+  }
+  if (typeof preserved.isValidConnection === 'function') {
+    cloned.isValidConnection = preserved.isValidConnection;
+  }
+
+  return cloned;
 }
 
 /**
@@ -145,4 +232,24 @@ export function setConfigValue(config: FlowConfig, path: string, value: any): vo
   }
 
   target[lastKey] = value;
+}
+
+/** 拖拽吸附 / 对齐参考线是否开启（工具栏开关读取） */
+export function isDragSnapGuidesEnabled(canvas?: FlowCanvasConfig): boolean {
+  if (!canvas) {
+    return false;
+  }
+  return Boolean(canvas.snapToGrid || canvas.snapToGuides || canvas.snapToAlignment);
+}
+
+/** 工具栏切换拖拽对齐参考线时的 canvas 补丁 */
+export function dragSnapGuidesCanvasPatch(
+  enabled: boolean
+): Pick<FlowCanvasConfig, 'snapToGrid' | 'showSnapGuides' | 'snapToGuides' | 'snapToAlignment'> {
+  return {
+    snapToGrid: enabled,
+    showSnapGuides: enabled,
+    snapToGuides: enabled,
+    snapToAlignment: enabled
+  };
 }

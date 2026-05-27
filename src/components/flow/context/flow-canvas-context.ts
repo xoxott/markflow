@@ -21,7 +21,7 @@ export interface FlowSelectionContext {
 export interface FlowViewportActions {
   setViewport: (viewport: Partial<FlowViewport>) => void;
   panViewport: (deltaX: number, deltaY: number) => void;
-  zoomViewport: (factor: number, center?: { x: number; y: number }) => void;
+  zoomViewport: (zoom: number, centerX?: number, centerY?: number) => void;
   fitView: (padding?: number) => boolean;
 }
 
@@ -52,6 +52,12 @@ export interface FlowCanvasContextValue {
   layoutLocked: Ref<boolean>;
   setLayoutLocked: (locked: boolean) => void;
   toggleLayoutLock: () => void;
+  /** 显示 / 隐藏画布刻度尺 */
+  setShowRuler: (show: boolean) => void;
+  toggleShowRuler: () => void;
+  /** 开启 / 关闭拖拽对齐参考线（网格 / 辅助线 / 节点对齐） */
+  setDragSnapGuidesEnabled: (enabled: boolean) => void;
+  toggleDragSnapGuidesEnabled: () => void;
 }
 
 export const flowCanvasContextKey: InjectionKey<FlowCanvasContextValue> =

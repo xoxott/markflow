@@ -82,7 +82,7 @@ export default defineComponent({
           左：`config.nodes.nodeTypes` 注册表 + `defaultConfig`；右：`FlowCanvas` 的{' '}
           <code class="rounded bg-gray-100 px-1">v-slot:node</code> 优先级更高，可逐节点覆盖渲染。
         </NText>
-        <NTabs type="line" animated>
+        <NTabs type="line" animated display-directive="show">
           <NTabPane name="registry" tab="nodeTypes 注册表">
             <div style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
               <FlowCanvas

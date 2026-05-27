@@ -35,11 +35,11 @@ export const DEFAULT_CANVAS_CONFIG: FlowCanvasConfig = {
   showRuler: false,
   rulerSize: 24,
   snapToGrid: false,
-  showSnapGuides: true,
+  showSnapGuides: false,
   enableGuides: true,
-  snapToGuides: true,
+  snapToGuides: false,
   guideSnapThreshold: 8,
-  snapToAlignment: true,
+  snapToAlignment: false,
   alignmentSnapThreshold: 8
 };
 
@@ -77,7 +77,6 @@ export const DEFAULT_EDGE_CONFIG: FlowEdgeConfig = {
   arrowSize: 10,
   clickAreaWidth: 24,
   bezierControlOffset: 0.5, // 贝塞尔曲线控制点偏移比例（0-1之间，值越大弧度越大）
-  stepRadius: 10,
   animationDuration: 1.5,
   selectable: true,
   deletable: true,

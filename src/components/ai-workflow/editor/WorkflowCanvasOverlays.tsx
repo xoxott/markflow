@@ -18,6 +18,10 @@ export default defineComponent({
       if (vp && typeof vp.zoom === 'number') return vp;
       return { x: 0, y: 0, zoom: 1 };
     });
+    const dragSnapGuides = computed(() => {
+      const canvas = ctx.config.value.canvas;
+      return Boolean(canvas?.snapToGrid || canvas?.snapToGuides || canvas?.snapToAlignment);
+    });
 
     return () => (
       <>
@@ -26,6 +30,10 @@ export default defineComponent({
           position="bottom"
           layoutLocked={ctx.layoutLocked.value}
           onLayoutLockChange={ctx.setLayoutLocked}
+          showRuler={Boolean(ctx.config.value.canvas?.showRuler)}
+          onShowRulerChange={ctx.setShowRuler}
+          dragSnapGuides={dragSnapGuides.value}
+          onDragSnapGuidesChange={ctx.setDragSnapGuidesEnabled}
           onZoomChange={zoom => ctx.setViewport({ zoom })}
           onFitView={props.onFitView}
           onResetView={() => ctx.setViewport({ x: 0, y: 0, zoom: 1 })}

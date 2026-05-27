@@ -19,7 +19,8 @@ export interface CanvasRenderOptions {
   clickAreaWidth?: number;
 }
 
-const { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } = PERFORMANCE_CONSTANTS;
+const DEFAULT_NODE_WIDTH = PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH ?? 220;
+const DEFAULT_NODE_HEIGHT = PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT ?? 72;
 
 /** Canvas 渲染器 */
 export class CanvasRenderer {

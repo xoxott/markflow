@@ -91,7 +91,11 @@ describe('FlowNodes nodeTypes registry', () => {
           },
           layoutLocked: ref(false),
           setLayoutLocked: () => {},
-          toggleLayoutLock: () => {}
+          toggleLayoutLock: () => {},
+          setShowRuler: () => {},
+          toggleShowRuler: () => {},
+          setDragSnapGuidesEnabled: () => {},
+          toggleDragSnapGuidesEnabled: () => {}
         });
 
         return () =>
