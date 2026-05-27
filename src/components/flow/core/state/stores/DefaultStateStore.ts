@@ -171,9 +171,10 @@ export class DefaultStateStore implements IStateStore {
       return;
     }
 
-    this.nodes.push({ ...node });
-    this.nodeIdsSet.add(node.id);
-    this.nodesMap.set(node.id, node);
+    const stored = { ...node };
+    this.nodes.push(stored);
+    this.nodeIdsSet.add(stored.id);
+    this.nodesMap.set(stored.id, stored);
     // 重置增量更新状态（数组结构变化）
     this.lastNodesArray = null;
     this.updatedNodeIds.clear();
@@ -185,12 +186,12 @@ export class DefaultStateStore implements IStateStore {
 
     if (validNodes.length === 0) return;
 
-    this.nodes.push(...validNodes.map(node => ({ ...node })));
+    const storedNodes = validNodes.map(node => ({ ...node }));
+    this.nodes.push(...storedNodes);
 
-    for (let i = 0; i < validNodes.length; i++) {
-      const node = validNodes[i];
-      this.nodeIdsSet.add(node.id);
-      this.nodesMap.set(node.id, node);
+    for (const stored of storedNodes) {
+      this.nodeIdsSet.add(stored.id);
+      this.nodesMap.set(stored.id, stored);
     }
 
     // 重置增量更新状态（数组结构变化）
