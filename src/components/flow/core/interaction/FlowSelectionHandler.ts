@@ -290,12 +290,14 @@ export class FlowSelectionHandler {
    * @param nodes 所有节点列表
    * @param edges 所有边列表（用于边的框选）
    * @param viewport 当前视口（用于坐标转换）
+   * @param canvasOffset 画布容器在视口中的位置（client 坐标需先减去该偏移）
    * @returns 选中的节点 / 边 ID 集合
    */
   finishBoxSelection(
     nodes: FlowNode[],
     edges: FlowEdge[],
-    viewport: { x: number; y: number; zoom: number }
+    viewport: { x: number; y: number; zoom: number },
+    canvasOffset?: { left: number; top: number }
   ): { nodeIds: string[]; edgeIds: string[] } {
     if (!this.selectionBox.visible) {
       return { nodeIds: [], edgeIds: [] };
@@ -307,11 +309,15 @@ export class FlowSelectionHandler {
     const minY = Math.min(box.startY, box.currentY);
     const maxY = Math.max(box.startY, box.currentY);
 
-    // 转换为画布坐标
-    const canvasMinX = (minX - viewport.x) / viewport.zoom;
-    const canvasMaxX = (maxX - viewport.x) / viewport.zoom;
-    const canvasMinY = (minY - viewport.y) / viewport.zoom;
-    const canvasMaxY = (maxY - viewport.y) / viewport.zoom;
+    const offsetLeft = canvasOffset?.left ?? 0;
+    const offsetTop = canvasOffset?.top ?? 0;
+    const safeZoom = Math.max(viewport.zoom, 0.01);
+
+    // client 坐标 → 画布容器内屏幕坐标 → flow 坐标
+    const canvasMinX = (minX - offsetLeft - viewport.x) / safeZoom;
+    const canvasMaxX = (maxX - offsetLeft - viewport.x) / safeZoom;
+    const canvasMinY = (minY - offsetTop - viewport.y) / safeZoom;
+    const canvasMaxY = (maxY - offsetTop - viewport.y) / safeZoom;
 
     // 查找在选择框内的节点
     const selectedNodeIds: string[] = [];

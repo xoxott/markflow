@@ -170,6 +170,9 @@ export function useFlowCanvasEvents(
     emit
   } = options;
 
+  /** 框选结束后跳过紧随其后的 canvas click，避免 finish 选区被 deselectAll 清掉 */
+  let skipNextCanvasClick = false;
+
   // ==================== 统一的鼠标事件处理（优先级：连接创建 > 节点拖拽 > 画布平移）====================
 
   /** 处理鼠标按下 */
@@ -253,6 +256,7 @@ export function useFlowCanvasEvents(
     // Phase 5.1：框选结束
     if (boxSelection?.isActive()) {
       boxSelection.finish();
+      skipNextCanvasClick = true;
       return;
     }
 
@@ -327,6 +331,11 @@ export function useFlowCanvasEvents(
 
   /** 处理画布点击 */
   const handleCanvasClick = (event: MouseEvent) => {
+    if (skipNextCanvasClick) {
+      skipNextCanvasClick = false;
+      return;
+    }
+
     const target = event.target as HTMLElement;
     const isNode = target.closest('.flow-node');
     const isEdge =

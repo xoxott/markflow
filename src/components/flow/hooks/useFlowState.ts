@@ -99,7 +99,10 @@ export interface UseFlowStateReturn {
    *
    * @returns 框中的节点和边 ID 列表
    */
-  finishBoxSelection: () => { nodeIds: string[]; edgeIds: string[] };
+  finishBoxSelection: (canvasOffset?: { left: number; top: number }) => {
+    nodeIds: string[];
+    edgeIds: string[];
+  };
   cancelBoxSelection: () => void;
   isBoxSelecting: () => boolean;
   getSelectionBox: () => Readonly<import('../core/interaction/FlowSelectionHandler').SelectionBox>;
@@ -346,18 +349,15 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
     updateBoxSelection: (currentX: number, currentY: number) => {
       selectionHandler.updateBoxSelection(currentX, currentY);
     },
-    finishBoxSelection: () => {
+    finishBoxSelection: (canvasOffset?: { left: number; top: number }) => {
       const result = selectionHandler.finishBoxSelection(
         store.getNodes(),
         store.getEdges(),
-        store.getViewport()
+        store.getViewport(),
+        canvasOffset
       );
-      // Phase 5.1：应用选择结果到 store / handler（一次通知）
-      if (result.nodeIds.length > 0 || result.edgeIds.length > 0) {
-        selectionHandler.setSelection(result.nodeIds, result.edgeIds);
-        store.setSelectedNodeIds(result.nodeIds);
-        store.setSelectedEdgeIds(result.edgeIds);
-      }
+      // Phase 5.1：应用框选结果（空框则清空选区）；store 由 selectionBridge 同步
+      selectionHandler.setSelection(result.nodeIds, result.edgeIds);
       return result;
     },
     cancelBoxSelection: () => {

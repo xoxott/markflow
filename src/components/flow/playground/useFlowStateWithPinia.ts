@@ -369,8 +369,15 @@ export function useFlowStateWithPinia(options?: {
     updateBoxSelection: (currentX: number, currentY: number) => {
       selectionHandler.updateBoxSelection(currentX, currentY);
     },
-    finishBoxSelection: () => {
-      return selectionHandler.finishBoxSelection(store.getNodes(), store.getViewport());
+    finishBoxSelection: (canvasOffset?: { left: number; top: number }) => {
+      const result = selectionHandler.finishBoxSelection(
+        store.getNodes(),
+        store.getEdges(),
+        store.getViewport(),
+        canvasOffset
+      );
+      selectionHandler.setSelection(result.nodeIds, result.edgeIds);
+      return result;
     },
     cancelBoxSelection: () => {
       selectionHandler.cancelBoxSelection();

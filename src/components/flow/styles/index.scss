@@ -574,6 +574,7 @@
   position: absolute;
   z-index: 10;
   display: flex;
+  align-items: center;
   gap: $flow-spacing-sm;
   padding: $flow-spacing-sm;
   background: $flow-toolbar-bg;
@@ -612,25 +613,39 @@
 }
 
 .flow-toolbar-zoom {
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 0 4px;
   font-size: 12px;
-  line-height: 20px;
+  line-height: 28px;
   color: $flow-toolbar-text;
   user-select: none;
 }
 
+.flow-toolbar-button-wrap {
+  display: inline-flex;
+  cursor: not-allowed;
+}
+
 .flow-toolbar-button {
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 1px solid $flow-toolbar-button-border;
   border-radius: 4px;
   background: $flow-toolbar-button-bg;
   color: $flow-node-text;
-  font-size: 14px;
-  line-height: 1.2;
   cursor: pointer;
   transition:
     border-color $flow-transition-duration $flow-transition-timing,
-    background-color $flow-transition-duration $flow-transition-timing;
+    background-color $flow-transition-duration $flow-transition-timing,
+    color $flow-transition-duration $flow-transition-timing;
 
   &:hover:not(:disabled) {
     border-color: $flow-node-border-hover;
@@ -641,8 +656,9 @@
     opacity: 0.45;
   }
 
-  &--spaced {
-    margin-left: $flow-spacing-sm;
+  &__icon {
+    width: 16px;
+    height: 16px;
   }
 
   &--active {

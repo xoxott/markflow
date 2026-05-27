@@ -353,7 +353,8 @@ export function useFlowCanvasOrchestrator(
     updateSelectionBoxState();
   };
   const wrappedFinishBoxSelection = () => {
-    const result = finishBoxSelection();
+    const rect = canvasRef.value?.getBoundingClientRect();
+    const result = finishBoxSelection(rect ? { left: rect.left, top: rect.top } : undefined);
     updateSelectionBoxState();
     return result;
   };

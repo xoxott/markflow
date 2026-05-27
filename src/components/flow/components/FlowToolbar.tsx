@@ -5,8 +5,60 @@
  */
 
 import { type CSSProperties, type PropType, computed, defineComponent } from 'vue';
+import { NTooltip } from 'naive-ui';
+import { Icon } from '@iconify/vue';
 import { useFlowI18n } from '../hooks/useFlowI18n';
 import type { FlowLocale, FlowViewport } from '../types';
+
+type ToolbarTooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
+
+interface ToolbarIconButtonOptions {
+  icon: string;
+  ariaLabel: string;
+  tooltip?: string;
+  placement: ToolbarTooltipPlacement;
+  active?: boolean;
+  disabled?: boolean;
+  ariaPressed?: boolean;
+  onClick: () => void;
+}
+
+function renderToolbarIconButton({
+  icon,
+  ariaLabel,
+  tooltip,
+  placement,
+  active,
+  disabled,
+  ariaPressed,
+  onClick
+}: ToolbarIconButtonOptions) {
+  const className = ['flow-toolbar-button', active && 'flow-toolbar-button--active']
+    .filter(Boolean)
+    .join(' ');
+
+  const button = (
+    <button
+      class={className}
+      type="button"
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Icon icon={icon} class="flow-toolbar-button__icon" />
+    </button>
+  );
+
+  return (
+    <NTooltip placement={placement}>
+      {{
+        trigger: () => (disabled ? <span class="flow-toolbar-button-wrap">{button}</span> : button),
+        default: () => tooltip ?? ariaLabel
+      }}
+    </NTooltip>
+  );
+}
 
 /** FlowToolbar 组件属性 */
 export interface FlowToolbarProps {
@@ -157,6 +209,19 @@ export default defineComponent({
       `flow-toolbar flow-toolbar--${props.position} ${props.class}`.trim()
     );
 
+    const tooltipPlacement = computed<ToolbarTooltipPlacement>(() => {
+      switch (props.position) {
+        case 'bottom':
+          return 'top';
+        case 'left':
+          return 'right';
+        case 'right':
+          return 'left';
+        default:
+          return 'bottom';
+      }
+    });
+
     const handleZoomIn = () => {
       const newZoom = Math.min(props.maxZoom, safeViewport.value.zoom + props.zoomStep);
       props.onZoomChange?.(newZoom);
@@ -186,117 +251,82 @@ export default defineComponent({
 
       return (
         <div class={toolbarClass.value} style={props.style}>
-          <button
-            class="flow-toolbar-button"
-            type="button"
-            aria-label={t('toolbar.zoomOut')}
-            onClick={handleZoomOut}
-            disabled={safeViewport.value.zoom <= props.minZoom}
-          >
-            −
-          </button>
+          {renderToolbarIconButton({
+            icon: 'mdi:minus',
+            ariaLabel: t('toolbar.zoomOut'),
+            placement: tooltipPlacement.value,
+            disabled: safeViewport.value.zoom <= props.minZoom,
+            onClick: handleZoomOut
+          })}
 
           <div class="flow-toolbar-zoom">{zoomPercent.value}%</div>
 
-          <button
-            class="flow-toolbar-button"
-            type="button"
-            aria-label={t('toolbar.zoomIn')}
-            onClick={handleZoomIn}
-            disabled={safeViewport.value.zoom >= props.maxZoom}
-          >
-            +
-          </button>
+          {renderToolbarIconButton({
+            icon: 'mdi:plus',
+            ariaLabel: t('toolbar.zoomIn'),
+            placement: tooltipPlacement.value,
+            disabled: safeViewport.value.zoom >= props.maxZoom,
+            onClick: handleZoomIn
+          })}
 
-          {props.showLayoutLock && props.onLayoutLockChange && (
-            <button
-              class={[
-                'flow-toolbar-button',
-                'flow-toolbar-button--spaced',
-                props.layoutLocked && 'flow-toolbar-button--active'
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              type="button"
-              aria-label={props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock')}
-              title={
-                props.layoutLocked ? t('toolbar.layoutUnlockTitle') : t('toolbar.layoutLockTitle')
-              }
-              onClick={handleToggleLayoutLock}
-            >
-              {props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock')}
-            </button>
-          )}
+          {props.showLayoutLock &&
+            props.onLayoutLockChange &&
+            renderToolbarIconButton({
+              icon: props.layoutLocked ? 'mdi:lock' : 'mdi:lock-open-variant-outline',
+              ariaLabel: props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock'),
+              tooltip: props.layoutLocked
+                ? t('toolbar.layoutUnlockTitle')
+                : t('toolbar.layoutLockTitle'),
+              placement: tooltipPlacement.value,
+              active: props.layoutLocked,
+              onClick: handleToggleLayoutLock
+            })}
 
-          {props.showRulerToggle && props.onShowRulerChange && (
-            <button
-              class={[
-                'flow-toolbar-button',
-                'flow-toolbar-button--spaced',
-                props.showRuler && 'flow-toolbar-button--active'
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              type="button"
-              aria-label={
-                props.showRuler ? t('toolbar.rulerHideTitle') : t('toolbar.rulerShowTitle')
-              }
-              aria-pressed={props.showRuler}
-              title={props.showRuler ? t('toolbar.rulerHideTitle') : t('toolbar.rulerShowTitle')}
-              onClick={handleToggleShowRuler}
-            >
-              {t('toolbar.ruler')}
-            </button>
-          )}
+          {props.showRulerToggle &&
+            props.onShowRulerChange &&
+            renderToolbarIconButton({
+              icon: 'mdi:ruler-square',
+              ariaLabel: props.showRuler
+                ? t('toolbar.rulerHideTitle')
+                : t('toolbar.rulerShowTitle'),
+              tooltip: props.showRuler ? t('toolbar.rulerHideTitle') : t('toolbar.rulerShowTitle'),
+              placement: tooltipPlacement.value,
+              active: props.showRuler,
+              ariaPressed: props.showRuler,
+              onClick: handleToggleShowRuler
+            })}
 
-          {props.showDragSnapGuidesToggle && props.onDragSnapGuidesChange && (
-            <button
-              class={[
-                'flow-toolbar-button',
-                'flow-toolbar-button--spaced',
-                props.dragSnapGuides && 'flow-toolbar-button--active'
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              type="button"
-              aria-label={
-                props.dragSnapGuides
-                  ? t('toolbar.dragSnapGuidesDisableTitle')
-                  : t('toolbar.dragSnapGuidesEnableTitle')
-              }
-              aria-pressed={props.dragSnapGuides}
-              title={
-                props.dragSnapGuides
-                  ? t('toolbar.dragSnapGuidesDisableTitle')
-                  : t('toolbar.dragSnapGuidesEnableTitle')
-              }
-              onClick={handleToggleDragSnapGuides}
-            >
-              {t('toolbar.dragSnapGuides')}
-            </button>
-          )}
+          {props.showDragSnapGuidesToggle &&
+            props.onDragSnapGuidesChange &&
+            renderToolbarIconButton({
+              icon: 'mdi:vector-line',
+              ariaLabel: props.dragSnapGuides
+                ? t('toolbar.dragSnapGuidesDisableTitle')
+                : t('toolbar.dragSnapGuidesEnableTitle'),
+              tooltip: props.dragSnapGuides
+                ? t('toolbar.dragSnapGuidesDisableTitle')
+                : t('toolbar.dragSnapGuidesEnableTitle'),
+              placement: tooltipPlacement.value,
+              active: props.dragSnapGuides,
+              ariaPressed: props.dragSnapGuides,
+              onClick: handleToggleDragSnapGuides
+            })}
 
-          {props.onFitView && (
-            <button
-              class="flow-toolbar-button flow-toolbar-button--spaced"
-              type="button"
-              aria-label={t('toolbar.fitView')}
-              onClick={props.onFitView}
-            >
-              {t('toolbar.fitView')}
-            </button>
-          )}
+          {props.onFitView &&
+            renderToolbarIconButton({
+              icon: 'mdi:fit-to-screen-outline',
+              ariaLabel: t('toolbar.fitView'),
+              placement: tooltipPlacement.value,
+              onClick: props.onFitView
+            })}
 
-          {props.onResetView && (
-            <button
-              class="flow-toolbar-button"
-              type="button"
-              aria-label={t('toolbar.resetView')}
-              onClick={props.onResetView}
-            >
-              {t('toolbar.resetView')}
-            </button>
-          )}
+          {props.onResetView &&
+            renderToolbarIconButton({
+              icon: 'mdi:restore',
+              ariaLabel: t('toolbar.resetView'),
+              placement: tooltipPlacement.value,
+              onClick: props.onResetView
+            })}
         </div>
       );
     };
