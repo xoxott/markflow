@@ -56,9 +56,9 @@ describe('edge-interaction-utils', () => {
     const input = document.createElement('input');
     document.body.appendChild(input);
     input.focus();
-    expect(
-      shouldHandleFlowKeyboardEvent(new KeyboardEvent('keydown', { target: input }), canvas)
-    ).toBe(false);
+    const event = new KeyboardEvent('keydown');
+    Object.defineProperty(event, 'target', { value: input });
+    expect(shouldHandleFlowKeyboardEvent(event, canvas)).toBe(false);
 
     canvas.remove();
     input.remove();

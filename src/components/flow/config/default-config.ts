@@ -28,19 +28,19 @@ export const DEFAULT_CANVAS_CONFIG: FlowCanvasConfig = {
   /** 不设默认值，由 syncAppTheme + --flow-background-color 决定 */
   backgroundColor: undefined,
   fitViewOnInit: false,
-  fitViewOnResize: false,
   fitViewPadding: 0.2,
   panOnDrag: true, // 允许左键拖拽
   zoomOnScroll: true,
   zoomOnPinch: true,
-  zoomOnDoubleClick: false,
   showRuler: false,
   rulerSize: 24,
   snapToGrid: false,
   showSnapGuides: true,
   enableGuides: true,
   snapToGuides: true,
-  guideSnapThreshold: 8
+  guideSnapThreshold: 8,
+  snapToAlignment: true,
+  alignmentSnapThreshold: 8
 };
 
 /** 默认节点配置 */
@@ -86,6 +86,7 @@ export const DEFAULT_EDGE_CONFIG: FlowEdgeConfig = {
   edgePathGenerators: {},
   renderBehindNodes: true, // 默认连接线在节点后面
   showDeleteButtonOnSelect: true,
+  reconnectable: true,
   deleteButtonSize: 20,
   labelFontSize: 13,
   labelShowBackground: true,
@@ -99,11 +100,8 @@ export const DEFAULT_INTERACTION_CONFIG: FlowInteractionConfig = {
   multiSelectKey: 'ctrl',
   enableBoxSelection: true,
   boxSelectionKey: 'shift',
-  enableContextMenu: true,
   enableCanvasPan: true,
   enableWheelZoom: true,
-  connectOnClick: false,
-  connectionMode: 'loose',
   dragThreshold: 3,
   doubleClickDelay: 300,
   nodesDraggable: true,
@@ -116,8 +114,6 @@ export const DEFAULT_INTERACTION_CONFIG: FlowInteractionConfig = {
 /** 默认性能配置 */
 export const DEFAULT_PERFORMANCE_CONFIG: FlowPerformanceConfig = {
   enableRAFThrottle: true,
-  enableVirtualScroll: false,
-  virtualScrollBuffer: 200,
   enableViewportCulling: true,
   enableGPUAcceleration: true,
   enableEdgeCanvasRendering: false,
@@ -129,6 +125,7 @@ export const DEFAULT_PERFORMANCE_CONFIG: FlowPerformanceConfig = {
 
 /** 默认主题配置 */
 export const DEFAULT_THEME_CONFIG: FlowThemeConfig = {
+  locale: 'zh-CN',
   mode: 'light',
   primaryColor: '#2080f0',
   successColor: '#18a058',
@@ -144,6 +141,7 @@ export const DEFAULT_THEME_CONFIG: FlowThemeConfig = {
 
 /** 默认完整配置 */
 export const DEFAULT_FLOW_CONFIG: FlowConfig = {
+  locale: 'zh-CN',
   canvas: DEFAULT_CANVAS_CONFIG,
   nodes: DEFAULT_NODE_CONFIG,
   edges: DEFAULT_EDGE_CONFIG,

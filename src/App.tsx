@@ -4,11 +4,11 @@ import { storeToRefs } from 'pinia';
 import { NConfigProvider, NWatermark, darkTheme } from 'naive-ui';
 import type { WatermarkProps } from 'naive-ui';
 import hljs from 'highlight.js';
+import { flowDarkModeKey } from '@/components/flow';
 import { useAppStore } from './store/modules/app';
 import { useThemeStore } from './store/modules/theme';
 import { naiveDateLocales, naiveLocales } from './locales/naive';
 import AppProvider from './components/common/app-provider.vue';
-import { flowDarkModeKey } from './components/flow/context/flow-theme-context';
 
 export default defineComponent({
   name: 'App',

@@ -10,14 +10,16 @@ import { useCachedSet } from '../utils/set-utils';
 import { PERFORMANCE_CONSTANTS } from '../constants/performance-constants';
 import type { FlowNode } from '../types';
 
-/** 节点状态 */
+/**
+ * 节点状态
+ *
+ * 注意：不再包含 `hovered` 字段——hover 视觉效果完全交给 CSS `:hover`， 没必要让 JS 侧维护一份从未真正更新的 hovered 标志。
+ */
 export interface NodeState {
   /** 是否选中 */
   selected: boolean;
   /** 是否锁定 */
   locked: boolean;
-  /** 是否悬停 */
-  hovered: boolean;
   /** 是否拖拽中 */
   dragging: boolean;
 }
@@ -122,7 +124,6 @@ export function useNodeState(options: UseNodeStateOptions): UseNodeStateReturn {
     const state: NodeState = {
       selected,
       locked,
-      hovered: false, // 可以通过鼠标事件更新
       dragging: isDragging
     };
 

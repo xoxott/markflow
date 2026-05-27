@@ -22,7 +22,9 @@ export { default as FlowStateExample } from './FlowStateExample';
 export { default as FlowFullFeatureExample } from './FlowFullFeatureExample';
 export { default as FlowPerformanceExample } from './FlowPerformanceExample';
 export { default as FlowEmptyExample } from './FlowEmptyExample';
-export { default as FlowThemeExample } from './FlowThemeExample';
+export { default as FlowBoxSelectionExample } from './FlowBoxSelectionExample';
+export { default as FlowCustomNodeExample } from './FlowCustomNodeExample';
+export { default as FlowPersistenceExample } from './FlowPersistenceExample';
 export { default as FlowBezierExample } from './FlowBezierExample';
 
 // RequestClient 示例

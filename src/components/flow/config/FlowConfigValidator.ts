@@ -1,91 +1,58 @@
 /**
  * Flow 配置验证器
  *
- * 提供配置验证功能，包括类型验证、范围验证、依赖验证等
+ * 走 Zod schema 做结构验证，保证只有一套校验真理（`types/schemas.ts`）。 不再重复实现节点 / 边的字段级 if/else 校验。
  */
 
+import { FlowConfigSchema } from '../types/schemas';
+import { validateConnection as validateConnectionImpl } from '../utils/validation-utils';
 import type { FlowConfig } from '../types/flow-config';
-import {
-  type ConfigValidationResult,
-  validateConfig,
-  validateConnection,
-  validateEdge,
-  validateNode
-} from '../utils/validation-utils';
 
-/**
- * Flow 配置验证器类
- *
- * 提供完整的配置验证功能
- */
+/** 配置验证结果 */
+export interface ConfigValidationResult {
+  /** 是否有效 */
+  valid: boolean;
+  /** 错误信息列表（`<path>: <message>`） */
+  errors: string[];
+  /** 警告信息列表（保留字段，当前未启用） */
+  warnings: string[];
+}
+
+/** Flow 配置验证器类 */
 export class FlowConfigValidator {
-  /**
-   * 验证配置
-   *
-   * @param config 要验证的配置
-   * @returns 验证结果
-   */
+  /** 验证完整配置 */
   validate(config: FlowConfig): ConfigValidationResult {
-    return validateConfig(config);
+    const result = FlowConfigSchema.safeParse(config);
+    if (result.success) {
+      return { valid: true, errors: [], warnings: [] };
+    }
+    const errors = result.error.issues.map(issue => {
+      const path = issue.path.length > 0 ? issue.path.join('.') : '<root>';
+      return `${path}: ${issue.message}`;
+    });
+    return { valid: false, errors, warnings: [] };
   }
 
-  /**
-   * 验证配置并抛出异常（如果无效）
-   *
-   * @param config 要验证的配置
-   * @throws 如果配置无效，抛出包含错误信息的异常
-   */
+  /** 验证配置并在失败时抛错 */
   validateOrThrow(config: FlowConfig): void {
     const result = this.validate(config);
     if (!result.valid) {
-      throw new Error(`Invalid config: ${result.errors.join(', ')}`);
+      throw new Error(`Invalid Flow config: ${result.errors.join('; ')}`);
     }
   }
 
-  /**
-   * 验证连接
-   *
-   * @param connection 连接数据
-   * @param config 配置
-   * @returns 验证结果
-   */
+  /** 验证连接（异步，复用 isValidConnection 回调） */
   async validateConnection(
     connection: Partial<import('../types/flow-edge').FlowEdge>,
     config: FlowConfig
   ): Promise<{ valid: boolean; reason?: string }> {
-    return validateConnection(connection, config);
+    return validateConnectionImpl(connection, config);
   }
 
-  /**
-   * 验证节点
-   *
-   * @param node 节点数据
-   * @returns 是否有效
-   */
-  validateNode(node: any): boolean {
-    return validateNode(node);
-  }
-
-  /**
-   * 验证连接线
-   *
-   * @param edge 连接线数据
-   * @returns 是否有效
-   */
-  validateEdge(edge: any): boolean {
-    return validateEdge(edge);
-  }
-
-  /**
-   * 验证配置的特定部分
-   *
-   * @param config 配置
-   * @param section 要验证的部分（如 'canvas', 'nodes' 等）
-   * @returns 验证结果
-   */
+  /** 仅验证某一节区（canvas / nodes / edges / ...） */
   validateSection(config: FlowConfig, section: keyof FlowConfig): ConfigValidationResult {
-    const sectionConfig = { [section]: config[section] } as FlowConfig;
-    return this.validate(sectionConfig);
+    const partial = { [section]: config[section] } as FlowConfig;
+    return this.validate(partial);
   }
 }
 

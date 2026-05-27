@@ -5,6 +5,7 @@
  */
 
 import { type PropType, computed, defineComponent } from 'vue';
+import { useFlowI18n } from '../../hooks/useFlowI18n';
 import { calculateNodeClass, calculateNodeContainerStyle } from '../../utils/node-style-utils';
 import {
   calculateHandlePositionStyle,
@@ -21,8 +22,6 @@ export interface BaseNodeProps {
   selected?: boolean;
   /** 是否锁定 */
   locked?: boolean;
-  /** 是否悬停 */
-  hovered?: boolean;
   /** 是否正在拖拽 */
   dragging?: boolean;
   /** 端口鼠标按下 */
@@ -76,10 +75,6 @@ export default defineComponent({
       default: false
     },
     locked: {
-      type: Boolean,
-      default: false
-    },
-    hovered: {
       type: Boolean,
       default: false
     },
@@ -139,6 +134,12 @@ export default defineComponent({
     ) => true
   },
   setup(props, { emit, slots }) {
+    const { t } = useFlowI18n();
+
+    const nodeLabel = computed(() => String(props.node.data?.label ?? props.node.id));
+
+    const nodeAriaLabel = computed(() => t('node.ariaLabel', { label: nodeLabel.value }));
+
     const nodeStyle = computed(() =>
       calculateNodeContainerStyle({
         node: props.node,
@@ -153,7 +154,6 @@ export default defineComponent({
         customClass: props.class,
         selected: props.selected,
         locked: props.locked,
-        hovered: props.hovered,
         dragging: props.dragging
       });
     });
@@ -202,10 +202,16 @@ export default defineComponent({
         ...calculateHandlePositionStyle(handle)
       };
 
+      const handleKey = handle.type === 'source' ? 'handle.source' : 'handle.target';
+      const handleAriaLabel = t(handleKey, { id: handle.id });
+
       return (
         <div
           class={getHandleClass(handle)}
           style={handleStyle}
+          role="button"
+          tabindex={-1}
+          aria-label={handleAriaLabel}
           onMousedown={(e: MouseEvent) => handlePortMouseDown(handle, e)}
           onMouseup={(e: MouseEvent) => handlePortMouseUp(handle, e)}
           onMouseenter={(e: MouseEvent) => handlePortMouseEnter(handle, e)}
@@ -220,6 +226,11 @@ export default defineComponent({
       <div
         class={nodeClass.value}
         style={nodeStyle.value}
+        role="button"
+        tabindex={0}
+        aria-label={nodeAriaLabel.value}
+        aria-selected={props.selected ? 'true' : 'false'}
+        aria-grabbed={props.dragging ? 'true' : 'false'}
         data-node-id={props.node.id}
         data-node-type={props.node.type}
       >

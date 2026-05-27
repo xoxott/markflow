@@ -2,9 +2,12 @@
 
 import { defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NInputNumber, NSpace, NText, useMessage } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import FlowPerformanceMonitor from '@/components/flow/components/FlowPerformanceMonitor';
-import type { FlowEdge, FlowNode } from '@/components/flow';
+import {
+  FlowCanvas,
+  type FlowEdge,
+  type FlowNode,
+  FlowPerformanceMonitor
+} from '@/components/flow';
 
 export default defineComponent({
   name: 'FlowPerformanceExample',
@@ -170,7 +173,6 @@ export default defineComponent({
                 enableViewportCulling: true,
                 enableEdgeCanvasRendering: false,
                 edgeCanvasThreshold: 100,
-                virtualScrollBuffer: 200,
                 enableRAFThrottle: true
               },
               canvas: {

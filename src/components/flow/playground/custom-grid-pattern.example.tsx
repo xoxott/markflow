@@ -176,7 +176,7 @@ export function registerCustomGridPatterns(): void {
  *
  * ```typescript
  * // 1. 在应用启动时注册自定义网格类型
- * import { registerCustomGridPatterns } from './examples/custom-grid-pattern.example';
+ * import { registerCustomGridPatterns } from './playground/custom-grid-pattern.example';
  * registerCustomGridPatterns();
  *
  * // 2. 在类型定义中扩展 FlowGridType

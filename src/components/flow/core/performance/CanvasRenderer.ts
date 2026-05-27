@@ -4,6 +4,7 @@
  * 生产环境边渲染请使用 EdgeCanvasRenderer 组件；绘制逻辑与 edge-canvas-draw 共用。
  */
 
+import { PERFORMANCE_CONSTANTS } from '../../constants/performance-constants';
 import type { FlowEdge } from '../../types/flow-edge';
 import type { FlowNode } from '../../types/flow-node';
 import type { FlowViewport } from '../../types/flow-config';
@@ -18,8 +19,7 @@ export interface CanvasRenderOptions {
   clickAreaWidth?: number;
 }
 
-const DEFAULT_NODE_WIDTH = 220;
-const DEFAULT_NODE_HEIGHT = 72;
+const { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } = PERFORMANCE_CONSTANTS;
 
 /** Canvas 渲染器 */
 export class CanvasRenderer {

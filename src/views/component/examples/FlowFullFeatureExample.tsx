@@ -2,10 +2,14 @@
 
 import { defineComponent, ref } from 'vue';
 import { NCard, NH3, NText, useMessage } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import FlowMinimap from '@/components/flow/components/FlowMinimap';
-import FlowToolbar from '@/components/flow/components/FlowToolbar';
-import type { FlowEdge, FlowNode, FlowViewport } from '@/components/flow';
+import {
+  FlowCanvas,
+  type FlowEdge,
+  FlowMinimap,
+  type FlowNode,
+  FlowToolbar,
+  type FlowViewport
+} from '@/components/flow';
 
 /** FlowCanvas expose 的最小类型 */
 interface FlowCanvasExposed {

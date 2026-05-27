@@ -23,6 +23,8 @@ export interface UseEdgeViewportCullingOptions {
   enabled?: boolean | Ref<boolean> | (() => boolean);
   /** 是否正在平移画布 */
   isPanning?: Ref<boolean>;
+  /** 画布 DOM 尺寸（屏幕像素，由 ResizeObserver 维护） */
+  canvasSize?: Ref<{ width: number; height: number }>;
 }
 
 /** 连接线视口裁剪 Hook 返回值 */
@@ -34,7 +36,8 @@ export interface UseEdgeViewportCullingReturn {
 function isEdgeInViewport(
   edge: FlowEdge,
   nodesMap: Map<string, FlowNode>,
-  viewport: FlowViewport
+  viewport: FlowViewport,
+  canvasPx: { width: number; height: number }
 ): boolean {
   const sourceNode = nodesMap.get(edge.source);
   const targetNode = nodesMap.get(edge.target);
@@ -43,8 +46,8 @@ function isEdgeInViewport(
     return false;
   }
 
-  const screenWidth = window.innerWidth || 1000;
-  const screenHeight = window.innerHeight || 1000;
+  const screenWidth = canvasPx.width || 1000;
+  const screenHeight = canvasPx.height || 1000;
   const viewportMinX = 0;
   const viewportMaxX = screenWidth;
   const viewportMinY = 0;
@@ -86,7 +89,17 @@ function isEdgeInViewport(
 export function useEdgeViewportCulling(
   options: UseEdgeViewportCullingOptions
 ): UseEdgeViewportCullingReturn {
-  const { edges, nodes, viewport, enabled = true, isPanning } = options;
+  const { edges, nodes, viewport, enabled = true, isPanning, canvasSize } = options;
+
+  const getCanvasPx = (): { width: number; height: number } => {
+    if (canvasSize?.value && canvasSize.value.width > 0 && canvasSize.value.height > 0) {
+      return canvasSize.value;
+    }
+    if (typeof window !== 'undefined') {
+      return { width: window.innerWidth || 1000, height: window.innerHeight || 1000 };
+    }
+    return { width: 1000, height: 1000 };
+  };
 
   const nodesRef = computed(() => nodes.value);
   const { nodesMap } = useNodesMap({ nodes: nodesRef });
@@ -116,8 +129,9 @@ export function useEdgeViewportCulling(
 
     const map = nodesMap.value;
     const vp = viewport.value;
+    const canvasPx = getCanvasPx();
 
-    return edges.value.filter(edge => isEdgeInViewport(edge, map, vp));
+    return edges.value.filter(edge => isEdgeInViewport(edge, map, vp, canvasPx));
   };
 
   const updateVisibleEdges = () => {

@@ -4,7 +4,7 @@
  * 通过 edge.label + config.edges 默认样式配置；复杂内容请用 edgeTypes 自定义边组件。
  */
 
-import { type PropType, computed, defineComponent } from 'vue';
+import { type CSSProperties, type PropType, computed, defineComponent } from 'vue';
 import type { FlowConfig } from '../../types/flow-config';
 import type { FlowEdge } from '../../types/flow-edge';
 import { EDGE_CLASS_NAMES, LABEL_STYLES } from '../../constants/edge-constants';
@@ -56,7 +56,7 @@ export default defineComponent({
         pointerEvents: 'none',
         userSelect: 'none',
         ...style.textStyle
-      } as Record<string, unknown>;
+      } as CSSProperties;
 
       return (
         <g class={EDGE_CLASS_NAMES.LABEL} pointer-events="none">

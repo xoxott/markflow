@@ -8,6 +8,13 @@ import type { Component } from 'vue';
 import type { FlowNodeType } from './flow-node';
 import type { FlowEdge, FlowEdgePathGenerator, FlowEdgeType } from './flow-edge';
 
+// 注意：删除了下列死字段（既无消费方，也未在文档中作为公开 API 暴露）：
+// - canvas.fitViewOnResize（无实现）
+// - canvas.zoomOnDoubleClick（无实现）
+// - interaction.enableContextMenu / connectOnClick / connectionMode（无实现）
+// - performance.enableVirtualScroll / virtualScrollBuffer（已被 enableViewportCulling 取代）
+// - FlowConfig 顶层的 toolbar / minimap / emptyState / background（用 slot 方式扩展）
+
 /** 视口配置 */
 export interface FlowViewport {
   /** 水平偏移 */
@@ -47,8 +54,6 @@ export interface FlowCanvasConfig {
   backgroundImage?: string;
   /** 初始化时自动适应视图 */
   fitViewOnInit?: boolean;
-  /** 窗口大小变化时自动适应视图 */
-  fitViewOnResize?: boolean;
   /** 适应视图时的边距 */
   fitViewPadding?: number | { x: number; y: number };
   /** 是否启用平移 */
@@ -57,8 +62,6 @@ export interface FlowCanvasConfig {
   zoomOnScroll?: boolean;
   /** 是否启用双指缩放 */
   zoomOnPinch?: boolean;
-  /** 是否启用双击缩放 */
-  zoomOnDoubleClick?: boolean;
   /** 是否显示刻度尺（顶部 + 左侧） */
   showRuler?: boolean;
   /** 刻度尺厚度（px） */
@@ -73,6 +76,10 @@ export interface FlowCanvasConfig {
   snapToGuides?: boolean;
   /** 辅助线吸附阈值（画布坐标 px） */
   guideSnapThreshold?: number;
+  /** 拖拽节点时吸附到其他节点的对齐线（左/右/中、上/下/中） */
+  snapToAlignment?: boolean;
+  /** 对齐吸附阈值（画布坐标 px，默认同 guideSnapThreshold） */
+  alignmentSnapThreshold?: number;
 }
 
 /** 节点配置 */
@@ -109,8 +116,13 @@ export interface FlowNodeConfig {
   elevateOnDragEnd?: boolean;
 }
 
-/** 连接线类型 */
-export type FlowEdgeTypeName = 'bezier' | 'straight' | 'step' | 'smoothstep' | 'default';
+/**
+ * 连接线类型
+ *
+ * 内置仅支持 `bezier` / `straight`；`default` 等价于 `bezier`。 其他形态（step / smoothstep / 自定义）请通过
+ * `edges.edgePathGenerators` 或 `edges.edgeTypes` 注册扩展。
+ */
+export type FlowEdgeTypeName = 'bezier' | 'straight' | 'default';
 
 /** 连接线配置 */
 export interface FlowEdgeConfig {
@@ -136,8 +148,6 @@ export interface FlowEdgeConfig {
   clickAreaWidth?: number;
   /** 贝塞尔曲线控制点偏移比例（0-1之间，用于 bezier 类型，值越大弧度越大） */
   bezierControlOffset?: number;
-  /** 步进线圆角半径 */
-  stepRadius?: number;
   /** 动画持续时间（秒） */
   animationDuration?: number;
   /** 默认是否可选中 */
@@ -158,6 +168,8 @@ export interface FlowEdgeConfig {
   showDeleteButtonOnSelect?: boolean;
   /** 删除按钮直径（屏幕像素） */
   deleteButtonSize?: number;
+  /** 选中边时是否允许拖拽端点重连（默认 true） */
+  reconnectable?: boolean;
   /** 标签默认字号（px） */
   labelFontSize?: number;
   /** 标签默认是否显示背景（提高可读性） */
@@ -178,16 +190,10 @@ export interface FlowInteractionConfig {
   enableBoxSelection?: boolean;
   /** 框选快捷键 */
   boxSelectionKey?: 'shift' | 'alt' | 'ctrl';
-  /** 是否启用右键菜单 */
-  enableContextMenu?: boolean;
   /** 是否启用拖拽画布 */
   enableCanvasPan?: boolean;
   /** 是否启用滚轮缩放 */
   enableWheelZoom?: boolean;
-  /** 是否启用点击连接 */
-  connectOnClick?: boolean;
-  /** 连接模式 */
-  connectionMode?: 'loose' | 'strict'; // loose: 允许任意连接, strict: 需要验证
   /** 拖拽阈值（像素，超过此值才开始拖拽） */
   dragThreshold?: number;
   /** 双击延迟（毫秒） */
@@ -208,10 +214,6 @@ export interface FlowInteractionConfig {
 export interface FlowPerformanceConfig {
   /** 是否启用 RAF 节流 */
   enableRAFThrottle?: boolean;
-  /** 是否启用虚拟滚动（只渲染视口内的节点） */
-  enableVirtualScroll?: boolean;
-  /** 虚拟滚动缓冲区（像素） */
-  virtualScrollBuffer?: number;
   /** 是否启用视口裁剪（只渲染可见区域） */
   enableViewportCulling?: boolean;
   /** 是否启用 GPU 加速 */
@@ -228,8 +230,13 @@ export interface FlowPerformanceConfig {
   cacheSizeLimit?: number;
 }
 
+/** Flow 内置文案语言 */
+export type FlowLocale = 'zh-CN' | 'en-US';
+
 /** 主题配置 */
 export interface FlowThemeConfig {
+  /** 内置 i18n 语言（可被顶层 locale 覆盖） */
+  locale?: FlowLocale;
   /** 主题模式 */
   mode?: 'light' | 'dark' | 'auto';
   /** 主色调 */
@@ -263,6 +270,8 @@ export type FlowValidationFunction = (
  * 包含所有子配置和事件回调
  */
 export interface FlowConfig {
+  /** 内置 i18n 语言（toolbar / emptyState / a11y 文案） */
+  locale?: FlowLocale;
   /** 画布配置 */
   canvas?: FlowCanvasConfig;
   /** 节点配置 */
@@ -279,14 +288,6 @@ export interface FlowConfig {
   isValidConnection?: FlowValidationFunction;
   /** 初始视口 */
   initialViewport?: FlowViewport;
-  /** 自定义工具栏组件 */
-  toolbar?: Component | false;
-  /** 自定义空状态组件 */
-  emptyState?: Component | false;
-  /** 自定义小地图组件 */
-  minimap?: Component | false;
-  /** 自定义背景组件 */
-  background?: Component | false;
 }
 
 /** 部分配置类型（用于更新配置） */

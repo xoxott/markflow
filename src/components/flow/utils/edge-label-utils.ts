@@ -1,5 +1,6 @@
 /** 连接线标签样式解析（边数据 + 全局 config 合并） */
 
+import type { CSSProperties } from 'vue';
 import type { FlowConfig } from '../types/flow-config';
 import type { FlowEdge } from '../types/flow-edge';
 import { DEFAULT_EDGE_CONFIG } from '../config/default-config';
@@ -12,8 +13,8 @@ export interface ResolvedEdgeLabelStyle {
   backgroundFill: string;
   padding: number;
   borderRadius: number;
-  textStyle: Record<string, unknown>;
-  backgroundStyle: Record<string, unknown>;
+  textStyle: CSSProperties;
+  backgroundStyle: CSSProperties;
 }
 
 const CJK_CHAR_PATTERN = /[\u4E00-\u9FFF\u3400-\u4DBF\uFF00-\uFFEF]/;
@@ -51,7 +52,7 @@ export function resolveEdgeLabelStyle(
     backgroundFill: 'var(--flow-edge-label-bg, #ffffff)',
     padding,
     borderRadius,
-    textStyle: edge.labelStyle ?? {},
-    backgroundStyle: edge.labelBackgroundStyle ?? {}
+    textStyle: (edge.labelStyle as CSSProperties | undefined) ?? {},
+    backgroundStyle: (edge.labelBackgroundStyle as CSSProperties | undefined) ?? {}
   };
 }

@@ -169,11 +169,14 @@ export interface UseDragOptions {
   /**
    * 是否使用 RAF 节流
    *
-   * 启用后，拖拽更新将在每个动画帧最多执行一次，提供更流畅的性能
+   * 启用后，拖拽更新将在每个动画帧最多执行一次，提供更流畅的性能。
+   *
+   * 接受布尔值或 getter；如果传入 getter，每次开始拖拽时会重新评估， 这样宿主可以在运行时切换 `performance.enableRAFThrottle`
+   * 配置而无需重新挂载组件。
    *
    * @default true
    */
-  useRAF?: boolean;
+  useRAF?: boolean | (() => boolean);
 
   /**
    * 是否使用增量模式
@@ -222,6 +225,13 @@ export function useDrag(options: UseDragOptions): UseDragReturn {
     incremental = false
   } = options;
 
+  const resolveUseRAF = (): boolean => {
+    if (typeof useRAF === 'function') {
+      return useRAF();
+    }
+    return useRAF;
+  };
+
   /** 是否正在拖拽（响应式） */
   const isDragging = ref(false);
 
@@ -234,7 +244,7 @@ export function useDrag(options: UseDragOptions): UseDragReturn {
   /** 配置拖拽处理器选项 */
   dragHandler.setOptions({
     threshold: dragThreshold,
-    useRAF,
+    useRAF: resolveUseRAF(),
     incremental,
     enabled: () => {
       // 将 Vue 响应式状态转换为函数
@@ -288,6 +298,12 @@ export function useDrag(options: UseDragOptions): UseDragReturn {
     if (!isEnabled) {
       logger.warn('[useDrag] 拖拽未启用');
       return;
+    }
+
+    // 每次开始拖拽都重新评估 useRAF：当 useRAF 是 getter 时
+    // 宿主可以在运行时切换 `performance.enableRAFThrottle`
+    if (typeof useRAF === 'function') {
+      dragHandler.setOptions({ useRAF: resolveUseRAF() });
     }
 
     // 调用处理器的 startDrag 方法

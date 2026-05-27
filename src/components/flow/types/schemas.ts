@@ -83,19 +83,19 @@ export const FlowCanvasConfigSchema = z.object({
   gridOpacity: z.number().min(0).max(1).optional(),
   backgroundColor: z.string().optional(),
   fitViewOnInit: z.boolean().optional(),
-  fitViewOnResize: z.boolean().optional(),
   fitViewPadding: z.number().min(0).max(1).optional(),
   panOnDrag: z.union([z.boolean(), z.array(z.number())]).optional(),
   zoomOnScroll: z.boolean().optional(),
   zoomOnPinch: z.boolean().optional(),
-  zoomOnDoubleClick: z.boolean().optional(),
   showRuler: z.boolean().optional(),
   rulerSize: z.number().positive().optional(),
   snapToGrid: z.boolean().optional(),
   showSnapGuides: z.boolean().optional(),
   enableGuides: z.boolean().optional(),
   snapToGuides: z.boolean().optional(),
-  guideSnapThreshold: z.number().positive().optional()
+  guideSnapThreshold: z.number().positive().optional(),
+  snapToAlignment: z.boolean().optional(),
+  alignmentSnapThreshold: z.number().positive().optional()
 });
 
 /** 节点配置 Schema */
@@ -117,7 +117,7 @@ export const FlowNodeConfigSchema = z.object({
 
 /** 连接线配置 Schema */
 export const FlowEdgeConfigSchema = z.object({
-  defaultType: z.enum(['bezier', 'straight', 'step', 'smoothstep', 'smart']).optional(),
+  defaultType: z.enum(['bezier', 'straight', 'default']).optional(),
   defaultStrokeWidth: z.number().positive().optional(),
   defaultStrokeColor: z.string().optional(),
   selectedStrokeWidth: z.number().positive().optional(),
@@ -143,11 +143,8 @@ export const FlowInteractionConfigSchema = z.object({
   multiSelectKey: z.enum(['ctrl', 'shift', 'alt', 'meta']).optional(),
   enableBoxSelection: z.boolean().optional(),
   boxSelectionKey: z.enum(['ctrl', 'shift', 'alt', 'meta']).optional(),
-  enableContextMenu: z.boolean().optional(),
   enableCanvasPan: z.boolean().optional(),
   enableWheelZoom: z.boolean().optional(),
-  connectOnClick: z.boolean().optional(),
-  connectionMode: z.enum(['strict', 'loose']).optional(),
   dragThreshold: z.number().min(0).optional(),
   doubleClickDelay: z.number().positive().optional(),
   nodesDraggable: z.boolean().optional(),
@@ -160,11 +157,6 @@ export const FlowInteractionConfigSchema = z.object({
 /** 性能配置 Schema */
 export const FlowPerformanceConfigSchema = z.object({
   enableRAFThrottle: z.boolean().optional(),
-  enableVirtualScroll: z
-    .boolean()
-    .optional()
-    .describe('已弃用：请使用 enableViewportCulling，主路径不再读取 enableVirtualScroll'),
-  virtualScrollBuffer: z.number().positive().optional(),
   enableViewportCulling: z.boolean().optional(),
   enableGPUAcceleration: z.boolean().optional(),
   enableEdgeCanvasRendering: z.boolean().optional(),
@@ -176,6 +168,7 @@ export const FlowPerformanceConfigSchema = z.object({
 
 /** 主题配置 Schema */
 export const FlowThemeConfigSchema = z.object({
+  locale: z.enum(['zh-CN', 'en-US']).optional(),
   mode: z.enum(['light', 'dark', 'auto']).optional(),
   primaryColor: z.string().optional(),
   successColor: z.string().optional(),
@@ -190,6 +183,7 @@ export const FlowThemeConfigSchema = z.object({
 
 /** 完整配置 Schema */
 export const FlowConfigSchema = z.object({
+  locale: z.enum(['zh-CN', 'en-US']).optional(),
   canvas: FlowCanvasConfigSchema.optional(),
   nodes: FlowNodeConfigSchema.optional(),
   edges: FlowEdgeConfigSchema.optional(),

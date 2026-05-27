@@ -2,8 +2,7 @@
 
 import { defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NSpace, NTag, NText, useMessage } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import type { FlowConfig, FlowEdge, FlowNode } from '@/components/flow';
+import { FlowCanvas, type FlowConfig, type FlowEdge, type FlowNode } from '@/components/flow';
 
 export default defineComponent({
   name: 'FlowEdgeLabelExample',

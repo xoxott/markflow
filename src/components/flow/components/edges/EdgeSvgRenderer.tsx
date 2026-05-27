@@ -4,12 +4,12 @@
  * 负责使用 SVG 渲染连接线，支持贝塞尔曲线和箭头
  */
 
-import type { CSSProperties, PropType } from 'vue';
-import { computed, defineComponent, withMemo } from 'vue';
+import type { CSSProperties, Component, PropType } from 'vue';
+import { computed, defineComponent, h, withMemo } from 'vue';
 import { getGpuAccelerationStyle } from '../../utils/style-utils';
 import { useEventHandlers } from '../../hooks/useEventHandlers';
 import { generateEdgePath } from '../../utils/edge-path-generator';
-import type { FlowConfig, FlowEdge, FlowViewport } from '../../types';
+import type { FlowConfig, FlowEdge, FlowEdgeType, FlowViewport } from '../../types';
 import type { EdgePositions } from '../../hooks/useEdgePositions';
 import {
   EDGE_CLASS_NAMES,
@@ -26,6 +26,15 @@ import {
   shouldShowEdgeDeleteButton
 } from '../../utils/edge-interaction-utils';
 import BaseEdge from './BaseEdge';
+
+/** 解析 edgeTypes 注册表项为可挂载组件 */
+function resolveEdgeComponent(entry: FlowEdgeType | Component | undefined): Component | null {
+  if (!entry) return null;
+  if (typeof entry === 'object' && 'component' in entry && entry.component) {
+    return entry.component as Component;
+  }
+  return entry as Component;
+}
 
 /** EdgeSvgRenderer 组件属性 */
 export interface EdgeSvgRendererProps {
@@ -49,6 +58,12 @@ export interface EdgeSvgRendererProps {
   onEdgeMouseLeave?: (edge: FlowEdge, event: MouseEvent) => void;
   /** 连接线删除（点击删除按钮） */
   onEdgeDelete?: (edge: FlowEdge, event: MouseEvent) => void;
+  /** 选中边端点按下（重连） */
+  onEdgeEndpointMouseDown?: (
+    edge: FlowEdge,
+    endpoint: 'source' | 'target',
+    event: MouseEvent
+  ) => void;
   /** 当前悬停的边 ID */
   hoveredEdgeId?: string | null;
   /** SVG 容器 pointerover（边 hover 委托） */
@@ -99,6 +114,12 @@ export default defineComponent({
     },
     onEdgeDelete: {
       type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
+      default: undefined
+    },
+    onEdgeEndpointMouseDown: {
+      type: Function as PropType<
+        (edge: FlowEdge, endpoint: 'source' | 'target', event: MouseEvent) => void
+      >,
       default: undefined
     },
     zIndex: {
@@ -276,7 +297,8 @@ export default defineComponent({
             const path = generateEdgePath(edge, positions, {
               showArrow: edge.showArrow !== false,
               viewport: props.viewport,
-              bezierControlOffset: props?.bezierControlOffset
+              bezierControlOffset: props?.bezierControlOffset,
+              pathGenerators: props.config?.edges?.edgePathGenerators
             });
 
             const handler = handlers?.get(edge.id);
@@ -300,41 +322,54 @@ export default defineComponent({
 
             return withMemo(
               memoKey,
-              () => (
-                <BaseEdge
-                  key={edge.id}
-                  edge={edge}
-                  sourceX={positions.sourceX}
-                  sourceY={positions.sourceY}
-                  targetX={positions.targetX}
-                  targetY={positions.targetY}
-                  sourceHandleX={positions.sourceHandleX}
-                  sourceHandleY={positions.sourceHandleY}
-                  targetHandleX={positions.targetHandleX}
-                  targetHandleY={positions.targetHandleY}
-                  path={path}
-                  viewport={props.viewport}
-                  instanceId={props.instanceId}
-                  selected={isSelected}
-                  hovered={isHovered}
-                  clickAreaWidth={resolvedClickAreaWidth.value}
-                  deleteButtonSize={resolvedDeleteButtonSize.value}
-                  interactionOnly={edgeInteractionOnly}
-                  visualOnly={edgeVisualOnly}
-                  interactive={isEdgeSelectable(edge, props.config)}
-                  showDeleteButton={
+              () => {
+                const registryEntry = props.config?.edges?.edgeTypes?.[edge.type ?? 'default'];
+                const CustomEdge = resolveEdgeComponent(registryEntry);
+                const edgeProps = {
+                  key: edge.id,
+                  edge,
+                  sourceX: positions.sourceX,
+                  sourceY: positions.sourceY,
+                  targetX: positions.targetX,
+                  targetY: positions.targetY,
+                  sourceHandleX: positions.sourceHandleX,
+                  sourceHandleY: positions.sourceHandleY,
+                  targetHandleX: positions.targetHandleX,
+                  targetHandleY: positions.targetHandleY,
+                  path,
+                  viewport: props.viewport,
+                  instanceId: props.instanceId,
+                  selected: isSelected,
+                  hovered: isHovered,
+                  clickAreaWidth: resolvedClickAreaWidth.value,
+                  deleteButtonSize: resolvedDeleteButtonSize.value,
+                  interactionOnly: edgeInteractionOnly,
+                  visualOnly: edgeVisualOnly,
+                  interactive: isEdgeSelectable(edge, props.config),
+                  showDeleteButton:
                     shouldShowEdgeDeleteButton(edge, props.config) &&
                     isSelected &&
-                    !edgeInteractionOnly
-                  }
-                  config={props.config}
-                  onClick={handler?.onClick}
-                  onDouble-click={handler?.onDoubleClick}
-                  onMouseenter={handler?.onMouseEnter}
-                  onMouseleave={handler?.onMouseLeave}
-                  onDelete={(event: MouseEvent) => props.onEdgeDelete?.(edge, event)}
-                />
-              ),
+                    !edgeInteractionOnly,
+                  showEndpointHandles:
+                    isSelected &&
+                    !edgeInteractionOnly &&
+                    props.config?.edges?.reconnectable !== false,
+                  config: props.config,
+                  onClick: handler?.onClick,
+                  onDoubleClick: handler?.onDoubleClick,
+                  onMouseenter: handler?.onMouseEnter,
+                  onMouseleave: handler?.onMouseLeave,
+                  onDelete: (event: MouseEvent) => props.onEdgeDelete?.(edge, event),
+                  onEndpointMousedown: (endpoint: 'source' | 'target', event: MouseEvent) =>
+                    props.onEdgeEndpointMouseDown?.(edge, endpoint, event)
+                };
+
+                if (CustomEdge) {
+                  return h(CustomEdge, edgeProps);
+                }
+
+                return <BaseEdge {...edgeProps} />;
+              },
               edgeMemoCache,
               index
             );

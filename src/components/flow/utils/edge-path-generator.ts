@@ -6,7 +6,7 @@
 
 import { ARROW_SIZES, BEZIER_CONSTANTS, EDGE_TYPES } from '../constants/edge-constants';
 import type { EdgePositions } from '../hooks/useEdgePositions';
-import type { FlowEdge, FlowViewport } from '../types';
+import type { FlowConfig, FlowEdge, FlowEdgePathGenerator, FlowViewport } from '../types';
 import { calculateArrowSize } from './edge-style-utils';
 
 /** 路径生成选项 */
@@ -17,6 +17,8 @@ export interface EdgePathGeneratorOptions {
   viewport?: FlowViewport;
   /** 贝塞尔曲线控制点偏移比例（0-1之间，用于 bezier 类型） */
   bezierControlOffset?: number;
+  /** Phase 4：来自 FlowConfig.edges.edgePathGenerators 的自定义路径函数注册表 */
+  pathGenerators?: Record<string, FlowEdgePathGenerator>;
 }
 
 /** 路径生成器接口 */
@@ -212,9 +214,37 @@ export function generateEdgePath(
   positions: EdgePositions,
   options: EdgePathGeneratorOptions = {}
 ): string {
+  // Phase 4.3：优先使用 FlowConfig.edges.edgePathGenerators 中注册的自定义路径生成器
+  // 注册函数签名：(params: FlowEdgePathParams) => string
+  const customGen = edge.type ? options.pathGenerators?.[edge.type] : undefined;
+  if (customGen) {
+    return customGen({
+      sourceX: positions.sourceX,
+      sourceY: positions.sourceY,
+      targetX: positions.targetX,
+      targetY: positions.targetY,
+      sourceHandleX: positions.sourceHandleX,
+      sourceHandleY: positions.sourceHandleY,
+      targetHandleX: positions.targetHandleX,
+      targetHandleY: positions.targetHandleY,
+      type: edge.type
+    });
+  }
+
   const generator = getPathGenerator(edge.type);
   return generator.generate(edge, positions, {
     showArrow: edge.showArrow !== false,
     ...options
   });
+}
+
+/** 便捷工具：将 FlowConfig 中的自定义路径生成器注入为 options */
+export function buildPathGeneratorOptions(
+  config?: Readonly<FlowConfig> | undefined,
+  base: EdgePathGeneratorOptions = {}
+): EdgePathGeneratorOptions {
+  return {
+    ...base,
+    pathGenerators: config?.edges?.edgePathGenerators ?? base.pathGenerators
+  };
 }

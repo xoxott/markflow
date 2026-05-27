@@ -29,22 +29,24 @@ styles/
 @import '~@/components/flow/styles/index.scss';
 ```
 
-### 2. 使用主题 Hook
+### 2. 与宿主应用的 darkMode 联动
 
-在 Vue 组件中使用主题管理：
+Flow 组件不再直接依赖 Pinia / localStorage，而是通过 Vue 的 `provide`/`inject`
+让宿主应用注入暗黑模式状态：
 
 ```typescript
-import { useFlowTheme } from '@/components/flow/hooks/useFlowTheme';
+// 宿主入口（App.tsx 或 main.ts）
+import { provide } from 'vue';
+import { flowDarkModeKey } from '@/components/flow/context/flow-theme-context';
+import { useThemeStore } from '@/store/modules/theme';
+import { storeToRefs } from 'pinia';
 
-const { theme, setTheme, toggleTheme, isDark } = useFlowTheme({
-  initialTheme: 'auto',
-  persist: true // 持久化到 localStorage
-});
-
-// 切换主题
-setTheme('dark');
-toggleTheme();
+const themeStore = useThemeStore();
+const { darkMode } = storeToRefs(themeStore);
+provide(flowDarkModeKey, darkMode);
 ```
+
+未注入时，Flow 会回退到 `usePreferredColorScheme` 自动跟随系统。
 
 ### 3. 自定义主题
 
@@ -143,20 +145,14 @@ setTheme('custom');
 
 ### 在组件中切换
 
+主题切换由宿主应用控制——只需更新提供给 `flowDarkModeKey` 的 ref 即可：
+
 ```typescript
-import { useFlowTheme } from '@/components/flow/hooks/useFlowTheme';
-
-const { setTheme } = useFlowTheme();
-
-// 设置为深色主题
-setTheme('dark');
-
-// 设置为浅色主题
-setTheme('light');
-
-// 设置为自动主题（跟随系统）
-setTheme('auto');
+// 在宿主侧切换 darkMode（例如来自 Pinia store）
+themeStore.setDarkMode(true);
 ```
+
+Flow 组件会通过 `inject(flowDarkModeKey)` 自动响应。
 
 ### 在配置中设置
 
@@ -181,4 +177,4 @@ updateConfig({
 
 ## 示例
 
-完整示例请查看 `examples/` 目录下的示例文件。
+完整示例请查看 `playground/` 目录下的参考文件，以及 `src/views/component/examples/` 中的 Flow 示例页。

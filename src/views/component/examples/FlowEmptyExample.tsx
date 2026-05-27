@@ -2,9 +2,7 @@
 
 import { defineComponent, ref } from 'vue';
 import { NCard, NH3, NText } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import FlowEmptyState from '@/components/flow/components/FlowEmptyState';
-import type { FlowEdge, FlowNode } from '@/components/flow';
+import { FlowCanvas, type FlowEdge, FlowEmptyState, type FlowNode } from '@/components/flow';
 
 export default defineComponent({
   name: 'FlowEmptyExample',

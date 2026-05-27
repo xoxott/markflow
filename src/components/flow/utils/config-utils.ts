@@ -65,74 +65,38 @@ export function normalizeConfig(partialConfig?: PartialFlowConfig): FlowConfig {
 /**
  * 深度克隆配置
  *
- * 创建配置的深拷贝
+ * 优先使用 `structuredClone`（保留 Date / RegExp / 嵌套结构）； 如配置中包含函数（如 `isValidConnection`）或 Vue Component
+ * 等不可结构化克隆的值， 自动回退到带特殊字段保留的浅克隆：函数与 Component 字段直接共享引用即可。
+ *
+ * 注意：旧实现用 `JSON.parse(JSON.stringify(config))` 会静默吃掉 `isValidConnection` 等函数字段，造成配置回滚后用户回调消失。
  *
  * @param config 要克隆的配置
  * @returns 克隆后的配置
  */
 export function cloneConfig(config: FlowConfig): FlowConfig {
-  return JSON.parse(JSON.stringify(config));
-}
-
-/**
- * 检查配置是否有效
- *
- * 验证配置的基本有效性（类型、范围等）
- *
- * @param config 要验证的配置
- * @returns 是否有效
- */
-export function isValidConfig(config: any): config is FlowConfig {
-  if (!config || typeof config !== 'object') {
-    return false;
+  // 抓出无法结构化克隆的引用字段（函数、Vue Component 等）单独保留
+  const fnFields: Partial<FlowConfig> = {};
+  if (typeof config.isValidConnection === 'function') {
+    fnFields.isValidConnection = config.isValidConnection;
   }
 
-  // 验证画布配置
-  if (config.canvas) {
-    const canvas = config.canvas;
-    if (
-      canvas.minZoom !== undefined &&
-      (typeof canvas.minZoom !== 'number' || canvas.minZoom < 0)
-    ) {
-      return false;
-    }
-    if (
-      canvas.maxZoom !== undefined &&
-      (typeof canvas.maxZoom !== 'number' || canvas.maxZoom <= canvas.minZoom)
-    ) {
-      return false;
-    }
+  const stripped: FlowConfig = { ...config };
+  if (fnFields.isValidConnection) {
+    delete stripped.isValidConnection;
   }
 
-  // 验证节点配置
-  if (config.nodes) {
-    const nodes = config.nodes;
-    if (
-      nodes.defaultWidth !== undefined &&
-      (typeof nodes.defaultWidth !== 'number' || nodes.defaultWidth <= 0)
-    ) {
-      return false;
+  let cloned: FlowConfig;
+  if (typeof structuredClone === 'function') {
+    try {
+      cloned = structuredClone(stripped);
+    } catch {
+      cloned = JSON.parse(JSON.stringify(stripped));
     }
-    if (
-      nodes.defaultHeight !== undefined &&
-      (typeof nodes.defaultHeight !== 'number' || nodes.defaultHeight <= 0)
-    ) {
-      return false;
-    }
+  } else {
+    cloned = JSON.parse(JSON.stringify(stripped));
   }
 
-  // 验证连接线配置
-  if (config.edges) {
-    const edges = config.edges;
-    if (
-      edges.defaultStrokeWidth !== undefined &&
-      (typeof edges.defaultStrokeWidth !== 'number' || edges.defaultStrokeWidth <= 0)
-    ) {
-      return false;
-    }
-  }
-
-  return true;
+  return { ...cloned, ...fnFields };
 }
 
 /**

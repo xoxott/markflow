@@ -81,6 +81,12 @@ export default defineComponent({
       type: Function as PropType<(edge: FlowEdge, event: MouseEvent) => void>,
       default: undefined
     },
+    onEdgeEndpointMouseDown: {
+      type: Function as PropType<
+        (edge: FlowEdge, endpoint: 'source' | 'target', event: MouseEvent) => void
+      >,
+      default: undefined
+    },
     config: {
       type: Object as PropType<Readonly<FlowConfig>>,
       default: undefined
@@ -181,7 +187,8 @@ export default defineComponent({
       nodes: nodesRef,
       viewport: cullingViewportRef,
       enabled: enableViewportCulling.value !== false,
-      isPanning: isPanningRef
+      isPanning: isPanningRef,
+      canvasSize: canvasCtx?.canvasSize
     });
 
     // 位置计算
@@ -303,7 +310,8 @@ export default defineComponent({
         onEdgeDoubleClick: props.onEdgeDoubleClick,
         onEdgeMouseEnter: props.onEdgeMouseEnter,
         onEdgeMouseLeave: props.onEdgeMouseLeave,
-        onEdgeDelete: props.onEdgeDelete
+        onEdgeDelete: props.onEdgeDelete,
+        onEdgeEndpointMouseDown: props.onEdgeEndpointMouseDown
       };
 
       if (useCanvasRendering && !interactionOnly) {

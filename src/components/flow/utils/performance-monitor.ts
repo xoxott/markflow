@@ -291,12 +291,9 @@ interface WindowWithPerformanceMonitor extends Window {
   __flowPerformanceMonitor__?: PerformanceMonitor;
 }
 
-// 在开发环境下，将监控器挂载到 window 对象，方便在控制台访问
-// 并自动启用监控（方便调试）
+// 在开发环境下，将监控器挂载到 window 对象，方便在控制台访问（需手动 enable）
 if (import.meta.env.DEV) {
   (window as WindowWithPerformanceMonitor).__flowPerformanceMonitor__ = performanceMonitor;
-  // 开发环境自动启用，方便调试性能问题
-  performanceMonitor.enable();
 }
 
 // ==================== 装饰器 ====================

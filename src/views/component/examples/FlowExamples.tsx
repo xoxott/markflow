@@ -3,11 +3,16 @@ import { defineComponent } from 'vue';
 import {
   FlowBasicExample,
   FlowBezierExample,
+  FlowBoxSelectionExample,
   FlowConfigExample,
+  FlowCustomNodeExample,
   FlowEdgeLabelExample,
+  FlowEmptyExample,
   FlowFullFeatureExample,
   FlowInteractionGuide,
-  FlowPerformanceExample
+  FlowPerformanceExample,
+  FlowPersistenceExample,
+  FlowStateExample
 } from './index';
 
 export const FlowExamples = defineComponent({
@@ -18,6 +23,16 @@ export const FlowExamples = defineComponent({
         <FlowInteractionGuide />
 
         <FlowBasicExample />
+
+        <FlowStateExample />
+
+        <FlowEmptyExample />
+
+        <FlowBoxSelectionExample />
+
+        <FlowCustomNodeExample />
+
+        <FlowPersistenceExample />
 
         <FlowEdgeLabelExample />
 

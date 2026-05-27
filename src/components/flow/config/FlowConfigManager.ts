@@ -57,16 +57,20 @@ export class FlowConfigManager {
     // 规范化配置（填充默认值）
     const normalizedConfig = normalizeConfig(initialConfig);
 
-    // 验证配置
+    // 验证配置：失败时回退到默认配置，避免错误配置进入运行时
     const validation = this.validator.validate(normalizedConfig);
     if (!validation.valid) {
-      logger.warn(`Invalid config for instance "${id}":`, validation.errors.join(', '));
+      logger.warn(
+        `[FlowConfigManager] invalid initial config for instance "${id}", falling back to default:`,
+        validation.errors.join('; ')
+      );
     }
+    const safeConfig = validation.valid ? normalizedConfig : cloneConfig(DEFAULT_FLOW_CONFIG);
 
     // 创建实例
     const instance: ConfigInstance = {
       id,
-      config: normalizedConfig,
+      config: safeConfig,
       listeners: new Set(),
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -120,11 +124,14 @@ export class FlowConfigManager {
     // 合并配置
     const updatedConfig = mergeConfig(instance.config, partialConfig);
 
-    // 验证配置
+    // 验证配置：失败时**不**应用本次更新，避免错误配置进入运行时
     const validation = this.validator.validate(updatedConfig);
     if (!validation.valid) {
-      logger.warn(`Invalid config update for instance "${id}":`, validation.errors.join(', '));
-      // 仍然更新，但记录警告
+      logger.warn(
+        `[FlowConfigManager] update rejected for instance "${id}":`,
+        validation.errors.join('; ')
+      );
+      return;
     }
 
     // 更新配置

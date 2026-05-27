@@ -4,13 +4,15 @@
  * 当画布为空时显示的空状态提示
  */
 
-import { type PropType, defineComponent } from 'vue';
+import { type PropType, computed, defineComponent } from 'vue';
+import { useFlowI18n } from '../hooks/useFlowI18n';
+import type { FlowLocale } from '../types';
 
 /** FlowEmptyState 组件属性 */
 export interface FlowEmptyStateProps {
-  /** 标题 */
+  /** 标题（未传则使用 i18n） */
   title?: string;
-  /** 描述 */
+  /** 描述（未传则使用 i18n） */
   description?: string;
   /** 图标 */
   icon?: string;
@@ -20,6 +22,8 @@ export interface FlowEmptyStateProps {
   style?: Record<string, any>;
   /** CSS 类名 */
   class?: string;
+  /** 覆盖 config 中的 locale */
+  locale?: FlowLocale;
   /** 自定义内容插槽 */
 }
 
@@ -29,11 +33,11 @@ export default defineComponent({
   props: {
     title: {
       type: String,
-      default: '画布为空'
+      default: undefined
     },
     description: {
       type: String,
-      default: '开始添加节点来构建您的流程图'
+      default: undefined
     },
     icon: {
       type: String,
@@ -50,9 +54,18 @@ export default defineComponent({
     class: {
       type: String,
       default: ''
+    },
+    locale: {
+      type: String as PropType<FlowLocale>,
+      default: undefined
     }
   },
   setup(props, { slots }) {
+    const { t } = useFlowI18n({ locale: props.locale });
+
+    const displayTitle = computed(() => props.title ?? t('emptyState.title'));
+    const displayDescription = computed(() => props.description ?? t('emptyState.description'));
+
     return () => {
       if (!props.visible) {
         return null;
@@ -95,7 +108,7 @@ export default defineComponent({
                   color: '#64748b'
                 }}
               >
-                {props.title}
+                {displayTitle.value}
               </div>
               <div
                 style={{
@@ -103,7 +116,7 @@ export default defineComponent({
                   color: '#94a3b8'
                 }}
               >
-                {props.description}
+                {displayDescription.value}
               </div>
             </>
           )}

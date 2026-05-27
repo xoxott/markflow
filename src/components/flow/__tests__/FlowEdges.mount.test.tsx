@@ -42,9 +42,11 @@ describe('FlowEdges mount', () => {
         provide(flowCanvasContextKey, {
           config,
           nodes: ref(nodes),
+          edges: ref(edges),
           viewport: ref({ x: 0, y: 0, zoom: 1 }),
           canvasRef: ref(null),
           stableViewport: ref({ x: 0, y: 0, zoom: 1 }),
+          canvasSize: ref({ width: 800, height: 600 }),
           nodesMap: ref(new Map(nodes.map(n => [n.id, n]))),
           getNodeById: (id: string) => nodes.find(n => n.id === id),
           draggingNodeId: ref(null),
@@ -52,6 +54,20 @@ describe('FlowEdges mount', () => {
           instanceId: ref('test'),
           setViewport: () => {},
           getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+          selection: {
+            selectedNodeIds: ref([] as string[]),
+            selectedEdgeIds: ref([] as string[]),
+            selectNode: () => {},
+            selectNodes: () => {},
+            selectEdge: () => {},
+            deselectAll: () => {}
+          },
+          viewportActions: {
+            setViewport: () => {},
+            panViewport: () => {},
+            zoomViewport: () => {},
+            fitView: () => false
+          },
           layoutLocked: ref(false),
           setLayoutLocked: () => {},
           toggleLayoutLock: () => {}

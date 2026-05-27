@@ -7,17 +7,25 @@
 import { type Ref, onUnmounted, ref, watch } from 'vue';
 import { FlowConnectionHandler } from '../core/interaction/FlowConnectionHandler';
 import type { FlowConfig, FlowEdge, FlowNode } from '../types';
-import type { ConnectionDraft, PreviewPosition } from '../core/interaction/FlowConnectionHandler';
+import type {
+  ConnectionDraft,
+  ConnectionRejectInfo,
+  PreviewPosition
+} from '../core/interaction/FlowConnectionHandler';
 
 export interface UseConnectionCreationOptions {
   /** 画布配置 */
   config: Ref<Readonly<FlowConfig>>;
   /** 节点列表 */
   nodes: Ref<FlowNode[]>;
+  /** 连接线列表（用于重复连接检测） */
+  edges: Ref<FlowEdge[]>;
   /** 创建连接的回调 */
   onCreateEdge: (edge: FlowEdge) => void;
   /** 连接创建事件 */
   onConnect?: (edge: FlowEdge) => void;
+  /** 连接被拒绝事件（自环 / 验证失败 / 重复连接） */
+  onConnectReject?: (info: ConnectionRejectInfo) => void;
 }
 
 export interface UseConnectionCreationReturn {
@@ -42,7 +50,7 @@ export interface UseConnectionCreationReturn {
 export function useConnectionCreation(
   options: UseConnectionCreationOptions
 ): UseConnectionCreationReturn {
-  const { config, nodes, onCreateEdge, onConnect } = options;
+  const { config, nodes, edges, onCreateEdge, onConnect, onConnectReject } = options;
 
   /** 连接草稿状态（响应式） */
   const connectionDraft = ref<ConnectionDraft | null>(null);
@@ -58,7 +66,8 @@ export function useConnectionCreation(
     connectionHandler.setOptions({
       useRAF: config.value.performance?.enableRAFThrottle !== false,
       onCreateEdge,
-      onConnect
+      onConnect,
+      onConnectReject
     });
   };
   applyHandlerOptions();
@@ -117,7 +126,11 @@ export function useConnectionCreation(
     }
 
     // 从事件中提取目标信息并完成连接
-    const _edge = await connectionHandler.finishConnectionFromEvent(event, nodes.value);
+    const _edge = await connectionHandler.finishConnectionFromEvent(
+      event,
+      nodes.value,
+      edges.value
+    );
     syncState();
 
     // 如果连接成功，edge 已经在 finishConnectionFromEvent 中通过回调处理

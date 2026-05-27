@@ -4,7 +4,7 @@
  * 用于管理节点的 z-index 分配，支持递增分配和自动清理
  */
 
-import { type Ref, ref } from 'vue';
+import { type Ref, shallowRef, triggerRef } from 'vue';
 import { PERFORMANCE_CONSTANTS } from '../constants/performance-constants';
 
 export interface UseZIndexAllocatorOptions {
@@ -52,8 +52,13 @@ export function useZIndexAllocator(
 ): UseZIndexAllocatorReturn {
   const { startValue = PERFORMANCE_CONSTANTS.Z_INDEX_BASE, maxNodes = 50 } = options;
 
-  /** 已分配 z-index 的节点 ID 映射 */
-  const allocatedZIndexes = ref<Map<string, number>>(new Map());
+  /**
+   * 已分配 z-index 的节点 ID 映射
+   *
+   * 用 `shallowRef` 避免 Vue 对 Map 进行深层 Proxy： 一方面 `Map.get(id)` 在 computed 里被追踪会让任意节点 z-index
+   * 变化都触发全量重算， 另一方面频繁的 Proxy 转发也是无意义开销。 修改后通过 `triggerRef` 显式触发响应式更新即可。
+   */
+  const allocatedZIndexes: Ref<Map<string, number>> = shallowRef(new Map<string, number>());
 
   /** 层级计数器（用于分配递增的 z-index） */
   let counter = startValue;
@@ -83,6 +88,7 @@ export function useZIndexAllocator(
       }
     }
 
+    triggerRef(allocatedZIndexes);
     return counter;
   };
 
@@ -92,12 +98,17 @@ export function useZIndexAllocator(
    * @param nodeId 节点 ID
    */
   const remove = (nodeId: string): void => {
-    allocatedZIndexes.value.delete(nodeId);
+    if (allocatedZIndexes.value.delete(nodeId)) {
+      triggerRef(allocatedZIndexes);
+    }
   };
 
   /** 清除所有分配的 z-index */
   const clear = (): void => {
-    allocatedZIndexes.value.clear();
+    if (allocatedZIndexes.value.size > 0) {
+      allocatedZIndexes.value.clear();
+      triggerRef(allocatedZIndexes);
+    }
   };
 
   return {

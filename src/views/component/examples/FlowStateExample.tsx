@@ -2,9 +2,8 @@
 
 import { type Ref, defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NSpace, NText, useMessage } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import { readExposedRef } from '@/components/flow/utils/ref-utils';
-import type { FlowEdge, FlowNode } from '@/components/flow';
+import { FlowCanvas, type FlowEdge, type FlowNode } from '@/components/flow';
+import { readExposedRef } from '@/components/flow/internal';
 
 interface FlowCanvasExposed {
   nodes: Ref<FlowNode[]> | FlowNode[];

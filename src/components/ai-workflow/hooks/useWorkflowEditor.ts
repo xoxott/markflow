@@ -7,7 +7,7 @@
 import { type Ref, computed, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import { useMessage } from 'naive-ui';
 import type { FlowEdge, FlowNode, FlowViewport } from '@/components/flow';
-import { readExposedRef } from '@/components/flow/utils/ref-utils';
+import { readExposedRef } from '@/components/flow/internal';
 import {
   createFlowNodeAt,
   definitionToFlowState,

@@ -160,9 +160,22 @@ export default defineComponent({
     config: {
       type: Object as PropType<Readonly<FlowConfig>>,
       default: undefined
+    },
+    /** 选中时是否显示可拖拽的端点（重连） */
+    showEndpointHandles: {
+      type: Boolean,
+      default: false
     }
   },
-  emits: ['click', 'double-click', 'mouseenter', 'mouseleave', 'contextmenu', 'delete'],
+  emits: [
+    'click',
+    'double-click',
+    'mouseenter',
+    'mouseleave',
+    'contextmenu',
+    'delete',
+    'endpoint-mousedown'
+  ],
   setup(props, { emit, slots }) {
     const edgeRenderState = computed(() => {
       const arrowIdPrefix = `${ID_PREFIXES.ARROW}${props.instanceId}`;
@@ -172,8 +185,9 @@ export default defineComponent({
       const endY = props.targetHandleY ?? props.targetY;
       const pathData = props.path ?? `M ${startX},${startY} L ${endX},${endY}`;
 
-      const zoom = props.viewport?.zoom || 1;
+      const zoom = Math.max(props.viewport?.zoom || 1, 0.01);
       const scaledStrokeWidth = calculateStrokeWidth(STROKE_WIDTHS.BASE, zoom);
+      const endpointRadius = 6 / zoom;
       const hitStrokeWidth = props.clickAreaWidth ?? scaledStrokeWidth;
 
       const edgeStyle: CSSProperties = {
@@ -253,7 +267,8 @@ export default defineComponent({
         containerStyle,
         labelMidpoint,
         deleteButtonPosition,
-        hasLabel
+        hasLabel,
+        endpointRadius
       };
     });
 
@@ -280,6 +295,10 @@ export default defineComponent({
 
     const handleDelete = (event: MouseEvent) => {
       emit('delete', event);
+    };
+
+    const handleEndpointMouseDown = (endpoint: 'source' | 'target', event: MouseEvent) => {
+      emit('endpoint-mousedown', endpoint, event);
     };
 
     return () => {
@@ -333,6 +352,39 @@ export default defineComponent({
                 size={props.deleteButtonSize}
                 onDelete={handleDelete}
               />
+            )}
+
+          {!props.interactionOnly &&
+            !props.visualOnly &&
+            props.selected &&
+            props.showEndpointHandles &&
+            props.interactive && (
+              <>
+                <circle
+                  class="flow-edge-endpoint-handle"
+                  data-endpoint="source"
+                  cx={state.startX}
+                  cy={state.startY}
+                  r={state.endpointRadius}
+                  fill="var(--flow-edge-selected, #2080f0)"
+                  stroke="var(--flow-canvas-bg, #fff)"
+                  stroke-width={1.5 / (props.viewport?.zoom || 1)}
+                  style={{ pointerEvents: 'all', cursor: 'crosshair' }}
+                  onMousedown={(e: MouseEvent) => handleEndpointMouseDown('source', e)}
+                />
+                <circle
+                  class="flow-edge-endpoint-handle"
+                  data-endpoint="target"
+                  cx={state.endX}
+                  cy={state.endY}
+                  r={state.endpointRadius}
+                  fill="var(--flow-edge-selected, #2080f0)"
+                  stroke="var(--flow-canvas-bg, #fff)"
+                  stroke-width={1.5 / (props.viewport?.zoom || 1)}
+                  style={{ pointerEvents: 'all', cursor: 'crosshair' }}
+                  onMousedown={(e: MouseEvent) => handleEndpointMouseDown('target', e)}
+                />
+              </>
             )}
 
           {!props.interactionOnly && slots.default && slots.default()}

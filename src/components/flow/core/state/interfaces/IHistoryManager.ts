@@ -69,4 +69,12 @@ export interface IHistoryManager {
 
   /** 重置到初始状态 */
   reset(): void;
+
+  /**
+   * 订阅历史变化（push / undo / redo / clear / restore / reset 都会触发）
+   *
+   * @param listener 在历史栈位置可能变化时被调用
+   * @returns 取消订阅函数
+   */
+  subscribe?(listener: () => void): () => void;
 }

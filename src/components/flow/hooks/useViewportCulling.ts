@@ -33,6 +33,12 @@ export interface UseViewportCullingOptions {
   defaultNodeHeight?: number;
   /** 是否正在平移画布（平移时暂停视口裁剪更新以优化性能） */
   isPanning?: Ref<boolean>;
+  /**
+   * 画布尺寸（屏幕像素，平时由 ResizeObserver 维护）
+   *
+   * 不传时回退到 `window.innerWidth/innerHeight`，但这会让小画布过度包含节点， 大画布反而漏裁剪，请尽量提供真实尺寸。
+   */
+  canvasSize?: Ref<{ width: number; height: number }>;
 }
 
 /** 视口裁剪 Hook 返回值 */
@@ -46,17 +52,19 @@ export interface UseViewportCullingReturn {
  *
  * @param viewport 视口状态
  * @param buffer 缓冲区（画布坐标）
+ * @param canvasPx 画布 DOM 尺寸（屏幕像素）
  * @returns 视口边界
  */
 function calculateViewportBounds(
   viewport: FlowViewport,
-  buffer: number
+  buffer: number,
+  canvasPx: { width: number; height: number }
 ): { minX: number; minY: number; maxX: number; maxY: number } {
   // 获取视口区域（考虑缩放）
   const viewportX = -viewport.x / viewport.zoom;
   const viewportY = -viewport.y / viewport.zoom;
-  const viewportWidth = (window.innerWidth || 1000) / viewport.zoom;
-  const viewportHeight = (window.innerHeight || 1000) / viewport.zoom;
+  const viewportWidth = canvasPx.width / viewport.zoom;
+  const viewportHeight = canvasPx.height / viewport.zoom;
 
   // 扩展视口区域（添加缓冲区）
   return {
@@ -124,8 +132,20 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
     spatialIndexThreshold = PERFORMANCE_CONSTANTS.SPATIAL_INDEX_THRESHOLD,
     defaultNodeWidth = PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH,
     defaultNodeHeight = PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT,
-    isPanning
+    isPanning,
+    canvasSize
   } = options;
+
+  /** 视口屏幕尺寸：优先使用画布尺寸，否则回退 window，避免在非全屏画布下错算 */
+  const getCanvasPx = (): { width: number; height: number } => {
+    if (canvasSize?.value && canvasSize.value.width > 0 && canvasSize.value.height > 0) {
+      return canvasSize.value;
+    }
+    if (typeof window !== 'undefined') {
+      return { width: window.innerWidth || 1000, height: window.innerHeight || 1000 };
+    }
+    return { width: 1000, height: 1000 };
+  };
 
   // 稳定引用，避免不必要的重新渲染
   const visibleNodesRef = shallowRef<FlowNode[]>([]);
@@ -147,7 +167,7 @@ export function useViewportCulling(options: UseViewportCullingOptions): UseViewp
 
     // 计算视口边界（画布坐标）
     const bufferInCanvas = buffer / viewport.value.zoom;
-    const bounds = calculateViewportBounds(viewport.value, bufferInCanvas);
+    const bounds = calculateViewportBounds(viewport.value, bufferInCanvas, getCanvasPx());
 
     // 选择查询策略
     const useSpatialIndex =

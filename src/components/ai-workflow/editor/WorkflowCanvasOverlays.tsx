@@ -1,9 +1,7 @@
 /** 工作流画布浮层（须在 FlowCanvas 默认插槽内渲染，以使用 inject 上下文） */
 
 import { type PropType, computed, defineComponent } from 'vue';
-import FlowMinimap from '@/components/flow/components/FlowMinimap';
-import FlowToolbar from '@/components/flow/components/FlowToolbar';
-import { useFlowCanvasContext } from '@/components/flow/hooks/useFlowCanvasContext';
+import { FlowMinimap, FlowToolbar, useFlowCanvasContext } from '@/components/flow';
 
 export default defineComponent({
   name: 'WorkflowCanvasOverlays',

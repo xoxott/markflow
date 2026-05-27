@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import './plugins/assets';
+import '@/components/flow/styles';
 import { isStaticDemo, seedStaticDemoAuthTokens } from '@/utils/env/static-demo';
 import {
   setupAppVersionNotification,

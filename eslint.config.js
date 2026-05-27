@@ -121,5 +121,36 @@ export default defineConfig(
       'no-eq-null': 'off',
       'no-bitwise': 'off'
     }
+  },
+  {
+    /**
+     * Flow 组件公私边界保护
+     *
+     * - 宿主代码应只 import `@/components/flow`（public）或 `@/components/flow/internal`（advanced）
+     * - 禁止 deep import 到 flow 包内子目录（components/hooks/utils/core/context/config）
+     */
+    files: ['src/**/*.{ts,tsx,vue}'],
+    ignores: ['src/components/flow/**'],
+    rules: {
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: [
+            {
+              group: [
+                '@/components/flow/components/*',
+                '@/components/flow/hooks/*',
+                '@/components/flow/utils/*',
+                '@/components/flow/core/*',
+                '@/components/flow/context/*',
+                '@/components/flow/config/*'
+              ],
+              message:
+                'Flow deep import 属于内部 API。请改用 `from "@/components/flow"`（public）或 `from "@/components/flow/internal"`（advanced）。'
+            }
+          ]
+        }
+      ]
+    }
   }
 );

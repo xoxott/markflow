@@ -127,6 +127,20 @@ export class FlowSelectionHandler {
   }
 
   /**
+   * 框选/Ctrl+A 等批量场景：同时设置节点和边的选区（一次通知）
+   *
+   * @param nodeIds 节点 ID 数组
+   * @param edgeIds 边 ID 数组
+   */
+  setSelection(nodeIds: string[], edgeIds: string[]): void {
+    this.selectedNodeIds.clear();
+    this.selectedEdgeIds.clear();
+    nodeIds.forEach(id => this.selectedNodeIds.add(id));
+    edgeIds.forEach(id => this.selectedEdgeIds.add(id));
+    this.notifySelectionChange();
+  }
+
+  /**
    * 选择连接线
    *
    * @param edgeId 连接线 ID
@@ -274,15 +288,17 @@ export class FlowSelectionHandler {
    * 完成框选
    *
    * @param nodes 所有节点列表
+   * @param edges 所有边列表（用于边的框选）
    * @param viewport 当前视口（用于坐标转换）
-   * @returns 选中的节点 ID 数组
+   * @returns 选中的节点 / 边 ID 集合
    */
   finishBoxSelection(
     nodes: FlowNode[],
+    edges: FlowEdge[],
     viewport: { x: number; y: number; zoom: number }
-  ): string[] {
+  ): { nodeIds: string[]; edgeIds: string[] } {
     if (!this.selectionBox.visible) {
-      return [];
+      return { nodeIds: [], edgeIds: [] };
     }
 
     const box = this.selectionBox;
@@ -299,6 +315,7 @@ export class FlowSelectionHandler {
 
     // 查找在选择框内的节点
     const selectedNodeIds: string[] = [];
+    const selectedNodeIdsSet = new Set<string>();
 
     nodes.forEach(node => {
       const nodeX = node.position.x;
@@ -314,13 +331,22 @@ export class FlowSelectionHandler {
         nodeY <= canvasMaxY
       ) {
         selectedNodeIds.push(node.id);
+        selectedNodeIdsSet.add(node.id);
+      }
+    });
+
+    // 查找两端节点都在框内的边
+    const selectedEdgeIds: string[] = [];
+    edges.forEach(edge => {
+      if (selectedNodeIdsSet.has(edge.source) && selectedNodeIdsSet.has(edge.target)) {
+        selectedEdgeIds.push(edge.id);
       }
     });
 
     // 隐藏选择框
     this.selectionBox.visible = false;
 
-    return selectedNodeIds;
+    return { nodeIds: selectedNodeIds, edgeIds: selectedEdgeIds };
   }
 
   /** 取消框选 */

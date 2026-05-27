@@ -5,6 +5,7 @@ import type { EdgePositions } from '../hooks/useEdgePositions';
 import { ARROW_SIZES, CANVAS_CONSTANTS, STROKE_WIDTHS } from '../constants/edge-constants';
 import { calculateArrowSize, calculateStrokeWidth } from './edge-style-utils';
 import { resolveEdgeColors } from './edge-theme-utils';
+import { generateEdgePath } from './edge-path-generator';
 
 export interface DrawEdgesOnCanvasOptions {
   edges: FlowEdge[];
@@ -55,6 +56,12 @@ export function drawEdgesOnCanvas(
     let endY = positions.targetHandleY ?? positions.targetY;
 
     const showArrow = edge.showArrow !== false;
+    const pathD = generateEdgePath(edge, positions, {
+      showArrow,
+      viewport,
+      pathGenerators: undefined
+    });
+
     if (showArrow) {
       const currentArrowSize = calculateArrowSize(zoom);
       const arrowLength = (currentArrowSize / ARROW_SIZES.BASE) * ARROW_SIZES.LENGTH_RATIO;
@@ -69,9 +76,19 @@ export function drawEdgesOnCanvas(
     }
 
     ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
+    if (typeof Path2D !== 'undefined' && pathD) {
+      try {
+        ctx.stroke(new Path2D(pathD));
+      } catch {
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    } else {
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    }
   });
 }
 

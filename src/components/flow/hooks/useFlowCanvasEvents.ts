@@ -11,6 +11,13 @@ import type { FlowConfig } from '../types/flow-config';
 import type { FlowEventEmitter } from '../core/events/FlowEventEmitter';
 import { isEdgeDeletable, isEdgeSelectable } from '../utils/edge-interaction-utils';
 
+/** 边端点重连事件处理器 */
+export interface EdgeReconnectHandlers {
+  isReconnecting: Ref<boolean>;
+  handleMouseMove: (event: MouseEvent) => void;
+  handleMouseUp: (event: MouseEvent) => Promise<void>;
+}
+
 /** 连接创建事件处理器 */
 export interface ConnectionHandlers {
   /** 连接草稿状态 */
@@ -45,16 +52,31 @@ export interface CanvasPanHandlers {
   handleMouseUp: () => void;
 }
 
+/** Phase 5.1：框选事件处理器 */
+export interface BoxSelectionHandlers {
+  start: (startX: number, startY: number) => void;
+  update: (currentX: number, currentY: number) => void;
+  finish: () => { nodeIds: string[]; edgeIds: string[] };
+  cancel: () => void;
+  isActive: () => boolean;
+  /** 框选开始时是否需要事件触发（默认 shift+left） */
+  shouldStart: (event: MouseEvent) => boolean;
+}
+
 /** FlowCanvas 事件处理 Hook 选项 */
 export interface UseFlowCanvasEventsOptions {
   /** 画布容器引用 */
   canvasRef: Ref<HTMLElement | null>;
   /** 连接创建处理器 */
   connection: ConnectionHandlers;
+  /** 边端点重连处理器 */
+  edgeReconnect?: EdgeReconnectHandlers;
   /** 节点拖拽处理器 */
   nodeDrag: NodeDragHandlers;
   /** 画布平移处理器 */
   canvasPan: CanvasPanHandlers;
+  /** 框选处理器 */
+  boxSelection?: BoxSelectionHandlers;
   /** 画布缩放处理器 */
   handleWheel: (event: WheelEvent) => void;
   /** 视口状态 */
@@ -135,8 +157,10 @@ export function useFlowCanvasEvents(
   const {
     canvasRef,
     connection,
+    edgeReconnect,
     nodeDrag,
     canvasPan,
+    boxSelection,
     handleWheel,
     viewport,
     config,
@@ -163,6 +187,17 @@ export function useFlowCanvasEvents(
     if (target.closest('.flow-edge-delete-button')) {
       return;
     }
+    if (target.closest('.flow-edge-endpoint-handle')) {
+      return;
+    }
+
+    // Phase 5.1：检测框选触发（Shift+left on canvas background）
+    if (boxSelection && boxSelection.shouldStart(event)) {
+      boxSelection.start(event.clientX, event.clientY);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     // 处理画布平移
     canvasPan.handleMouseDown(event);
@@ -176,9 +211,20 @@ export function useFlowCanvasEvents(
       return;
     }
 
+    if (edgeReconnect?.isReconnecting.value) {
+      edgeReconnect.handleMouseMove(event);
+      return;
+    }
+
     // 处理节点拖拽
     if (nodeDrag.draggingNodeId.value) {
       nodeDrag.handleMouseMove(event);
+      return;
+    }
+
+    // Phase 5.1：框选拖动
+    if (boxSelection?.isActive()) {
+      boxSelection.update(event.clientX, event.clientY);
       return;
     }
 
@@ -194,9 +240,20 @@ export function useFlowCanvasEvents(
       return;
     }
 
+    if (edgeReconnect?.isReconnecting.value) {
+      edgeReconnect.handleMouseUp(event).catch(() => undefined);
+      return;
+    }
+
     // 处理节点拖拽
     if (nodeDrag.draggingNodeId.value) {
       nodeDrag.handleMouseUp();
+    }
+
+    // Phase 5.1：框选结束
+    if (boxSelection?.isActive()) {
+      boxSelection.finish();
+      return;
     }
 
     // 处理画布平移

@@ -2,9 +2,13 @@
 
 import { defineComponent, ref } from 'vue';
 import { NButton, NCard, NH3, NSpace, NTag, NText, useMessage } from 'naive-ui';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import { useFlowConfig } from '@/components/flow';
-import type { FlowEdge, FlowGridType, FlowNode } from '@/components/flow';
+import {
+  FlowCanvas,
+  type FlowEdge,
+  type FlowGridType,
+  type FlowNode,
+  useFlowConfig
+} from '@/components/flow';
 
 const GRID_TYPE_OPTIONS: { value: FlowGridType; label: string }[] = [
   { value: 'dots', label: '点状' },

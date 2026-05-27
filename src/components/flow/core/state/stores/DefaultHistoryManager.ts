@@ -28,6 +28,8 @@ export class DefaultHistoryManager implements IHistoryManager {
   private historyIndex: number = -1;
   /** 最大历史记录数量 */
   private maxHistorySize: number = 50;
+  /** 历史变化订阅者 */
+  private listeners: Set<() => void> = new Set();
 
   constructor(store: IStateStore, options?: DefaultHistoryManagerOptions) {
     this.store = store;
@@ -35,6 +37,27 @@ export class DefaultHistoryManager implements IHistoryManager {
 
     // 保存初始状态
     this.pushHistory();
+  }
+
+  /** 通知所有订阅者：历史栈位置可能发生了变化 */
+  private notifyChange(): void {
+    this.listeners.forEach(listener => {
+      try {
+        listener();
+      } catch (error) {
+        // 单个监听器异常不应影响其它监听器
+        // eslint-disable-next-line no-console
+        console.error('[FlowHistoryManager] listener error:', error);
+      }
+    });
+  }
+
+  /** 订阅历史变化（push / undo / redo / clear / restore / reset 都会触发） */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   /** 保存当前状态到历史记录 */
@@ -67,6 +90,8 @@ export class DefaultHistoryManager implements IHistoryManager {
     } else {
       this.historyIndex += 1;
     }
+
+    this.notifyChange();
   }
 
   /**
@@ -81,6 +106,7 @@ export class DefaultHistoryManager implements IHistoryManager {
 
     this.historyIndex -= 1;
     this.restoreSnapshot(this.history[this.historyIndex]);
+    this.notifyChange();
     return true;
   }
 
@@ -96,6 +122,7 @@ export class DefaultHistoryManager implements IHistoryManager {
 
     this.historyIndex += 1;
     this.restoreSnapshot(this.history[this.historyIndex]);
+    this.notifyChange();
     return true;
   }
 
@@ -121,7 +148,7 @@ export class DefaultHistoryManager implements IHistoryManager {
   clearHistory(): void {
     this.history = [];
     this.historyIndex = -1;
-    // 保存当前状态作为新的初始状态
+    // 保存当前状态作为新的初始状态（pushHistory 会触发 notifyChange）
     this.pushHistory();
   }
 

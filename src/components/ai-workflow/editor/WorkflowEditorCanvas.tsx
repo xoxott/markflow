@@ -7,9 +7,8 @@
 import '../styles/workflow-flow-nodes.scss';
 
 import { type PropType, defineComponent, ref, watch } from 'vue';
-import FlowCanvas from '@/components/flow/components/FlowCanvas';
-import type { FlowConfig } from '@/components/flow';
-import { readExposedBool } from '@/components/flow/utils/ref-utils';
+import { FlowCanvas, type FlowConfig } from '@/components/flow';
+import { readExposedBool } from '@/components/flow/internal';
 import { type UseWorkflowEditorOptions, useWorkflowEditor } from '../hooks/useWorkflowEditor';
 import type { WorkflowFlowCanvasExpose } from '../types/workflow-node-data';
 import WorkflowCanvasOverlays from './WorkflowCanvasOverlays';

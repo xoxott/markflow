@@ -5,7 +5,8 @@
  */
 
 import { type CSSProperties, type PropType, computed, defineComponent } from 'vue';
-import type { FlowViewport } from '../types';
+import { useFlowI18n } from '../hooks/useFlowI18n';
+import type { FlowLocale, FlowViewport } from '../types';
 
 /** FlowToolbar 组件属性 */
 export interface FlowToolbarProps {
@@ -37,6 +38,8 @@ export interface FlowToolbarProps {
   showLayoutLock?: boolean;
   /** 布局锁定状态变化 */
   onLayoutLockChange?: (locked: boolean) => void;
+  /** 覆盖 config 中的 locale */
+  locale?: FlowLocale;
 }
 
 /** Flow 工具栏组件 */
@@ -98,9 +101,14 @@ export default defineComponent({
     onLayoutLockChange: {
       type: Function as PropType<(locked: boolean) => void>,
       default: undefined
+    },
+    locale: {
+      type: String as PropType<FlowLocale>,
+      default: undefined
     }
   },
   setup(props) {
+    const { t } = useFlowI18n({ locale: props.locale });
     const safeViewport = computed<FlowViewport>(() => {
       const vp = props.viewport;
       if (vp && typeof vp.zoom === 'number') return vp;
@@ -137,6 +145,7 @@ export default defineComponent({
           <button
             class="flow-toolbar-button"
             type="button"
+            aria-label={t('toolbar.zoomOut')}
             onClick={handleZoomOut}
             disabled={safeViewport.value.zoom <= props.minZoom}
           >
@@ -148,6 +157,7 @@ export default defineComponent({
           <button
             class="flow-toolbar-button"
             type="button"
+            aria-label={t('toolbar.zoomIn')}
             onClick={handleZoomIn}
             disabled={safeViewport.value.zoom >= props.maxZoom}
           >
@@ -164,10 +174,13 @@ export default defineComponent({
                 .filter(Boolean)
                 .join(' ')}
               type="button"
-              title={props.layoutLocked ? '解锁节点布局，可拖拽节点' : '锁定节点布局，仅可拖动画布'}
+              aria-label={props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock')}
+              title={
+                props.layoutLocked ? t('toolbar.layoutUnlockTitle') : t('toolbar.layoutLockTitle')
+              }
               onClick={handleToggleLayoutLock}
             >
-              {props.layoutLocked ? '解锁' : '锁定'}
+              {props.layoutLocked ? t('toolbar.layoutUnlock') : t('toolbar.layoutLock')}
             </button>
           )}
 
@@ -175,15 +188,21 @@ export default defineComponent({
             <button
               class="flow-toolbar-button flow-toolbar-button--spaced"
               type="button"
+              aria-label={t('toolbar.fitView')}
               onClick={props.onFitView}
             >
-              适应
+              {t('toolbar.fitView')}
             </button>
           )}
 
           {props.onResetView && (
-            <button class="flow-toolbar-button" type="button" onClick={props.onResetView}>
-              重置
+            <button
+              class="flow-toolbar-button"
+              type="button"
+              aria-label={t('toolbar.resetView')}
+              onClick={props.onResetView}
+            >
+              {t('toolbar.resetView')}
             </button>
           )}
         </div>

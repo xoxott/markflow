@@ -80,7 +80,7 @@ export function useCanvasPan(options: UseCanvasPanOptions): UseCanvasPanReturn {
       }
       return allowedButtons.includes(event.button);
     },
-    useRAF: config.value.performance?.enableRAFThrottle !== false,
+    useRAF: () => config.value.performance?.enableRAFThrottle !== false,
     incremental: true,
     onDrag: result => {
       const perfStart = performance.now();

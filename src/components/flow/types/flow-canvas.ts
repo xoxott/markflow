@@ -1,6 +1,8 @@
 /** FlowCanvas 与子组件共享类型 */
 
-import type { FlowConfig, FlowEdge, FlowNode, FlowViewport } from './index';
+import type { FlowConfig, FlowViewport } from './flow-config';
+import type { FlowEdge } from './flow-edge';
+import type { FlowNode } from './flow-node';
 
 /** FlowEdges 组件属性（与 FlowEdges.tsx 对齐） */
 export interface FlowEdgesProps {
@@ -35,6 +37,16 @@ export interface FlowCanvasProps {
   initialViewport?: FlowViewport;
   /** 初始辅助线 */
   initialGuides?: import('./flow-guide').FlowGuideLine[];
+  /** 受控：节点列表（传入则为受控模式） */
+  nodes?: FlowNode[];
+  /** 受控：连接线列表 */
+  edges?: FlowEdge[];
+  /** 受控：视口 */
+  viewport?: FlowViewport;
+  /** 受控：选区 */
+  selection?: { nodeIds: string[]; edgeIds: string[] };
+  /** 受控：辅助线 */
+  guides?: import('./flow-guide').FlowGuideLine[];
   /** 画布宽度 */
   width?: string | number;
   /** 画布高度 */

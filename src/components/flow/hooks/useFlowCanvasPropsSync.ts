@@ -8,15 +8,42 @@ import { type ComputedRef, type Ref, type WatchStopHandle, watch } from 'vue';
 import { compareIds } from '../utils/array-utils';
 import type { FlowEdge, FlowNode } from '../types';
 import type { IStateStore } from '../core/state/interfaces/IStateStore';
+import type { FlowViewport } from '../types/flow-config';
+import type { FlowGuideLine } from '../types/flow-guide';
 
 /** FlowCanvas Props 同步 Hook 选项 */
 export interface UseFlowCanvasPropsSyncOptions {
-  /** 外部传入的初始节点列表（可以是 Ref、ComputedRef 或函数，用于响应式） */
+  /** 外部传入的节点列表（受控 `nodes` 优先，否则 `initialNodes`） */
+  nodesSource?:
+    | Ref<FlowNode[] | undefined>
+    | ComputedRef<FlowNode[] | undefined>
+    | (() => FlowNode[] | undefined);
+  /** 外部传入的连接线列表（受控 `edges` 优先，否则 `initialEdges`） */
+  edgesSource?:
+    | Ref<FlowEdge[] | undefined>
+    | ComputedRef<FlowEdge[] | undefined>
+    | (() => FlowEdge[] | undefined);
+  /** 受控视口 */
+  viewportSource?:
+    | Ref<FlowViewport | undefined>
+    | ComputedRef<FlowViewport | undefined>
+    | (() => FlowViewport | undefined);
+  /** 受控选区 */
+  selectionSource?:
+    | Ref<{ nodeIds: string[]; edgeIds: string[] } | undefined>
+    | ComputedRef<{ nodeIds: string[]; edgeIds: string[] } | undefined>
+    | (() => { nodeIds: string[]; edgeIds: string[] } | undefined);
+  /** 受控辅助线 */
+  guidesSource?:
+    | Ref<FlowGuideLine[] | undefined>
+    | ComputedRef<FlowGuideLine[] | undefined>
+    | (() => FlowGuideLine[] | undefined);
+  /** @deprecated 使用 nodesSource */
   initialNodes?:
     | Ref<FlowNode[] | undefined>
     | ComputedRef<FlowNode[] | undefined>
     | (() => FlowNode[] | undefined);
-  /** 外部传入的初始连接线列表（可以是 Ref、ComputedRef 或函数，用于响应式） */
+  /** @deprecated 使用 edgesSource */
   initialEdges?:
     | Ref<FlowEdge[] | undefined>
     | ComputedRef<FlowEdge[] | undefined>
@@ -27,6 +54,14 @@ export interface UseFlowCanvasPropsSyncOptions {
   nodes: Ref<FlowNode[]>;
   /** 内部连接线列表（用于比较） */
   edges: Ref<FlowEdge[]>;
+  /** 内部视口 */
+  viewport?: Ref<FlowViewport>;
+  /** 设置视口 */
+  setViewport?: (viewport: Partial<FlowViewport>) => void;
+  /** 设置选区 */
+  setSelection?: (nodeIds: string[], edgeIds: string[]) => void;
+  /** 设置辅助线 */
+  setGuides?: (guides: FlowGuideLine[]) => void;
 }
 
 /** FlowCanvas Props 同步 Hook 返回值 */
@@ -44,7 +79,12 @@ function createSyncWatcher<T extends { id: string }>(
   setter: (items: T[]) => void
 ): WatchStopHandle {
   return watch(source, newItems => {
-    if (newItems && newItems.length > 0 && !compareIds(current.value, newItems)) {
+    // 注意：必须支持显式清空（newItems = []）的场景；
+    // 旧实现要求 `newItems.length > 0` 会导致外部把节点全部删空时内部状态不同步。
+    if (!newItems) {
+      return;
+    }
+    if (!compareIds(current.value, newItems)) {
       setter(newItems);
     }
   });
@@ -75,20 +115,72 @@ function createSyncWatcher<T extends { id: string }>(
 export function useFlowCanvasPropsSync(
   options: UseFlowCanvasPropsSyncOptions
 ): UseFlowCanvasPropsSyncReturn {
-  const { initialNodes, initialEdges, stateStore, nodes, edges } = options;
+  const {
+    nodesSource,
+    edgesSource,
+    viewportSource,
+    selectionSource,
+    guidesSource,
+    initialNodes,
+    initialEdges,
+    stateStore,
+    nodes,
+    edges,
+    viewport,
+    setViewport,
+    setSelection,
+    setGuides
+  } = options;
+
+  const resolvedNodesSource = nodesSource ?? initialNodes;
+  const resolvedEdgesSource = edgesSource ?? initialEdges;
 
   const watchers: WatchStopHandle[] = [];
 
   const start = () => {
-    if (initialNodes) {
+    if (resolvedNodesSource) {
       watchers.push(
-        createSyncWatcher(initialNodes, nodes, newNodes => stateStore.setNodes(newNodes))
+        createSyncWatcher(resolvedNodesSource, nodes, newNodes => stateStore.setNodes(newNodes))
       );
     }
 
-    if (initialEdges) {
+    if (resolvedEdgesSource) {
       watchers.push(
-        createSyncWatcher(initialEdges, edges, newEdges => stateStore.setEdges(newEdges))
+        createSyncWatcher(resolvedEdgesSource, edges, newEdges => stateStore.setEdges(newEdges))
+      );
+    }
+
+    if (viewportSource && viewport && setViewport) {
+      watchers.push(
+        watch(viewportSource, next => {
+          if (next) {
+            setViewport(next);
+          }
+        })
+      );
+    }
+
+    if (selectionSource && setSelection) {
+      watchers.push(
+        watch(
+          selectionSource,
+          next => {
+            if (next) {
+              setSelection(next.nodeIds, next.edgeIds);
+            }
+          },
+          { deep: true }
+        )
+      );
+    }
+
+    if (guidesSource && setGuides) {
+      watchers.push(
+        watch(guidesSource, next => {
+          if (next) {
+            setGuides(next);
+          }
+        })
       );
     }
   };

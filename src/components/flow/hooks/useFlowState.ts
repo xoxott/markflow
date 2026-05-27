@@ -5,7 +5,7 @@
  * FlowSelectionHandler
  */
 
-import { type Ref, computed, markRaw, onUnmounted } from 'vue';
+import { type Ref, markRaw, onUnmounted, ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import { DefaultStateStore } from '../core/state/stores/DefaultStateStore';
 import { DefaultHistoryManager } from '../core/state/stores/DefaultHistoryManager';
@@ -94,7 +94,12 @@ export interface UseFlowStateReturn {
   shouldBoxSelect: (event: MouseEvent | KeyboardEvent) => boolean;
   startBoxSelection: (startX: number, startY: number) => void;
   updateBoxSelection: (currentX: number, currentY: number) => void;
-  finishBoxSelection: () => string[];
+  /**
+   * 结束框选并将结果应用到选区
+   *
+   * @returns 框中的节点和边 ID 列表
+   */
+  finishBoxSelection: () => { nodeIds: string[]; edgeIds: string[] };
   cancelBoxSelection: () => void;
   isBoxSelecting: () => boolean;
   getSelectionBox: () => Readonly<import('../core/interaction/FlowSelectionHandler').SelectionBox>;
@@ -192,6 +197,24 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
 
   // ==================== 自动保存历史记录 ====================
 
+  // ==================== 响应式：是否可以撤销/重做 ====================
+  //
+  // 注意：DefaultHistoryManager 内部使用普通字段维护 historyIndex / history，
+  // 这些字段对 Vue reactivity 不可见，因此不能直接用 `computed(() => historyManager.canUndo())`
+  // 来追踪——computed 永远不会被通知重算，导致工具栏按钮 enable 状态僵死。
+  //
+  // 这里改为：通过 `historyManager.subscribe` 让 historyManager 主动 push 状态到 ref。
+
+  const canUndo = ref<boolean>(historyManager.canUndo());
+  const canRedo = ref<boolean>(historyManager.canRedo());
+
+  const syncHistoryFlags = () => {
+    canUndo.value = historyManager.canUndo();
+    canRedo.value = historyManager.canRedo();
+  };
+
+  const unsubscribeHistory = historyManager.subscribe?.(syncHistoryFlags) ?? (() => {});
+
   if (autoSaveHistory) {
     const debouncedPushHistory = useDebounceFn(() => {
       historyManager.pushHistory();
@@ -206,18 +229,15 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
 
     onUnmounted(() => {
       historyUnsubscribe();
+      unsubscribeHistory();
       disposeVueBridge();
     });
   } else {
     onUnmounted(() => {
+      unsubscribeHistory();
       disposeVueBridge();
     });
   }
-
-  // ==================== 计算属性：是否可以撤销/重做 ====================
-
-  const canUndo = computed(() => historyManager.canUndo());
-  const canRedo = computed(() => historyManager.canRedo());
 
   // ==================== 返回统一接口 ====================
 
@@ -327,11 +347,18 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
       selectionHandler.updateBoxSelection(currentX, currentY);
     },
     finishBoxSelection: () => {
-      const selectedIds = selectionHandler.finishBoxSelection(
+      const result = selectionHandler.finishBoxSelection(
         store.getNodes(),
+        store.getEdges(),
         store.getViewport()
       );
-      return selectedIds;
+      // Phase 5.1：应用选择结果到 store / handler（一次通知）
+      if (result.nodeIds.length > 0 || result.edgeIds.length > 0) {
+        selectionHandler.setSelection(result.nodeIds, result.edgeIds);
+        store.setSelectedNodeIds(result.nodeIds);
+        store.setSelectedEdgeIds(result.edgeIds);
+      }
+      return result;
     },
     cancelBoxSelection: () => {
       selectionHandler.cancelBoxSelection();

@@ -7,8 +7,6 @@
 import { bench, describe } from 'vitest';
 import { SpatialIndex } from '../core/performance/SpatialIndex';
 import { createPositionPool } from '../core/performance/ObjectPool';
-import { CommandManager } from '../core/commands/CommandManager';
-import { MoveNodeCommand } from '../core/commands/MoveNodeCommand';
 import type { FlowNode } from '../types/flow-node';
 
 // 生成测试数据
@@ -135,59 +133,7 @@ describe('Object Creation Performance', () => {
 });
 
 // ============================================
-// 基准测试 3: 命令模式 vs 快照机制
-// ============================================
-
-describe('Undo/Redo Performance', () => {
-  // 模拟快照机制（优化前）
-  class SnapshotHistory {
-    private history: any[] = [];
-    private currentIndex = -1;
-
-    pushSnapshot(state: any) {
-      this.history = this.history.slice(0, this.currentIndex + 1);
-      this.history.push(JSON.parse(JSON.stringify(state))); // 深拷贝
-      this.currentIndex += 1;
-    }
-
-    undo() {
-      if (this.currentIndex > 0) {
-        this.currentIndex -= 1;
-        return this.history[this.currentIndex];
-      }
-    }
-  }
-
-  const snapshotHistory = new SnapshotHistory();
-  const nodes = generateNodes(100);
-
-  bench('Snapshot mechanism - 100 operations', () => {
-    for (let i = 0; i < 100; i += 1) {
-      snapshotHistory.pushSnapshot(nodes);
-    }
-  });
-
-  // 命令模式（优化后）
-  const commandManager = new CommandManager({ maxSize: 100 });
-  const mockStateManager = {
-    updateNode: () => {}
-  } as any;
-
-  bench('Command pattern - 100 operations', () => {
-    for (let i = 0; i < 100; i += 1) {
-      const command = new MoveNodeCommand(
-        `node-${i}`,
-        { x: 0, y: 0 },
-        { x: 10, y: 10 },
-        mockStateManager
-      );
-      commandManager.execute(command);
-    }
-  });
-});
-
-// ============================================
-// 基准测试 4: 空间索引更新性能
+// 基准测试 3: 空间索引更新性能
 // ============================================
 
 describe('Spatial Index Update Performance', () => {
@@ -221,7 +167,7 @@ describe('Spatial Index Update Performance', () => {
 });
 
 // ============================================
-// 基准测试 5: 综合场景测试
+// 基准测试 4: 综合场景测试
 // ============================================
 
 describe('Real-world Scenario Performance', () => {
@@ -268,7 +214,7 @@ describe('Real-world Scenario Performance', () => {
 });
 
 // ============================================
-// 基准测试 6: 内存占用对比
+// 基准测试 5: 内存占用对比
 // ============================================
 
 describe('Memory Usage', () => {

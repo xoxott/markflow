@@ -23,6 +23,11 @@
   background-color: $flow-background-color;
   color: $flow-node-text;
   outline: none;
+
+  &:focus-visible {
+    outline: 2px solid $flow-node-border-selected;
+    outline-offset: 2px;
+  }
 }
 
 .flow-node {
@@ -52,7 +57,8 @@
     box-shadow: $flow-shadow-selected;
   }
 
-  &.flow-node-hovered:not(.flow-node-selected) {
+  // hovered 状态走 CSS :hover，不再依赖 JS 派发的 flow-node-hovered class
+  &:hover:not(.flow-node-selected):not(.flow-node-dragging) {
     border-color: $flow-node-border-hover;
     box-shadow: $flow-shadow-md;
   }
@@ -64,6 +70,16 @@
   &.flow-node-locked {
     cursor: not-allowed;
     opacity: 0.6;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $flow-node-border-selected;
+    outline-offset: calc(2px * var(--flow-zoom, 1));
+    box-shadow: $flow-shadow-selected;
   }
 }
 
@@ -414,6 +430,45 @@
       );
     }
   }
+}
+
+.flow-alignment-guides {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  overflow: visible;
+
+  &--canvas {
+    z-index: 12;
+  }
+
+  &__line {
+    position: absolute;
+    pointer-events: none;
+
+    &--vertical {
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      transform: translateX(-0.5px);
+      background: var(--flow-snap-guide, rgba(32, 128, 240, 0.85));
+      box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--flow-snap-guide, #2080f0) 35%, transparent);
+    }
+
+    &--horizontal {
+      left: 0;
+      right: 0;
+      height: 1px;
+      transform: translateY(-0.5px);
+      background: var(--flow-snap-guide, rgba(32, 128, 240, 0.85));
+      box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--flow-snap-guide, #2080f0) 35%, transparent);
+    }
+  }
+}
+
+.flow-edge-endpoint-handle {
+  pointer-events: all;
 }
 
 .flow-snap-guides {

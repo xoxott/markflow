@@ -34,6 +34,15 @@ export interface PreviewPosition {
   y: number;
 }
 
+/** 连接被拒绝的原因（用于 onConnectReject 回调） */
+export interface ConnectionRejectInfo {
+  sourceNodeId: string;
+  sourceHandleId: string;
+  targetNodeId: string;
+  targetHandleId?: string;
+  reason: 'invalid-connection' | 'duplicate' | 'self-loop';
+}
+
 /** 连接选项 */
 export interface ConnectionOptions {
   /** 连接模式 */
@@ -48,6 +57,8 @@ export interface ConnectionOptions {
   onCreateEdge?: (edge: FlowEdge) => void;
   /** 连接创建事件 */
   onConnect?: (edge: FlowEdge) => void;
+  /** 连接被拒绝事件 */
+  onConnectReject?: (info: ConnectionRejectInfo) => void;
 }
 
 /** Flow 连接处理器 */
@@ -178,7 +189,8 @@ export class FlowConnectionHandler {
   async finishConnection(
     targetNodeId: string,
     targetHandleId: string,
-    nodes: FlowNode[]
+    nodes: FlowNode[],
+    edges: FlowEdge[] = []
   ): Promise<FlowEdge | null> {
     if (!this.draft) {
       return null;
@@ -195,6 +207,13 @@ export class FlowConnectionHandler {
 
     // 检查是否连接到自身
     if (sourceNode.id === targetNode.id) {
+      this.options.onConnectReject?.({
+        sourceNodeId: this.draft.sourceNodeId,
+        sourceHandleId: this.draft.sourceHandleId,
+        targetNodeId,
+        targetHandleId,
+        reason: 'self-loop'
+      });
       this.cancelConnection();
       return null;
     }
@@ -207,10 +226,36 @@ export class FlowConnectionHandler {
       targetHandle: targetHandleId
     };
 
+    const isDuplicate = edges.some(
+      e =>
+        e.source === connection.source &&
+        e.target === connection.target &&
+        (e.sourceHandle ?? '') === (connection.sourceHandle ?? '') &&
+        (e.targetHandle ?? '') === (connection.targetHandle ?? '')
+    );
+    if (isDuplicate) {
+      this.options.onConnectReject?.({
+        sourceNodeId: this.draft.sourceNodeId,
+        sourceHandleId: this.draft.sourceHandleId,
+        targetNodeId,
+        targetHandleId,
+        reason: 'duplicate'
+      });
+      this.cancelConnection();
+      return null;
+    }
+
     // 验证连接
     if (this.config) {
       const validation = await validateConnection(connection, this.config);
       if (!validation.valid) {
+        this.options.onConnectReject?.({
+          sourceNodeId: this.draft.sourceNodeId,
+          sourceHandleId: this.draft.sourceHandleId,
+          targetNodeId,
+          targetHandleId,
+          reason: 'invalid-connection'
+        });
         this.cancelConnection();
         return null;
       }
@@ -252,7 +297,11 @@ export class FlowConnectionHandler {
    * @param nodes 所有节点列表（用于验证）
    * @returns 连接数据，如果验证失败或未找到目标则返回 null
    */
-  async finishConnectionFromEvent(event: MouseEvent, nodes: FlowNode[]): Promise<FlowEdge | null> {
+  async finishConnectionFromEvent(
+    event: MouseEvent,
+    nodes: FlowNode[],
+    edges: FlowEdge[] = []
+  ): Promise<FlowEdge | null> {
     if (!this.draft) {
       return null;
     }
@@ -266,7 +315,7 @@ export class FlowConnectionHandler {
       const nodeId = handleElement.closest('.flow-node')?.getAttribute('data-node-id');
 
       if (nodeId && handleId && handleType === 'target' && nodeId !== this.draft.sourceNodeId) {
-        return await this.finishConnection(nodeId, handleId, nodes);
+        return await this.finishConnection(nodeId, handleId, nodes, edges);
       }
     }
 

@@ -4,7 +4,16 @@
  * 负责渲染所有节点，支持视口裁剪、虚拟滚动等性能优化
  */
 
-import { type CSSProperties, type PropType, computed, defineComponent, toRef } from 'vue';
+import {
+  type CSSProperties,
+  type Component,
+  type PropType,
+  type Slot,
+  computed,
+  defineComponent,
+  h,
+  toRef
+} from 'vue';
 import { useFlowCanvasContextOptional } from '../hooks/useFlowCanvasContext';
 import { useNodeState } from '../hooks/useNodeState';
 import { useNodeStyle } from '../hooks/useNodeStyle';
@@ -13,8 +22,19 @@ import { useViewportCulling } from '../hooks/useViewportCulling';
 import { createNodeEventDelegation } from '../utils/event-utils';
 import { PERFORMANCE_CONSTANTS } from '../constants/performance-constants';
 import { performanceMonitor } from '../utils/performance-monitor';
-import type { FlowConfig, FlowNode, FlowViewport } from '../types';
+import type { FlowConfig, FlowNode, FlowNodeType, FlowViewport } from '../types';
 import BaseNode from './nodes/BaseNode';
+
+/** 解析 nodeTypes 注册表项为可挂载组件 */
+function resolveNodeComponent(entry: FlowNodeType | Component | undefined): Component | null {
+  if (!entry) return null;
+  // FlowNodeType 形式：{ name, component, defaultConfig? }
+  if (typeof entry === 'object' && 'component' in entry && entry.component) {
+    return entry.component as Component;
+  }
+  // 直接是组件
+  return entry as Component;
+}
 
 /** FlowNodes 组件属性 */
 export interface FlowNodesProps {
@@ -205,7 +225,7 @@ export default defineComponent({
       default: undefined
     }
   },
-  setup(props) {
+  setup(props, { slots }) {
     const canvasCtx = useFlowCanvasContextOptional();
 
     const nodesRef = toRef(props, 'nodes');
@@ -232,12 +252,7 @@ export default defineComponent({
         true
     );
     const isPanningRef = computed(() => props.isPanning ?? canvasCtx?.isPanning.value ?? false);
-    const viewportCullingBuffer = computed(
-      () =>
-        props.viewportCullingBuffer ??
-        canvasCtx?.config.value.performance?.virtualScrollBuffer ??
-        200
-    );
+    const viewportCullingBuffer = computed(() => props.viewportCullingBuffer ?? 200);
 
     // 空间索引管理
     const { spatialIndex } = useSpatialIndex({
@@ -253,7 +268,8 @@ export default defineComponent({
       buffer: viewportCullingBuffer.value,
       spatialIndex,
       spatialIndexThreshold: PERFORMANCE_CONSTANTS.SPATIAL_INDEX_THRESHOLD,
-      isPanning: isPanningRef
+      isPanning: isPanningRef,
+      canvasSize: canvasCtx?.canvasSize
     });
 
     // 节点状态管理
@@ -303,24 +319,54 @@ export default defineComponent({
 
       const nodesStart = performance.now();
 
-      // 渲染节点列表
+      // Phase 4：节点渲染策略
+      // 1) 优先使用 scoped slot `node`（FlowCanvas v-slot:node="{ node, selected, ... }"）
+      // 2) 其次查 config.nodes.nodeTypes 注册表
+      // 3) 最后兜底 BaseNode
+      const nodeSlot: Slot | undefined = slots.node;
+      const nodeTypesRegistry = configRef.value?.nodes?.nodeTypes;
+
       const nodes = visibleNodes.value.map((node: FlowNode) => {
         const state = getNodeState(node);
         const style = getNodeStyle(node);
 
+        const baseEventHandlers = {
+          node,
+          selected: state.selected,
+          locked: state.locked,
+          dragging: state.dragging,
+          onPortMousedown: props.onPortMouseDown,
+          onPortMouseup: props.onPortMouseUp,
+          onPortMouseenter: props.onPortMouseEnter,
+          onPortMouseleave: props.onPortMouseLeave
+        };
+
+        let nodeContent;
+        if (nodeSlot) {
+          const slotVnodes = nodeSlot({
+            node,
+            selected: state.selected,
+            locked: state.locked,
+            dragging: state.dragging
+          });
+          if (slotVnodes && slotVnodes.length > 0) {
+            nodeContent = slotVnodes;
+          }
+        }
+
+        if (!nodeContent) {
+          const registryEntry = nodeTypesRegistry?.[node.type];
+          const CustomComponent = resolveNodeComponent(registryEntry);
+          if (CustomComponent) {
+            nodeContent = h(CustomComponent, baseEventHandlers);
+          } else {
+            nodeContent = <BaseNode {...baseEventHandlers} />;
+          }
+        }
+
         return (
           <div key={node.id} data-node-id={node.id} style={style}>
-            <BaseNode
-              node={node}
-              selected={state.selected}
-              locked={state.locked}
-              hovered={state.hovered}
-              dragging={state.dragging}
-              onPortMousedown={props.onPortMouseDown}
-              onPortMouseup={props.onPortMouseUp}
-              onPortMouseenter={props.onPortMouseEnter}
-              onPortMouseleave={props.onPortMouseLeave}
-            />
+            {nodeContent}
           </div>
         );
       });

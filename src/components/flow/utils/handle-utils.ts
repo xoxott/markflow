@@ -1,5 +1,6 @@
 /** 端口（Handle）工具函数 */
 
+import type { CSSProperties } from 'vue';
 import type { FlowHandle } from '../types/flow-node';
 
 export const HANDLE_SIZES = {
@@ -22,8 +23,8 @@ export function handleBorderVar(type: FlowHandle['type']): string {
 
 export function calculateHandleStyle(
   handle: FlowHandle,
-  customStyle?: Record<string, unknown>
-): Record<string, unknown> {
+  customStyle?: CSSProperties
+): CSSProperties {
   return {
     position: 'absolute',
     width: `calc(${HANDLE_SIZES.WIDTH}px * var(--flow-zoom, 1))`,
@@ -35,13 +36,13 @@ export function calculateHandleStyle(
     zIndex: 10,
     boxSizing: 'border-box',
     transition: 'all 0.2s ease',
-    ...handle.style,
+    ...((handle.style as CSSProperties | undefined) ?? {}),
     ...customStyle
   };
 }
 
-export function calculateHandlePositionStyle(handle: FlowHandle): Record<string, string> {
-  const positionStyle: Record<string, string> = {};
+export function calculateHandlePositionStyle(handle: FlowHandle): CSSProperties {
+  const positionStyle: CSSProperties = {};
 
   switch (handle.position) {
     case 'top':

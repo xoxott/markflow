@@ -32,6 +32,7 @@ export type {
   FlowInteractionConfig,
   FlowPerformanceConfig,
   FlowThemeConfig,
+  FlowLocale,
   FlowValidationFunction,
   FlowConfig,
   PartialFlowConfig

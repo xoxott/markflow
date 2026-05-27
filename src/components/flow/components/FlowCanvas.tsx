@@ -2,15 +2,16 @@
  * Flow 主画布组件
  *
  * 整合所有功能的核心画布组件，提供完整的图形编辑器功能
+ *
+ * 注意：组件本身不再隐式加载样式。宿主在应用入口（main.ts/App.tsx）执行一次 `import '@/components/flow/styles';` 即可启用 Flow 主题。详见
+ * src/components/flow/styles.ts。
  */
-
-// 导入 Flow 主题样式（在使用 FlowCanvas 时自动加载）
-import '../styles/index.scss';
 
 import type { CSSProperties, PropType } from 'vue';
 import { computed, defineComponent, provide } from 'vue';
 import { type FlowCanvasEmit, useFlowCanvasCore } from '../hooks/useFlowCanvasCore';
 import { useFlowCanvasTheme } from '../hooks/useFlowCanvasTheme';
+import { useFlowI18n } from '../hooks/useFlowI18n';
 import type { FlowCanvasProps } from '../types/flow-canvas';
 import type { FlowEdge, FlowGuideLine, FlowNode, FlowViewport } from '../types';
 import { flowCanvasContextKey } from '../context/flow-canvas-context';
@@ -20,6 +21,8 @@ import FlowBackground from './FlowBackground';
 import FlowRuler from './FlowRuler';
 import FlowGuideLines from './FlowGuideLines';
 import FlowSnapGuides from './FlowSnapGuides';
+import FlowAlignmentGuides from './FlowAlignmentGuides';
+import FlowSelectionBox from './FlowSelectionBox';
 import FlowViewportContainer from './FlowViewportContainer';
 import ConnectionPreview from './ConnectionPreview';
 
@@ -53,6 +56,26 @@ export default defineComponent({
       type: Array as PropType<FlowGuideLine[]>,
       default: () => []
     },
+    nodes: {
+      type: Array as PropType<FlowNode[]>,
+      default: undefined
+    },
+    edges: {
+      type: Array as PropType<FlowEdge[]>,
+      default: undefined
+    },
+    viewport: {
+      type: Object as PropType<FlowViewport>,
+      default: undefined
+    },
+    selection: {
+      type: Object as PropType<{ nodeIds: string[]; edgeIds: string[] }>,
+      default: undefined
+    },
+    guides: {
+      type: Array as PropType<FlowGuideLine[]>,
+      default: undefined
+    },
     width: {
       type: [String, Number] as PropType<string | number>,
       default: '100%'
@@ -81,8 +104,19 @@ export default defineComponent({
     'edge-click',
     'edge-double-click',
     'connect',
+    'edge-update',
+    'connect-reject',
     'viewport-change',
-    'guides-change'
+    'guides-change',
+    // Phase 3：受控/双绑 update:* + 集合变化
+    'update:nodes',
+    'update:edges',
+    'update:viewport',
+    'update:selection',
+    'update:guides',
+    'nodes-change',
+    'edges-change',
+    'selection-change'
   ],
   setup(props, { emit, expose, slots }) {
     const core = useFlowCanvasCore({
@@ -94,6 +128,8 @@ export default defineComponent({
       syncAppTheme: props.syncAppTheme,
       canvasRef: core.canvasRef
     });
+
+    const { t } = useFlowI18n({ config: core.config });
 
     const canvasStyle = computed(() => {
       const fromCore = core.canvasStyle.value as CSSProperties;
@@ -109,8 +145,10 @@ export default defineComponent({
     provide(flowCanvasContextKey, {
       config: core.config,
       nodes: core.nodes,
+      edges: core.edges,
       viewport: core.viewport,
       canvasRef: core.canvasRef,
+      canvasSize: core.canvasSize,
       stableViewport: core.stableViewportRef,
       nodesMap: core.nodesMap,
       getNodeById: core.getNodeById,
@@ -119,48 +157,62 @@ export default defineComponent({
       instanceId: core.defaultInstanceId,
       setViewport: core.setViewport,
       getViewport: () => core.viewport.value,
+      selection: {
+        selectedNodeIds: core.selectedNodeIds,
+        selectedEdgeIds: core.selectedEdgeIds,
+        selectNode: core.selectNode,
+        selectNodes: core.selectNodes,
+        selectEdge: core.selectEdge,
+        deselectAll: core.deselectAll
+      },
+      viewportActions: {
+        setViewport: core.setViewport,
+        panViewport: core.panViewport,
+        zoomViewport: core.zoomViewport,
+        fitView: core.fitView
+      },
       layoutLocked: core.layoutLocked,
       setLayoutLocked: core.setLayoutLocked,
       toggleLayoutLock: core.toggleLayoutLock
     });
 
+    // Phase 3: 暴露 API 收敛到高频集合（≈ 17 项）
+    // 内部/低频能力请改用：
+    //  - `inject(flowCanvasContextKey)` 拿 `selection` / `viewportActions` / `eventEmitter` 等
+    //  - `useFlowConfig` 拿 config / updateConfig
+    //  - `useFlowState` 拿 box selection / guides 子 API
     expose({
-      config: core.config,
-      updateConfig: core.updateConfig,
+      // 状态（Ref）
       nodes: core.nodes,
       edges: core.edges,
       viewport: core.viewport,
       selectedNodeIds: core.selectedNodeIds,
       selectedEdgeIds: core.selectedEdgeIds,
+      // 节点/边写操作
       addNode: core.addNode,
       updateNode: core.updateNode,
       removeNode: core.removeNode,
       addEdge: core.addEdge,
       removeEdge: core.removeEdge,
+      // 视口
       setViewport: core.setViewport,
-      panViewport: core.panViewport,
       zoomViewport: core.zoomViewport,
       fitView: core.fitView,
+      // 选择
       selectNode: core.selectNode,
-      selectNodes: core.selectNodes,
-      selectEdge: core.selectEdge,
       deselectAll: core.deselectAll,
+      // 历史
       undo: core.undo,
       redo: core.redo,
       canUndo: core.canUndo,
       canRedo: core.canRedo,
-      startBoxSelection: core.startBoxSelection,
-      updateBoxSelection: core.updateBoxSelection,
-      finishBoxSelection: core.finishBoxSelection,
-      cancelBoxSelection: core.cancelBoxSelection,
-      isBoxSelecting: core.isBoxSelecting,
-      registerKeyboardShortcut: core.registerKeyboardShortcut,
-      unregisterKeyboardShortcut: core.unregisterKeyboardShortcut,
-      guides: core.guides,
-      setGuides: core.setGuides,
-      clearGuides: core.clearGuides,
-      removeGuide: core.removeGuide,
-      eventEmitter: core.eventEmitter,
+      // 序列化 / 剪贴板（Phase 5.3）
+      exportJSON: core.exportJSON,
+      importJSON: core.importJSON,
+      copySelection: core.copySelection,
+      cutSelection: core.cutSelection,
+      pasteClipboard: core.pasteClipboard,
+      // 布局锁定
       layoutLocked: core.layoutLocked,
       setLayoutLocked: core.setLayoutLocked,
       toggleLayoutLock: core.toggleLayoutLock
@@ -201,7 +253,9 @@ export default defineComponent({
           props.class
         ]}
         style={canvasStyle.value}
-        tabIndex={-1}
+        role="application"
+        aria-label={t('canvas.ariaLabel')}
+        tabindex={-1}
         onMousedown={(event: MouseEvent) => {
           const target = event.target as HTMLElement;
           if (target.closest('input, textarea, select, [contenteditable="true"]')) {
@@ -256,7 +310,7 @@ export default defineComponent({
           <FlowNodes
             nodes={core.nodes.value}
             selectedNodeIds={core.selectedNodeIds.value}
-            lockedNodeIds={core.emptyLockedNodeIds}
+            lockedNodeIds={core.lockedNodeIds.value}
             elevatedNodeIds={core.elevatedNodeIds.value}
             allocateZIndex={core.allocateZIndex}
             removeZIndex={core.removeZIndex}
@@ -264,13 +318,23 @@ export default defineComponent({
             onNodeDoubleClick={core.handleNodeDoubleClick}
             onNodeMouseDown={core.handleNodeMouseDown}
             onPortMouseDown={core.handlePortMouseDown}
-          />
+          >
+            {{ node: slots.node }}
+          </FlowNodes>
         </FlowViewportContainer>
 
         {showSnapGuides.value && (
           <FlowSnapGuides
             viewport={core.viewport.value}
             snapGuide={dragSnapGuide.value}
+            visible={Boolean(core.draggingNodeId.value)}
+          />
+        )}
+
+        {core.config.value.canvas?.snapToAlignment !== false && (
+          <FlowAlignmentGuides
+            viewport={core.viewport.value}
+            guides={core.alignmentGuides.value}
             visible={Boolean(core.draggingNodeId.value)}
           />
         )}
@@ -282,7 +346,30 @@ export default defineComponent({
           onEdgeClick={core.handleEdgeClick}
           onEdgeDoubleClick={core.handleEdgeDoubleClick}
           onEdgeDelete={core.handleEdgeDelete}
+          onEdgeEndpointMouseDown={core.handleEdgeEndpointMouseDown}
         />
+
+        {/* Phase 4.4：扩展槽位 */}
+        {slots.toolbar?.({
+          viewport: core.viewport.value,
+          canUndo: core.canUndo.value,
+          canRedo: core.canRedo.value,
+          undo: core.undo,
+          redo: core.redo,
+          fitView: core.fitView
+        })}
+        {slots.minimap?.({
+          nodes: core.nodes.value,
+          viewport: core.viewport.value
+        })}
+        {slots.overlays?.({
+          viewport: core.viewport.value,
+          nodes: core.nodes.value,
+          edges: core.edges.value,
+          selectedNodeIds: core.selectedNodeIds.value,
+          selectedEdgeIds: core.selectedEdgeIds.value
+        })}
+        {core.nodes.value.length === 0 && core.edges.value.length === 0 && slots.emptyState?.()}
 
         {core.connectionDraft.value && core.connectionPreviewPos.value && (
           <ConnectionPreview
@@ -294,6 +381,24 @@ export default defineComponent({
             canvasRef={core.canvasRef.value}
           />
         )}
+
+        {/* Phase 5.1：框选矩形（屏幕坐标已减去画布偏移） */}
+        {(() => {
+          const box = core.selectionBoxState.value;
+          if (!box.visible) return null;
+          const rect = core.canvasRef.value?.getBoundingClientRect();
+          const offsetX = rect?.left ?? 0;
+          const offsetY = rect?.top ?? 0;
+          return (
+            <FlowSelectionBox
+              visible={box.visible}
+              startX={box.startX - offsetX}
+              startY={box.startY - offsetY}
+              currentX={box.currentX - offsetX}
+              currentY={box.currentY - offsetY}
+            />
+          );
+        })()}
 
         {slots.default && slots.default()}
       </div>
