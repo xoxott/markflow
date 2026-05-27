@@ -1,7 +1,7 @@
+import type { PropType } from 'vue';
 import {
   CSSProperties,
   Fragment,
-  type PropType,
   computed,
   defineComponent,
   onMounted,
