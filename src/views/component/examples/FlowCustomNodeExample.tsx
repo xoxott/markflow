@@ -1,7 +1,7 @@
 /** Flow 示例：自定义节点（nodeTypes 注册表 + v-slot:node） */
 
 import { defineComponent, ref } from 'vue';
-import { NCard, NH3, NTabPane, NTabs, NText } from 'naive-ui';
+import { NCard, NH3, NTab, NTabs, NText } from 'naive-ui';
 import { FlowCanvas, type FlowConfig, type FlowNode } from '@/components/flow';
 
 const registryNodes = ref<FlowNode[]>([
@@ -75,6 +75,8 @@ const registryConfig: Partial<FlowConfig> = {
 export default defineComponent({
   name: 'FlowCustomNodeExample',
   setup() {
+    const activePanel = ref<'registry' | 'slot'>('registry');
+
     return () => (
       <NCard bordered>
         <NH3 class="border-b pb-2 text-lg font-semibold">Flow 示例：自定义节点</NH3>
@@ -82,56 +84,67 @@ export default defineComponent({
           左：`config.nodes.nodeTypes` 注册表 + `defaultConfig`；右：`FlowCanvas` 的{' '}
           <code class="rounded bg-gray-100 px-1">v-slot:node</code> 优先级更高，可逐节点覆盖渲染。
         </NText>
-        <NTabs type="line" animated display-directive="show">
-          <NTabPane name="registry" tab="nodeTypes 注册表">
-            <div style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-              <FlowCanvas
-                id="custom-node-registry"
-                initialNodes={registryNodes.value}
-                initialEdges={[]}
-                config={registryConfig}
-                width="100%"
-                height="100%"
-              />
-            </div>
-          </NTabPane>
-          <NTabPane name="slot" tab="v-slot:node">
-            <div style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-              <FlowCanvas
-                id="custom-node-slot"
-                initialNodes={slotNodes.value}
-                initialEdges={[]}
-                width="100%"
-                height="100%"
-              >
-                {{
-                  node: ({
-                    node,
-                    selected
-                  }: {
-                    node: FlowNode;
-                    selected: boolean;
-                    locked: boolean;
-                    dragging: boolean;
-                  }) => (
-                    <div
-                      class="flex flex-col items-center justify-center border-2 rounded-lg border-dashed p-3 text-center"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        borderColor: selected ? '#3b82f6' : '#94a3b8',
-                        background: selected ? 'rgba(59,130,246,0.08)' : '#f8fafc'
-                      }}
-                    >
-                      <span class="text-xs text-gray-400 uppercase">slot</span>
-                      <span class="font-semibold">{String(node.data?.label ?? node.id)}</span>
-                    </div>
-                  )
-                }}
-              </FlowCanvas>
-            </div>
-          </NTabPane>
+        <NTabs
+          class="mb-4"
+          type="segment"
+          value={activePanel.value}
+          onUpdate:value={value => {
+            activePanel.value = value as 'registry' | 'slot';
+          }}
+        >
+          <NTab name="registry">nodeTypes 注册表</NTab>
+          <NTab name="slot">v-slot:node</NTab>
         </NTabs>
+        <div
+          v-show={activePanel.value === 'registry'}
+          style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}
+        >
+          <FlowCanvas
+            id="custom-node-registry"
+            initialNodes={registryNodes.value}
+            initialEdges={[]}
+            config={registryConfig}
+            width="100%"
+            height="100%"
+          />
+        </div>
+        <div
+          v-show={activePanel.value === 'slot'}
+          style={{ height: '280px', border: '1px solid #e0e0e0', borderRadius: '4px' }}
+        >
+          <FlowCanvas
+            id="custom-node-slot"
+            initialNodes={slotNodes.value}
+            initialEdges={[]}
+            width="100%"
+            height="100%"
+          >
+            {{
+              node: ({
+                node,
+                selected
+              }: {
+                node: FlowNode;
+                selected: boolean;
+                locked: boolean;
+                dragging: boolean;
+              }) => (
+                <div
+                  class="flex flex-col items-center justify-center border-2 rounded-lg border-dashed p-3 text-center"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderColor: selected ? '#3b82f6' : '#94a3b8',
+                    background: selected ? 'rgba(59,130,246,0.08)' : '#f8fafc'
+                  }}
+                >
+                  <span class="text-xs text-gray-400 uppercase">slot</span>
+                  <span class="font-semibold">{String(node.data?.label ?? node.id)}</span>
+                </div>
+              )
+            }}
+          </FlowCanvas>
+        </div>
       </NCard>
     );
   }
