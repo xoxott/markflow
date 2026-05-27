@@ -48,14 +48,16 @@ export default defineComponent({
      *
      * 1. 使用 translate3d 替代 translate，触发 GPU 加速
      */
+    /** 仅平移；缩放由节点在屏幕空间的尺寸/字号承担，避免 scale() 导致文字发糊与错位 */
     const transformValue = computed(() => {
-      const { x, y, zoom } = props.viewport;
-      return `translate3d(${x}px, ${y}px, 0) scale(${zoom})`;
+      const { x, y } = props.viewport;
+      return `translate3d(${x}px, ${y}px, 0)`;
     });
 
     const containerStyle = computed<CSSProperties>(() => {
       const perfStart = performance.now();
 
+      const zoom = props.viewport.zoom;
       const style = {
         transform: transformValue.value,
         transformOrigin: '0 0',
@@ -64,6 +66,7 @@ export default defineComponent({
         left: 0,
         zIndex: 1,
         willChange: 'transform',
+        ['--flow-zoom' as string]: String(zoom),
         ...props.style
       };
 

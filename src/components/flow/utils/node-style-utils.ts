@@ -24,18 +24,11 @@ export function calculateNodeContainerStyle(
 
   return {
     position: 'relative',
-    width: node.size?.width ? `${node.size.width}px` : '150px',
-    height: node.size?.height ? `${node.size.height}px` : '60px',
+    width: '100%',
+    height: '100%',
     userSelect: 'none',
     pointerEvents: 'auto',
     boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: '100px',
-    minHeight: '40px',
-    padding: '12px',
     ...node.style,
     ...customStyle
   };

@@ -216,8 +216,14 @@ export default defineComponent({
     );
     const elevatedNodeIdsRef = computed(() => props.elevatedNodeIds || new Map());
     const configRef = computed(() => props.config ?? canvasCtx?.config.value);
-    const viewportRef = computed(
-      () => props.viewport ?? canvasCtx?.stableViewport.value ?? { x: 0, y: 0, zoom: 1 }
+    const defaultViewport = { x: 0, y: 0, zoom: 1 };
+    /** 实时视口：节点屏幕布局须与 FlowViewportContainer 平移同步 */
+    const layoutViewportRef = computed(
+      () => props.viewport ?? canvasCtx?.viewport.value ?? defaultViewport
+    );
+    /** 平移时可冻结，仅用于视口裁剪 */
+    const cullingViewportRef = computed(
+      () => props.viewport ?? canvasCtx?.stableViewport.value ?? defaultViewport
     );
     const enableViewportCullingRef = computed(
       () =>
@@ -242,7 +248,7 @@ export default defineComponent({
     // 视口裁剪
     const { visibleNodes } = useViewportCulling({
       nodes: nodesRef,
-      viewport: viewportRef,
+      viewport: cullingViewportRef,
       enabled: enableViewportCullingRef,
       buffer: viewportCullingBuffer.value,
       spatialIndex,
@@ -266,7 +272,8 @@ export default defineComponent({
       elevatedNodeIds: elevatedNodeIdsRef,
       allocateZIndex: props.allocateZIndex,
       removeZIndex: props.removeZIndex,
-      config: configRef
+      config: configRef,
+      viewport: layoutViewportRef
     });
 
     const handleNodeClick = createNodeEventDelegation(visibleNodes, props.onNodeClick);

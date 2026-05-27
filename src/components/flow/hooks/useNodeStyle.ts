@@ -7,7 +7,8 @@
 import type { CSSProperties, Ref } from 'vue';
 import { computed, watch } from 'vue';
 import { PERFORMANCE_CONSTANTS } from '../constants/performance-constants';
-import type { FlowConfig, FlowNode } from '../types';
+import type { FlowConfig, FlowNode, FlowViewport } from '../types';
+import { roundZoomKey } from '../utils/cache-key-utils';
 import { createCache } from '../utils/cache-utils';
 import { useCachedSet } from '../utils/set-utils';
 
@@ -27,6 +28,8 @@ export interface UseNodeStyleOptions {
   removeZIndex?: (nodeId: string) => void;
   /** 配置（用于判断是否启用拖拽后提升层级） */
   config?: Ref<Readonly<FlowConfig> | undefined>;
+  /** 视口（用于将画布坐标换算为屏幕像素布局） */
+  viewport?: Ref<FlowViewport>;
 }
 
 /** 节点样式 Hook 返回值 */
@@ -57,8 +60,15 @@ export interface UseNodeStyleReturn {
  * @returns 节点样式相关功能
  */
 export function useNodeStyle(options: UseNodeStyleOptions): UseNodeStyleReturn {
-  const { selectedNodeIds, draggingNodeId, elevatedNodeIds, allocateZIndex, removeZIndex, config } =
-    options;
+  const {
+    selectedNodeIds,
+    draggingNodeId,
+    elevatedNodeIds,
+    allocateZIndex,
+    removeZIndex,
+    config,
+    viewport
+  } = options;
 
   // 性能优化：使用缓存的 Set，避免每次计算都创建新 Set
   const selectedNodeIdsSet = useCachedSet(selectedNodeIds);
@@ -110,9 +120,9 @@ export function useNodeStyle(options: UseNodeStyleOptions): UseNodeStyleReturn {
   const nodeStyleCache = new WeakMap<FlowNode, Map<string, CSSProperties>>();
 
   const getNodeStyle = (node: FlowNode): CSSProperties => {
-    // 节点使用原始画布坐标，缩放由父容器的 CSS transform 处理
-    const x = node.position.x;
-    const y = node.position.y;
+    const zoom = viewport?.value.zoom ?? 1;
+    const x = node.position.x * zoom;
+    const y = node.position.y * zoom;
 
     // 计算当前应该有的 zIndex
     const _isSelected = selectedNodeIdsSet.value.has(node.id);
@@ -137,13 +147,10 @@ export function useNodeStyle(options: UseNodeStyleOptions): UseNodeStyleReturn {
       }
     }
 
-    const width = node.size?.width ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH;
-    const height = node.size?.height ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT;
+    const width = (node.size?.width ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH) * zoom;
+    const height = (node.size?.height ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT) * zoom;
 
-    // 性能优化：使用更高效的缓存键生成方式
-    // 如果位置和尺寸没变化，使用简化的缓存键
-    // 使用数字拼接，减少字符串模板开销
-    const cacheKey = `${node.id}|${x}|${y}|${width}|${height}|${zIndex ?? 0}`;
+    const cacheKey = `${node.id}|${x}|${y}|${width}|${height}|${roundZoomKey(zoom)}|${zIndex ?? 0}`;
 
     // 先检查通用缓存
     const cached = styleCache.get(cacheKey);
@@ -170,10 +177,7 @@ export function useNodeStyle(options: UseNodeStyleOptions): UseNodeStyleReturn {
       top: `${y}px`,
       width: `${width}px`,
       height: `${height}px`,
-      pointerEvents: 'auto',
-      willChange: 'transform',
-      backfaceVisibility: 'hidden',
-      perspective: '1000px'
+      pointerEvents: 'auto'
     };
 
     // 只在需要时添加 zIndex 属性

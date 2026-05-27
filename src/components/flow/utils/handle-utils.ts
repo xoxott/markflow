@@ -26,11 +26,11 @@ export function calculateHandleStyle(
 ): Record<string, unknown> {
   return {
     position: 'absolute',
-    width: `${HANDLE_SIZES.WIDTH}px`,
-    height: `${HANDLE_SIZES.HEIGHT}px`,
+    width: `calc(${HANDLE_SIZES.WIDTH}px * var(--flow-zoom, 1))`,
+    height: `calc(${HANDLE_SIZES.HEIGHT}px * var(--flow-zoom, 1))`,
     borderRadius: '50%',
     backgroundColor: 'var(--flow-handle-bg)',
-    border: `${HANDLE_SIZES.BORDER_WIDTH}px solid ${handleBorderVar(handle.type)}`,
+    border: `calc(${HANDLE_SIZES.BORDER_WIDTH}px * var(--flow-zoom, 1)) solid ${handleBorderVar(handle.type)}`,
     cursor: 'crosshair',
     zIndex: 10,
     boxSizing: 'border-box',

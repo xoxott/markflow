@@ -223,22 +223,10 @@ export default defineComponent({
         data-node-id={props.node.id}
         data-node-type={props.node.type}
       >
-        {/* 默认插槽：节点内容 */}
         {slots.default ? (
           slots.default()
         ) : (
-          <div
-            class="flow-node-content"
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center'
-            }}
-          >
+          <div class="flow-node-content">
             <div class="flow-node-title">{props.node.data?.label || props.node.id}</div>
             {props.node.data?.description && (
               <div class="flow-node-description">{props.node.data.description}</div>
@@ -246,7 +234,6 @@ export default defineComponent({
           </div>
         )}
 
-        {/* 渲染端口 */}
         {props.node.handles?.map(handle => renderHandle(handle))}
       </div>
     );
