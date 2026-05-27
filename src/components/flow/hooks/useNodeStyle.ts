@@ -147,8 +147,8 @@ export function useNodeStyle(options: UseNodeStyleOptions): UseNodeStyleReturn {
       }
     }
 
-    const width = (node.size?.width ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH) * zoom;
-    const height = (node.size?.height ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT) * zoom;
+    const width = (node.size?.width ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_WIDTH ?? 220) * zoom;
+    const height = (node.size?.height ?? PERFORMANCE_CONSTANTS.DEFAULT_NODE_HEIGHT ?? 72) * zoom;
 
     const cacheKey = `${node.id}|${x}|${y}|${width}|${height}|${roundZoomKey(zoom)}|${zIndex ?? 0}`;
 
