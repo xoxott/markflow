@@ -114,25 +114,25 @@ All notable changes to the Flow component library will be documented in this fil
 
 #### Documentation
 
-- **优化总结** - `OPTIMIZATION_SUMMARY.md`
+- **优化总结** - 已并入当前维护文档（`README.md` 与 `docs/*`）
 
   - 完整的优化说明和使用指南
   - 性能对比数据
   - 集成建议
 
-- **迁移指南** - `MIGRATION.md`
+- **迁移说明** - 历史内容已归档，不再单独维护
 
   - 详细的迁移步骤
   - API 变更说明
   - 常见问题解答
 
-- **快速开始** - `QUICKSTART.md`
+- **快速开始** - 统一入口改为 `README.md`
 
   - 5分钟上手指南
   - 推荐集成顺序
   - 实用代码示例
 
-- **脚本说明** - `SCRIPTS.md`
+- **脚本说明** - 统一入口改为 `docs/TESTING.md`
 
   - package.json 脚本配置
   - CI/CD 集成建议
@@ -190,10 +190,8 @@ src/components/flow/
 │   └── performance.bench.ts              # 性能基准测试
 ├── examples/
 │   └── optimized-usage.example.ts        # 使用示例
-├── OPTIMIZATION_SUMMARY.md                # 优化总结
-├── MIGRATION.md                           # 迁移指南
-├── QUICKSTART.md                          # 快速开始
-├── SCRIPTS.md                             # 脚本说明
+├── README.md                              # 当前维护入口
+├── docs/TESTING.md                        # 测试说明
 └── CHANGELOG.md                           # 变更日志
 
 vitest.config.ts                           # Vitest 配置
@@ -207,17 +205,16 @@ vitest.config.ts                           # Vitest 配置
 
 虽然没有破坏性变更，但建议按以下顺序集成新功能：
 
-1. **空间索引** (最大收益) - 查看 `QUICKSTART.md`
+1. **空间索引** (最大收益) - 查看 `README.md`
 2. **对象池** (减少 GC) - 查看 `examples/optimized-usage.example.ts`
-3. **命令模式** (需要重构) - 查看 `MIGRATION.md`
+3. **命令模式** (需要重构) - 参考 `core/commands/` 与当前业务接入方式
 
-详细迁移步骤请参考 `MIGRATION.md`。
+迁移相关历史文档已归档，当前以 `README.md` 与 `docs/*` 为准。
 
 ### 📖 Documentation
 
-- [优化总结](./OPTIMIZATION_SUMMARY.md) - 完整的优化说明
-- [迁移指南](./MIGRATION.md) - 如何集成新功能
-- [快速开始](./QUICKSTART.md) - 5分钟上手
+- [维护入口](./README.md) - 组件结构与维护约定
+- [测试说明](./docs/TESTING.md) - 命令与回归要点
 - [使用示例](./examples/optimized-usage.example.ts) - 实际代码
 
 ### 🧪 Testing

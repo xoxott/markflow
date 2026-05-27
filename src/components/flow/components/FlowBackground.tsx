@@ -32,7 +32,7 @@ export interface FlowBackgroundProps {
   /** 是否正在平移（平移期间可启用 GPU 层） */
   isPanning?: boolean;
   /** 自定义样式 */
-  style?: Record<string, any>;
+  style?: CSSProperties | Record<string, string | number>;
   /** CSS 类名 */
   class?: string;
   /** 是否填充父容器（使用绝对定位），默认为 true */
@@ -76,7 +76,7 @@ export default defineComponent({
       default: 'default'
     },
     style: {
-      type: Object as PropType<Record<string, any>>,
+      type: Object as PropType<CSSProperties | Record<string, string | number>>,
       default: () => ({})
     },
     class: {
@@ -93,12 +93,18 @@ export default defineComponent({
     }
   },
   setup(props) {
+    const toContainerStyle = (position: 'absolute' | 'relative'): CSSProperties => ({
+      position,
+      width: '100%',
+      height: '100%'
+    });
+
     const idPrefix = computed(() => `flow-grid-${props.instanceId}`);
     // 计算网格样式
     const gridStyle = computed(() => {
       if (!props.showGrid || props.gridType === 'none') return { display: 'none' };
 
-      const baseStyle: Record<string, any> = {
+      const baseStyle: CSSProperties = {
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
@@ -107,12 +113,13 @@ export default defineComponent({
 
       if (props.fillContainer) {
         // 填充父容器（绝对定位）
-        baseStyle.position = 'absolute';
-        baseStyle.top = 0;
-        baseStyle.left = 0;
+        Object.assign(baseStyle, {
+          ...toContainerStyle('absolute'),
+          top: 0,
+          left: 0
+        });
       } else {
-        // 自适应父容器（相对定位）
-        baseStyle.position = 'relative';
+        Object.assign(baseStyle, toContainerStyle('relative'));
       }
 
       return baseStyle;
@@ -125,24 +132,23 @@ export default defineComponent({
 
     // 计算背景样式
     const backgroundStyle = computed(() => {
-      const baseStyle: Record<string, any> = {
+      const baseStyle: CSSProperties = {
         backgroundColor: props.backgroundColor ?? 'var(--flow-background-color)',
         ...props.style
       };
 
       if (props.fillContainer) {
         // 填充父容器（绝对定位）
-        baseStyle.position = 'absolute';
-        baseStyle.top = 0;
-        baseStyle.left = 0;
-        baseStyle.width = '100%';
-        baseStyle.height = '100%';
+        Object.assign(baseStyle, {
+          ...toContainerStyle('absolute'),
+          top: 0,
+          left: 0
+        });
       } else {
-        // 自适应父容器（相对定位）
-        baseStyle.position = 'relative';
-        baseStyle.width = '100%';
-        baseStyle.height = '100%';
-        baseStyle.minHeight = '100%';
+        Object.assign(baseStyle, {
+          ...toContainerStyle('relative'),
+          minHeight: '100%'
+        });
       }
 
       return baseStyle;
