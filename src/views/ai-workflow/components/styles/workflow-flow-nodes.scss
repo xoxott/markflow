@@ -1,0 +1,175 @@
+@import '../../styles/ai-workflow-theme.scss';
+
+.workflow-editor-canvas {
+  background: $canvas-bg;
+
+  .dark & {
+    background: $canvas-bg-dark;
+  }
+
+  &__stage {
+    overflow: hidden;
+  }
+}
+
+.workflow-node-card {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: $card-color;
+  border: 1px solid $border-color;
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+  transition:
+    box-shadow $transition-normal $ease-out,
+    transform $transition-normal $ease-out;
+
+  .dark & {
+    background: $dark-card-color;
+    border-color: $dark-border-color;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__body {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: $text-color-1;
+    @include text-ellipsis;
+
+    .dark & {
+      color: $dark-text-color-1;
+    }
+  }
+
+  &__desc {
+    font-size: 11px;
+    line-height: 1.35;
+    color: $text-color-3;
+    @include text-ellipsis-multiline(2);
+
+    .dark & {
+      color: $dark-text-color-3;
+    }
+  }
+
+  &--library {
+    cursor: grab;
+
+    &:hover {
+      box-shadow: $shadow-md;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &--canvas {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid $border-color;
+    border-left-width: 3px;
+    border-left-style: solid;
+    border-radius: $border-radius-md;
+    padding: 8px 10px;
+    background: $card-color;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+    transition:
+      box-shadow $transition-normal $ease-out,
+      border-color $transition-normal $ease-out;
+
+    .dark & {
+      background: $dark-card-color;
+      border-color: $dark-border-color;
+    }
+  }
+
+  &--ghost {
+    cursor: grabbing;
+  }
+}
+
+.workflow-flow-node {
+  &.flow-node {
+    padding: 0 !important;
+    overflow: visible;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    &:hover:not(.flow-node-selected):not(.flow-node-dragging) {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    &.flow-node-selected {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: none !important;
+    }
+
+    &:hover:not(.flow-node-selected):not(.flow-node-dragging) .workflow-node-card--canvas {
+      box-shadow: $shadow-md;
+      border-color: color-mix(in srgb, $primary-color 35%, $border-color);
+    }
+
+    &.flow-node-selected .workflow-node-card--canvas {
+      box-shadow:
+        0 0 0 calc(2px * var(--flow-zoom, 1)) rgba(32, 128, 240, 0.35),
+        $shadow-md;
+      border-color: $primary-color;
+    }
+
+    .flow-handle {
+      z-index: 2;
+    }
+  }
+}
+
+.node-library-panel {
+  &__list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .node-library-item {
+    width: fit-content;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}

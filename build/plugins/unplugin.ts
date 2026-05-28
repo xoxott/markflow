@@ -29,12 +29,11 @@ export function setupUnplugin(viteEnv: Env.ImportMeta) {
     }),
     Components({
       /**
-       * 仅扫描通用组件根目录；不含 file-explorer（由页面显式 import）
+       * 仅扫描通用组件根目录；不含 file-explorer、ai-workflow（由页面显式 import）
        * 新增共享组件目录时请同步加入此列表
        */
       dirs: [
         'src/components/advanced',
-        'src/components/ai-workflow',
         'src/components/base-dialog',
         'src/components/base-drawer',
         'src/components/clockLoading',

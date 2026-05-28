@@ -16,10 +16,10 @@ import { mockWorkflowApi } from '@/service/api/workflow-mock';
 import { useTable } from '@/hooks/common/table';
 import { useNaiveForm } from '@/hooks/common/form';
 import { useDialog } from '@/components/base-dialog/useDialog';
-import { useWorkflowDialog } from '@/components/ai-workflow/dialogs/useWorkflowDialog';
 import { $t } from '@/locales';
 // 暂时使用 Mock 数据，后续替换为真实 API
-import type { WorkflowFormData } from '@/components/ai-workflow/dialogs/dialog';
+import type { WorkflowFormData } from './components/dialogs/dialog';
+import { useWorkflowDialog } from './components';
 
 const {
   fetchWorkflowList,

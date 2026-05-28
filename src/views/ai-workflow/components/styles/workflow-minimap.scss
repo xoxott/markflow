@@ -1,0 +1,37 @@
+@import '../../styles/ai-workflow-theme.scss';
+
+.workflow-minimap.flow-minimap {
+  --flow-minimap-viewport-stroke: #64748b;
+  --flow-minimap-viewport-fill: rgba(100, 116, 139, 0.12);
+  --flow-minimap-node-opacity: 1;
+
+  &.flow-minimap--dark {
+    --flow-minimap-viewport-stroke: #94a3b8;
+    --flow-minimap-viewport-fill: rgba(148, 163, 184, 0.14);
+  }
+
+  .flow-minimap__surface {
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-md;
+    background-color: $minimap-bg;
+    background-image: radial-gradient($grid-dot-color 0.65px, transparent 0.65px);
+    background-size: 7px 7px;
+  }
+
+  &.flow-minimap--dark .flow-minimap__surface {
+    background-color: $minimap-bg-dark;
+    background-image: radial-gradient($grid-dot-color-dark 0.65px, transparent 0.65px);
+  }
+
+  .flow-minimap__node {
+    opacity: 1;
+    border-radius: 3px;
+    box-shadow: $minimap-node-shadow;
+  }
+
+  .flow-minimap__viewport {
+    border-width: 1.5px;
+    border-radius: 3px;
+    box-shadow: $minimap-viewport-shadow;
+  }
+}

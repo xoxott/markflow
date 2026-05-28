@@ -1,0 +1,89 @@
+@import '../../styles/ai-workflow-theme.scss';
+
+.workflow-editor-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-bottom: 1px solid $border-color;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+
+  .dark & {
+    border-bottom-color: $dark-border-color;
+    background: rgba(31, 41, 55, 0.92);
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  &__title {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $text-color-1;
+    @include text-ellipsis;
+
+    .dark & {
+      color: $dark-text-color-1;
+    }
+  }
+
+  &__status {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #d97706;
+
+    .dark & {
+      color: #fbbf24;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 16px;
+    margin: 0 2px;
+    background: $divider-color;
+
+    .dark & {
+      background: $dark-divider-color;
+    }
+  }
+
+  &__panels {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  &__save-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid $divider-color;
+
+    .dark & {
+      border-left-color: $dark-divider-color;
+    }
+  }
+}

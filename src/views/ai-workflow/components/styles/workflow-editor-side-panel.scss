@@ -1,0 +1,94 @@
+@import '../../styles/ai-workflow-theme.scss';
+
+.workflow-editor-side-panel {
+  flex-shrink: 0;
+  height: 100%;
+  overflow: hidden;
+  transition: width $transition-normal $ease-out;
+  will-change: width;
+
+  &--left {
+    border-right: 1px solid transparent;
+  }
+
+  &--right {
+    border-left: 1px solid transparent;
+  }
+
+  &.is-visible {
+    &.workflow-editor-side-panel--left {
+      width: var(--workflow-side-panel-width, 256px);
+      border-right-color: $border-color;
+
+      .dark & {
+        border-right-color: $dark-border-color;
+      }
+    }
+
+    &.workflow-editor-side-panel--right {
+      width: var(--workflow-side-panel-width, 384px);
+      border-left-color: $border-color;
+
+      .dark & {
+        border-left-color: $dark-border-color;
+      }
+    }
+  }
+
+  &:not(.is-visible) {
+    width: 0;
+  }
+
+  &__inner {
+    height: 100%;
+    width: var(--workflow-side-panel-width, 256px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: $shadow-lg;
+    opacity: 0;
+    transition:
+      opacity $transition-normal $ease-out,
+      transform $transition-normal $ease-out;
+
+    .dark & {
+      background: rgba(31, 41, 55, 0.95);
+    }
+  }
+
+  &--left.is-visible &__inner {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &--left:not(.is-visible) &__inner {
+    transform: translateX(-16px);
+  }
+
+  &--right.is-visible &__inner {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &--right:not(.is-visible) &__inner {
+    transform: translateX(16px);
+  }
+}
+
+.workflow-editor-workspace {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  &__canvas {
+    height: 100%;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    transition: flex $transition-normal $ease-out;
+  }
+}
