@@ -1,27 +1,15 @@
-import { computed, defineComponent, getCurrentInstance, nextTick, ref } from 'vue';
-import {
-  NButton,
-  NDrawer,
-  NDrawerContent,
-  NSpace,
-  NTabPane,
-  NTabs,
-  NTag,
-  useMessage
-} from 'naive-ui';
+import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
+import { NButton, NSpace, NTabPane, NTabs, NTag, useMessage } from 'naive-ui';
 import { mockAgentRunApi } from '@/service/api/agent-run-mock';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
+import { useRunDrawer } from './components/useRunDrawer';
+import { useSessionDialog } from './components/useSessionDialog';
 
-const {
-  fetchAgentSessionList,
-  fetchAgentRunList,
-  fetchAgentRunEvents,
-  fetchStopAgentSession,
-  fetchUpdateAgentSession
-} = mockAgentRunApi;
+const { fetchAgentSessionList, fetchAgentRunList, fetchStopAgentSession, fetchUpdateAgentSession } =
+  mockAgentRunApi;
 
 type Session = Api.AgentManagement.AgentSession;
 type Run = Api.AgentManagement.AgentRun;
@@ -44,11 +32,10 @@ export default defineComponent({
     const message = useMessage();
     const instance = getCurrentInstance();
     const dialog = useDialog(instance?.appContext.app);
+    const sessionDialog = useSessionDialog(instance?.appContext.app);
+    const runDrawer = useRunDrawer();
 
     const activeTab = ref('sessions');
-    const eventsVisible = ref(false);
-    const events = ref<Api.AgentManagement.AgentRunEvent[]>([]);
-    const selectedRun = ref<Run | null>(null);
     const sessionFilter = ref('');
 
     const sessionsTable = useAdminListTable({
@@ -148,20 +135,19 @@ export default defineComponent({
     }
 
     async function handleRenameSession(session: Session) {
-      const title = window.prompt('新标题', session.title ?? '');
-      if (title === null) return;
-      await fetchUpdateAgentSession(session.sessionId, { title });
-      message.success('已更新');
-      sessionsTable.getData();
+      releaseFocus();
+      await sessionDialog.showSessionRename({
+        session,
+        onConfirm: async title => {
+          await fetchUpdateAgentSession(session.sessionId, { title });
+          message.success('已更新');
+          sessionsTable.getData();
+        }
+      });
     }
 
     async function handleViewEvents(run: Run) {
-      releaseFocus();
-      selectedRun.value = run;
-      const result = await fetchAgentRunEvents(run.runId);
-      events.value = result.data;
-      await nextTick();
-      eventsVisible.value = true;
+      await runDrawer.showRunEvents(run);
     }
 
     const sessionColumns: TableColumnConfig<Session>[] = [
@@ -289,31 +275,6 @@ export default defineComponent({
             />
           </NTabPane>
         </NTabs>
-
-        <NDrawer
-          show={eventsVisible.value}
-          width={520}
-          trapFocus
-          autoFocus
-          onUpdateShow={(v: boolean) => (eventsVisible.value = v)}
-        >
-          <NDrawerContent closable title={`Run 事件 — ${selectedRun.value?.runId ?? ''}`}>
-            <div class="space-y-2">
-              {events.value.map(e => (
-                <div key={e.seq} class="border rounded p-2 text-xs">
-                  <div class="mb-1 flex justify-between text-gray-500">
-                    <span>
-                      #{e.seq} {e.type}
-                    </span>
-                    <span>{new Date(e.timestamp).toLocaleTimeString('zh-CN')}</span>
-                  </div>
-                  <pre class="whitespace-pre-wrap">{JSON.stringify(e.payload, null, 2)}</pre>
-                </div>
-              ))}
-              {!events.value.length && <div class="text-sm text-gray-500">暂无事件</div>}
-            </div>
-          </NDrawerContent>
-        </NDrawer>
       </div>
     );
   }

@@ -5,10 +5,16 @@ import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
 import type { ActionBarColumnSetting, ActionBarProps, PresetButtonType } from './types';
 
-/** Uno `i-carbon-*` 或 Iconify `carbon:*` 统一为 SvgIcon 可用的 Iconify 名 */
+/** Uno `i-{collection}-{name}` 或 Iconify `{collection}:{name}` 统一为 SvgIcon 可用的 Iconify 名 */
 function resolveIconifyIcon(icon: string) {
   if (icon.includes(':')) return icon;
-  if (icon.startsWith('i-carbon-')) return `carbon:${icon.slice('i-carbon-'.length)}`;
+  if (icon.startsWith('i-')) {
+    const rest = icon.slice(2);
+    const dashIndex = rest.indexOf('-');
+    if (dashIndex > 0) {
+      return `${rest.slice(0, dashIndex)}:${rest.slice(dashIndex + 1)}`;
+    }
+  }
   return icon;
 }
 

@@ -1,4 +1,4 @@
-import { computed, defineComponent, getCurrentInstance, reactive, ref } from 'vue';
+import { computed, defineComponent, getCurrentInstance, nextTick, reactive, ref } from 'vue';
 import {
   NButton,
   NDrawer,
@@ -33,6 +33,10 @@ const {
 } = mockAgentRunApi;
 
 type Team = Api.AgentManagement.AgentTeam;
+
+function releaseFocus() {
+  (document.activeElement as HTMLElement | null)?.blur?.();
+}
 
 export default defineComponent({
   name: 'AgentTeamManagement',
@@ -76,6 +80,7 @@ export default defineComponent({
     loadCoordinatorOptions();
 
     function handleAdd() {
+      releaseFocus();
       isEdit.value = false;
       editingId.value = '';
       Object.assign(form, {
@@ -89,6 +94,7 @@ export default defineComponent({
     }
 
     async function handleEdit(row: Team) {
+      releaseFocus();
       isEdit.value = true;
       editingId.value = row.id;
       Object.assign(form, {
@@ -122,8 +128,10 @@ export default defineComponent({
     }
 
     async function handleDetail(row: Team) {
+      releaseFocus();
       const result = await fetchAgentTeamDetail(row.id);
       teamDetail.value = result.data;
+      await nextTick();
       detailVisible.value = true;
     }
 
@@ -148,6 +156,7 @@ export default defineComponent({
     }
 
     async function handleDelete(row: Team) {
+      releaseFocus();
       await dialog.confirmDelete(row.name, async () => {
         await fetchDeleteAgentTeam(row.id);
         message.success('删除成功');
@@ -252,9 +261,11 @@ export default defineComponent({
         <NDrawer
           show={detailVisible.value}
           width={480}
+          trapFocus
+          autoFocus
           onUpdateShow={(v: boolean) => (detailVisible.value = v)}
         >
-          <NDrawerContent title={teamDetail.value?.name ?? '团队详情'}>
+          <NDrawerContent closable title={teamDetail.value?.name ?? '团队详情'}>
             {teamDetail.value && (
               <div class="space-y-4">
                 <p class="text-sm text-gray-600">{teamDetail.value.description}</p>
