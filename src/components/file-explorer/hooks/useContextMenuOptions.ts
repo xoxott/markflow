@@ -11,10 +11,12 @@ interface UseContextMenuOptionsParams {
   onSelect: (ids: string[], event?: MouseEvent) => void;
   items: Ref<FileItem[]>;
   dataSourceType?: Ref<DataSourceType>;
+  knowledgeBaseMode?: boolean;
 }
 
 function buildFileMenuOptions(
-  openWithChildren: { key: string; label: string }[]
+  openWithChildren: { key: string; label: string }[],
+  knowledgeBaseMode: boolean
 ): ContextMenuItem[] {
   const openWithItem: ContextMenuItem | null =
     openWithChildren.length > 0
@@ -36,14 +38,14 @@ function buildFileMenuOptions(
       label: '剪切',
       icon: contextMenuIcons.cut,
       shortcut: 'Ctrl+X',
-      show: true
+      show: !knowledgeBaseMode
     },
     {
       key: 'copy',
       label: '复制',
       icon: contextMenuIcons.copy,
       shortcut: 'Ctrl+C',
-      show: true
+      show: !knowledgeBaseMode
     },
     { key: 'divider-2', label: '', divider: true },
     {
@@ -62,9 +64,19 @@ function buildFileMenuOptions(
       show: true
     },
     { key: 'divider-3', label: '', divider: true },
-    { key: 'download', label: '下载', icon: contextMenuIcons.download, show: true },
-    { key: 'share', label: '分享', icon: contextMenuIcons.share, show: true },
-    { key: 'favorite', label: '收藏', icon: contextMenuIcons.star, show: true },
+    {
+      key: 'download',
+      label: '下载',
+      icon: contextMenuIcons.download,
+      show: !knowledgeBaseMode
+    },
+    { key: 'share', label: '分享', icon: contextMenuIcons.share, show: !knowledgeBaseMode },
+    {
+      key: 'favorite',
+      label: '收藏',
+      icon: contextMenuIcons.star,
+      show: !knowledgeBaseMode
+    },
     { key: 'divider-4', label: '', divider: true },
     {
       key: 'info',
@@ -89,7 +101,8 @@ export function useContextMenuOptions({
   selectedIds,
   onSelect,
   items,
-  dataSourceType
+  dataSourceType,
+  knowledgeBaseMode = false
 }: UseContextMenuOptionsParams) {
   const isServerMode = computed(() => dataSourceType?.value === 'server');
 
@@ -115,7 +128,13 @@ export function useContextMenuOptions({
       icon: contextMenuIcons.folder,
       show: isServerMode.value
     },
-    { key: 'paste', label: '粘贴', icon: contextMenuIcons.copy, shortcut: 'Ctrl+V', show: true },
+    {
+      key: 'paste',
+      label: '粘贴',
+      icon: contextMenuIcons.copy,
+      shortcut: 'Ctrl+V',
+      show: !knowledgeBaseMode
+    },
     {
       key: 'sort',
       label: '排序方式',
@@ -145,7 +164,7 @@ export function useContextMenuOptions({
       const file = items.value.find(item => item.id === id);
       const openWithChildren = file ? getOpenWithMenuItems(file) : [];
       const selectionSize = selectedIds.value.size || 1;
-      const base = buildFileMenuOptions(openWithChildren);
+      const base = buildFileMenuOptions(openWithChildren, knowledgeBaseMode);
       const mapped = base.map(item => {
         if (item.divider) return item;
         switch (item.key) {

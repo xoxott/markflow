@@ -21,6 +21,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   'chat': () => import('@/views/chat/index.tsx'),
   'component': () => import('@/views/component/index'),
   'file-manager': () => import('@/views/file-manager/index'),
+  'file-manager-documents': () => import('@/views/file-manager/documents/index'),
   'home': () => import('@/views/home/index.vue'),
   'markdownedit': () => import('@/views/markdownEdit/index'),
   'mobile': () => import('@/views/mobile/index.vue'),

@@ -7,6 +7,7 @@ import type {
 } from '@elegant-router/types';
 import { useSvgIcon } from '@/hooks/common/icon';
 import { $t } from '@/locales';
+import { MENU_GROUP_DEFINITIONS, TOP_LEVEL_MENU_KEYS } from '@/router/menu/menu-groups';
 
 /**
  * Filter auth routes by roles
@@ -98,6 +99,77 @@ export function getGlobalMenusByAuthRoutes(routes: ElegantConstRoute[]) {
   });
 
   return menus;
+}
+
+/**
+ * Group flat menus into categorized parent menus
+ *
+ * @param flatMenus Menus generated from flat auth routes
+ */
+export function groupGlobalMenus(flatMenus: App.Global.Menu[]) {
+  const menuMap = new Map(flatMenus.map(menu => [menu.key, menu]));
+  const groupedKeys = new Set<string>();
+  const groupedMenus: App.Global.Menu[] = [];
+  const { SvgIconVNode } = useSvgIcon();
+
+  TOP_LEVEL_MENU_KEYS.forEach(({ key, order }) => {
+    const menu = menuMap.get(key);
+
+    if (menu) {
+      groupedMenus.push({ ...menu, order } as App.Global.Menu & { order: number });
+      groupedKeys.add(key);
+    }
+  });
+
+  MENU_GROUP_DEFINITIONS.forEach(group => {
+    const children = group.children
+      .map(key => menuMap.get(key))
+      .filter((menu): menu is App.Global.Menu => Boolean(menu));
+
+    if (children.length === 0) {
+      return;
+    }
+
+    children.forEach(child => groupedKeys.add(child.key));
+
+    const firstChild = children[0];
+
+    groupedMenus.push({
+      key: group.key,
+      label: $t(group.i18nKey),
+      i18nKey: group.i18nKey,
+      routeKey: firstChild.routeKey,
+      routePath: firstChild.routePath,
+      icon: SvgIconVNode({ icon: group.icon, fontSize: 20 }),
+      children,
+      order: group.order
+    } as App.Global.Menu & { order: number });
+  });
+
+  flatMenus.forEach(menu => {
+    if (!groupedKeys.has(menu.key)) {
+      groupedMenus.push(menu);
+    }
+  });
+
+  groupedMenus.sort((next, prev) => {
+    const nextOrder =
+      (next as App.Global.Menu & { order?: number }).order ??
+      TOP_LEVEL_MENU_KEYS.find(item => item.key === next.key)?.order ??
+      99;
+    const prevOrder =
+      (prev as App.Global.Menu & { order?: number }).order ??
+      TOP_LEVEL_MENU_KEYS.find(item => item.key === prev.key)?.order ??
+      99;
+
+    return nextOrder - prevOrder;
+  });
+
+  return groupedMenus.map(menu => {
+    const { order: _, ...rest } = menu as App.Global.Menu & { order?: number };
+
+    return rest;
+  });
 }
 
 /**

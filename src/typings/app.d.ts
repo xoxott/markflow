@@ -424,6 +424,10 @@ declare namespace App {
           resetSuccessMsg: string;
         };
       };
+      menuGroup: {
+        systemManagement: string;
+        devTools: string;
+      };
       route: Record<I18nRouteKey, string>;
       page: {
         login: {
@@ -490,32 +494,25 @@ declare namespace App {
           };
         };
         home: {
-          branchDesc: string;
           greeting: string;
-          weatherDesc: string;
-          projectCount: string;
-          todo: string;
-          message: string;
-          downloadCount: string;
-          registerCount: string;
-          schedule: string;
-          study: string;
-          work: string;
-          rest: string;
-          entertainment: string;
-          visitCount: string;
-          turnover: string;
-          dealCount: string;
-          projectNews: {
+          platformDesc: string;
+          capabilitiesTitle: string;
+          quickAccessTitle: string;
+          enterModule: string;
+          workflow: {
             title: string;
-            moreNews: string;
-            desc1: string;
-            desc2: string;
-            desc3: string;
-            desc4: string;
-            desc5: string;
+            desc: string;
           };
-          creativity: string;
+          knowledgeBase: {
+            title: string;
+            desc: string;
+          };
+          quickLinks: {
+            monitoring: string;
+            userManagement: string;
+            roleManagement: string;
+            requestLogs: string;
+          };
         };
         chat: {
           heroTitle: string;
@@ -837,6 +834,65 @@ declare namespace App {
           batchDeleteSuccess: string;
           clearLogsSuccess: string;
           getDetailFailed: string;
+        };
+        knowledgeBase: {
+          title: string;
+          createTitle: string;
+          editTitle: string;
+          documentsTitle: string;
+          documentsSubtitle: string;
+          searchPlaceholder: string;
+          name: string;
+          namePlaceholder: string;
+          nameRequired: string;
+          description: string;
+          descriptionPlaceholder: string;
+          embeddingModel: string;
+          embeddingModelPlaceholder: string;
+          tags: string;
+          documentCount: string;
+          chunkCount: string;
+          indexStatusLabel: string;
+          updatedAt: string;
+          enter: string;
+          reindex: string;
+          reindexStarted: string;
+          reindexDocument: string;
+          reindexDocumentStarted: string;
+          confirmDelete: string;
+          backToList: string;
+          searchTest: string;
+          searchTestTitle: string;
+          searchQuery: string;
+          searchQueryPlaceholder: string;
+          minScore: string;
+          runSearch: string;
+          noSearchResults: string;
+          selectDocumentHint: string;
+          folderSelectedHint: string;
+          documentPanel: string;
+          documentName: string;
+          docStatusLabel: string;
+          errorMessage: string;
+          chunkList: string;
+          noChunks: string;
+          sidebar: {
+            quickAccess: string;
+            fileTypes: string;
+            folders: string;
+          };
+          indexStatus: {
+            pending: string;
+            indexing: string;
+            ready: string;
+            failed: string;
+          };
+          docStatus: {
+            uploaded: string;
+            processing: string;
+            indexed: string;
+            failed: string;
+          };
         };
         aiWorkflow: {
           name: string;

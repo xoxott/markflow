@@ -23,6 +23,7 @@ import {
   getCacheRouteNames,
   getGlobalMenusByAuthRoutes,
   getSelectedMenuKeyPathByKey,
+  groupGlobalMenus,
   isRouteExistByRouteName,
   sortRoutesByOrder,
   transformMenuToSearchMenus,
@@ -90,7 +91,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
 
   /** Get global menus */
   function getGlobalMenus(routes: ElegantConstRoute[]) {
-    menus.value = getGlobalMenusByAuthRoutes(routes);
+    menus.value = groupGlobalMenus(getGlobalMenusByAuthRoutes(routes));
   }
 
   /** Update global menus by locale */

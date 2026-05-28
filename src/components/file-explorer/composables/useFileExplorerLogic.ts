@@ -14,7 +14,11 @@ import { createShortcutsConfig } from '../config/shortcuts.config';
 import { createContextMenuHandler } from '../config/contextmenu.config';
 import type { FileOpenPreference } from '../open/resolveFileOpenMode';
 import { useFileDialog } from '../hooks/useFileDialog';
-import type { DataSourceType, ServerFileDataSourceConfig } from '../datasources/types';
+import type {
+  DataSourceType,
+  IFileDataSource,
+  ServerFileDataSourceConfig
+} from '../datasources/types';
 import { LocalFileDataSource, ServerFileDataSource } from '../datasources';
 import { useViewState } from './useViewState';
 import { useNavigation } from './useNavigation';
@@ -30,6 +34,12 @@ export interface UseFileExplorerLogicOptions {
   initialDataSourceType?: DataSourceType;
   /** 服务器数据源配置 */
   serverDataSourceConfig?: ServerFileDataSourceConfig;
+  /** 注入自定义数据源（如知识库） */
+  customDataSource?: IFileDataSource;
+  /** 知识库模式：精简右键菜单 */
+  knowledgeBaseMode?: boolean;
+  /** 默认视图模式 */
+  defaultViewMode?: import('../types/file-explorer').ViewMode;
   /** 打开文件的回调（供快捷键/右键菜单使用） */
   onOpen?: (file: FileItem, preference?: FileOpenPreference) => void;
   /** 上传文件回调（右键菜单 → 打开上传抽屉 + 文件选择器） */
@@ -46,6 +56,9 @@ export function useFileExplorerLogic(options: UseFileExplorerLogicOptions) {
     validateDrop,
     initialDataSourceType = 'local',
     serverDataSourceConfig,
+    customDataSource,
+    knowledgeBaseMode = false,
+    defaultViewMode,
     onOpen,
     onUploadFile,
     onUploadFolder
@@ -54,6 +67,9 @@ export function useFileExplorerLogic(options: UseFileExplorerLogicOptions) {
 
   // ==================== 子 composable ====================
   const viewState = useViewState();
+  if (defaultViewMode) {
+    viewState.viewMode.value = defaultViewMode;
+  }
   const {
     collapsed,
     gridSize,
@@ -80,7 +96,11 @@ export function useFileExplorerLogic(options: UseFileExplorerLogicOptions) {
     layoutConfig.value.showRight = value;
   });
 
-  const navigation = useNavigation({ initialDataSourceType, serverDataSourceConfig });
+  const navigation = useNavigation({
+    initialDataSourceType,
+    serverDataSourceConfig,
+    customDataSource
+  });
   const { dataSourceType, dataSource, currentPath, breadcrumbItems } = navigation;
 
   // ==================== 数据核心 ====================
@@ -125,9 +145,7 @@ export function useFileExplorerLogic(options: UseFileExplorerLogicOptions) {
       } else {
         await pagination.loadPage();
         mockItems.value =
-          pagination.paginatedItems.value.length > 0
-            ? pagination.paginatedItems.value
-            : initialItems;
+          pagination.paginatedItems.value.length > 0 ? pagination.paginatedItems.value : [];
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -303,7 +321,8 @@ export function useFileExplorerLogic(options: UseFileExplorerLogicOptions) {
     openLocalFolder,
     refreshFileList,
     handleContextMenuSelect,
-    fileOperations
+    fileOperations,
+    knowledgeBaseMode
   };
 }
 

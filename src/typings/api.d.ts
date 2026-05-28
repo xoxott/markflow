@@ -19,6 +19,7 @@
 /// <reference path="./api/health.d.ts" />
 /// <reference path="./api/system.d.ts" />
 /// <reference path="./api/monitoring.d.ts" />
+/// <reference path="./api/knowledge-base.d.ts" />
 
 declare namespace Api {
   // All API types are now defined in separate files

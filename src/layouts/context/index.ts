@@ -20,6 +20,13 @@ function useMixMenu() {
   }
 
   function getActiveFirstLevelMenuKey() {
+    const keyPath = routeStore.getSelectedMenuKeyPath(selectedKey.value);
+
+    if (keyPath.length > 0) {
+      setActiveFirstLevelMenuKey(keyPath[0]);
+      return;
+    }
+
     const [firstLevelRouteName] = selectedKey.value.split('_');
 
     setActiveFirstLevelMenuKey(firstLevelRouteName);

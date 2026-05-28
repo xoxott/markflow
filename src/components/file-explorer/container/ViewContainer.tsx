@@ -37,14 +37,16 @@ export default defineComponent({
     onPageChange: { type: Function as PropType<(page: number) => void>, required: false },
     onPageSizeChange: { type: Function as PropType<(size: number) => void>, required: false },
     // 上传相关 props
-    dataSourceType: { type: String as PropType<DataSourceType>, required: false, default: 'local' }
+    dataSourceType: { type: String as PropType<DataSourceType>, required: false, default: 'local' },
+    knowledgeBaseMode: { type: Boolean, default: false }
   },
   setup(props, { slots }) {
     const { handleContextMenuShow, handleContextMenuHide, options } = useContextMenuOptions({
       selectedIds: props.selectedIds,
       onSelect: props.onSelect,
       items: toRef(props, 'items'),
-      dataSourceType: toRef(props, 'dataSourceType')
+      dataSourceType: toRef(props, 'dataSourceType'),
+      knowledgeBaseMode: props.knowledgeBaseMode
     });
 
     // 注入拖拽系统（由 useFileExplorerLogic provide）

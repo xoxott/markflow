@@ -170,6 +170,7 @@ const routeMap: RouteMap = {
   'chat': '/chat',
   'component': '/component',
   'file-manager': '/file-manager',
+  'file-manager-documents': '/file-manager/:kbId',
   'home': '/home',
   'iframe-page': '/iframe-page/:url',
   'login': '/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?',

@@ -79,6 +79,18 @@ export default defineComponent({
     collapsed: {
       type: Boolean,
       default: false
+    },
+    quickAccessLabel: {
+      type: String,
+      default: '快速访问'
+    },
+    fileTypesLabel: {
+      type: String,
+      default: '文件类型'
+    },
+    foldersLabel: {
+      type: String,
+      default: '文件夹'
     }
   },
 
@@ -98,7 +110,7 @@ export default defineComponent({
       // 快速访问
       if (props.quickAccessItems.length > 0) {
         options.push({
-          label: '快速访问',
+          label: props.quickAccessLabel,
           key: 'quick-access',
           icon: () => h(NIcon, null, { default: () => h(Rocket) }),
           children: props.quickAccessItems.map(item => ({
@@ -115,7 +127,7 @@ export default defineComponent({
       // 文件类型
       if (props.fileTypeItems.length > 0) {
         options.push({
-          label: '文件类型',
+          label: props.fileTypesLabel,
           key: 'file-types',
           icon: () => h(NIcon, null, { default: () => h(File) }),
           children: props.fileTypeItems.map(item => ({
@@ -177,7 +189,7 @@ export default defineComponent({
                 class="mb-1 px-3 py-2 text-xs font-medium"
                 style={{ color: themeVars.value.textColor3 }}
               >
-                文件夹
+                {props.foldersLabel}
               </div>
               <div
                 class="rounded-md p-2"

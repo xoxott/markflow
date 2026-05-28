@@ -23,8 +23,9 @@ export default defineComponent({
     },
     uploadIntegration: {
       type: Object as PropType<FileExplorerUploadState>,
-      required: true
-    }
+      required: false
+    },
+    hideUploadDrawer: { type: Boolean, default: false }
   },
   setup(props) {
     const dialog = useDialog();
@@ -136,30 +137,37 @@ export default defineComponent({
           </NDrawerContent>
         </NDrawer>
 
-        <NDrawer
-          v-model:show={props.uploadIntegration.showUploadDrawer.value}
-          placement="right"
-          width={uploadDrawerWidth.value}
-          minWidth={400}
-          resizable
-          contentClass="h-full"
-          onUpdateWidth={width => {
-            uploadDrawerWidth.value = width;
-          }}
-        >
-          <NDrawerContent closable nativeScrollbar={false}>
-            {{
-              header: () => <span class="font-medium">文件上传</span>,
-              default: () => (
-                <UploadDrawer
-                  upload={props.uploadIntegration.upload}
-                  settings={props.uploadIntegration.settings}
-                  onClose={props.uploadIntegration.closeUploadDrawer}
-                />
-              )
-            }}
-          </NDrawerContent>
-        </NDrawer>
+        {!props.hideUploadDrawer &&
+          props.uploadIntegration &&
+          (() => {
+            const uploadIntegration = props.uploadIntegration!;
+            return (
+              <NDrawer
+                v-model:show={uploadIntegration.showUploadDrawer.value}
+                placement="right"
+                width={uploadDrawerWidth.value}
+                minWidth={400}
+                resizable
+                contentClass="h-full"
+                onUpdateWidth={width => {
+                  uploadDrawerWidth.value = width;
+                }}
+              >
+                <NDrawerContent closable nativeScrollbar={false}>
+                  {{
+                    header: () => <span class="font-medium">文件上传</span>,
+                    default: () => (
+                      <UploadDrawer
+                        upload={uploadIntegration.upload}
+                        settings={uploadIntegration.settings}
+                        onClose={uploadIntegration.closeUploadDrawer}
+                      />
+                    )
+                  }}
+                </NDrawerContent>
+              </NDrawer>
+            );
+          })()}
       </>
     );
   }

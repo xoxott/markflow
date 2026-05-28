@@ -11,6 +11,8 @@ import type { BreadcrumbItem } from '../layout/FileBreadcrumb';
 export interface UseNavigationOptions {
   initialDataSourceType?: DataSourceType;
   serverDataSourceConfig?: ServerFileDataSourceConfig;
+  /** 注入自定义数据源（如知识库），优先级最高 */
+  customDataSource?: IFileDataSource;
 }
 
 export interface UseNavigationReturn {
@@ -22,9 +24,11 @@ export interface UseNavigationReturn {
 
 /** 导航 composable — 管理数据源状态和面包屑生成（不含刷新逻辑） */
 export function useNavigation(options: UseNavigationOptions): UseNavigationReturn {
-  const { initialDataSourceType = 'local', serverDataSourceConfig } = options;
+  const { initialDataSourceType = 'local', serverDataSourceConfig, customDataSource } = options;
 
-  const dataSourceType = ref<DataSourceType>(initialDataSourceType);
+  const dataSourceType = ref<DataSourceType>(
+    customDataSource ? customDataSource.type : initialDataSourceType
+  );
   const dataSource = ref<IFileDataSource | null>(null);
   const currentPath = ref<string>('/');
 
@@ -34,10 +38,7 @@ export function useNavigation(options: UseNavigationOptions): UseNavigationRetur
     const parts = path.split('/').filter(Boolean);
     const items: BreadcrumbItem[] = [];
 
-    const rootName =
-      dataSource.value?.type === 'local'
-        ? (dataSource.value as LocalFileDataSource).rootPath || '根目录'
-        : '根目录';
+    const rootName = '根目录';
 
     items.push({ id: 'root', name: rootName, path: '/' });
 
@@ -51,7 +52,9 @@ export function useNavigation(options: UseNavigationOptions): UseNavigationRetur
   });
 
   // 初始化数据源
-  if (initialDataSourceType === 'server' && serverDataSourceConfig) {
+  if (customDataSource) {
+    dataSource.value = customDataSource;
+  } else if (initialDataSourceType === 'server' && serverDataSourceConfig) {
     dataSource.value = new ServerFileDataSource(serverDataSourceConfig);
   } else {
     dataSource.value = new LocalFileDataSource();

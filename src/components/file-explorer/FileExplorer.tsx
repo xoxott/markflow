@@ -1,4 +1,5 @@
 import { type PropType, type Ref, defineComponent } from 'vue';
+import type { TreeOption } from 'naive-ui';
 import { type DragItem, DragPreview } from '@/components/file-explorer/interaction';
 import ViewContainer from './container/ViewContainer';
 import FileBreadcrumb from './layout/FileBreadcrumb';
@@ -12,7 +13,19 @@ import { getFileCategoryByExtension } from './config/extensionCategories';
 import type { UploadProgressInfo } from './composables/useFileExplorerUpload';
 import type { FileExplorerLogic } from './types/shell';
 import type { FileItem } from './types/file-explorer';
+import type { QuickAccessItem } from './layout/FileSidebar';
 import FileIcon from './items/FileIcon';
+
+export interface FileExplorerSidebarConfig {
+  quickAccessItems: QuickAccessItem[];
+  fileTypeItems: QuickAccessItem[];
+  treeData: TreeOption[];
+  activeKey: string;
+  onNavigate: (path: string) => void;
+  quickAccessLabel?: string;
+  fileTypesLabel?: string;
+  foldersLabel?: string;
+}
 
 /**
  * 文件浏览器壳组件 — 仅负责布局与子组件组合
@@ -45,6 +58,12 @@ export default defineComponent({
     uploadProgress: {
       type: Object as PropType<UploadProgressInfo | null>,
       default: null
+    },
+    hideDataSourceSwitch: { type: Boolean, default: false },
+    knowledgeBaseMode: { type: Boolean, default: false },
+    sidebarConfig: {
+      type: Object as PropType<FileExplorerSidebarConfig>,
+      default: undefined
     }
   },
   setup(props) {
@@ -148,6 +167,7 @@ export default defineComponent({
           onDataSourceTypeChange={logic().switchDataSource}
           onOpenLocalFolder={logic().openLocalFolder}
           onUpload={props.onUpload}
+          hideDataSourceSwitch={props.hideDataSourceSwitch}
         />
 
         <FileBreadcrumb
@@ -182,9 +202,14 @@ export default defineComponent({
             {{
               left: () => (
                 <FileSidebar
-                  treeData={[]}
-                  currentPath="/"
-                  onNavigate={() => {}}
+                  quickAccessItems={props.sidebarConfig?.quickAccessItems ?? []}
+                  fileTypeItems={props.sidebarConfig?.fileTypeItems ?? []}
+                  treeData={props.sidebarConfig?.treeData ?? []}
+                  currentPath={props.sidebarConfig?.activeKey ?? logic().currentPath.value}
+                  onNavigate={props.sidebarConfig?.onNavigate ?? logic().handleBreadcrumbNavigate}
+                  quickAccessLabel={props.sidebarConfig?.quickAccessLabel}
+                  fileTypesLabel={props.sidebarConfig?.fileTypesLabel}
+                  foldersLabel={props.sidebarConfig?.foldersLabel}
                   collapsed={logic().collapsed.value}
                 />
               ),
@@ -209,6 +234,7 @@ export default defineComponent({
                   onPageChange={logic().pagination.goToPage}
                   onPageSizeChange={logic().pagination.setPageSize}
                   dataSourceType={logic().dataSourceType.value}
+                  knowledgeBaseMode={props.knowledgeBaseMode}
                 >
                   {{
                     uploadDropOverlay: () => (

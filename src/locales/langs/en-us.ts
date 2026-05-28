@@ -1,7 +1,7 @@
 const local: App.I18n.Schema = {
   system: {
     title: 'MarkFlow',
-    subtitle: 'Markdown Workspace',
+    subtitle: 'AI Admin Platform',
     updateTitle: 'System Version Update Notification',
     updateContent:
       'A new version of the system has been detected. Do you want to refresh the page immediately?',
@@ -167,6 +167,10 @@ const local: App.I18n.Schema = {
       resetSuccessMsg: 'Reset Success'
     }
   },
+  menuGroup: {
+    systemManagement: 'System Management',
+    devTools: 'Development & Examples'
+  },
   route: {
     'login': 'Login',
     403: 'No Permission',
@@ -180,7 +184,8 @@ const local: App.I18n.Schema = {
     'utils': 'Utils',
     'component': 'component',
     'mobile': 'mobile',
-    'file-manager': 'file-manager',
+    'file-manager': 'Knowledge Base',
+    'file-manager-documents': 'Knowledge Base Documents',
     'monitoring': 'Dashboard',
     'user-management': 'User Management',
     'role-management': 'Role Management',
@@ -188,8 +193,8 @@ const local: App.I18n.Schema = {
     'announcement-management': 'Announcement Management',
     'notification-management': 'Notification Management',
     'alert-management': 'Alert Management',
-    'log-management': 'Log Management',
-    'version-log-management': 'Version Log Management',
+    'log-management': 'Request Logs',
+    'version-log-management': 'Version Logs',
     'ai-workflow': 'AI Workflow',
     'ai-workflow-editor': 'AI Workflow Editor'
   },
@@ -259,33 +264,26 @@ const local: App.I18n.Schema = {
       }
     },
     home: {
-      branchDesc:
-        'For the convenience of everyone in developing and updating the merge, we have streamlined the code of the main branch, only retaining the homepage menu, and the rest of the content has been moved to the example branch for maintenance. The preview address displays the content of the example branch.',
-      greeting: 'Good morning, {userName}, today is another day full of vitality!',
-      weatherDesc: 'Today is cloudy to clear, 20℃ - 25℃!',
-      projectCount: 'Project Count',
-      todo: 'Todo',
-      message: 'Message',
-      downloadCount: 'Download Count',
-      registerCount: 'Register Count',
-      schedule: 'Work and rest Schedule',
-      study: 'Study',
-      work: 'Work',
-      rest: 'Rest',
-      entertainment: 'Entertainment',
-      visitCount: 'Visit Count',
-      turnover: 'Turnover',
-      dealCount: 'Deal Count',
-      projectNews: {
-        title: 'Project News',
-        moreNews: 'More News',
-        desc1: 'MarkFlow shipped animated login background and glassmorphism card polish.',
-        desc2: 'Markdown preview now supports Mermaid diagrams and syntax highlighting.',
-        desc3: 'AI workspace stack page indexes packages and command catalog.',
-        desc4: 'Upload module gained monitoring SSE and i18n drawer.',
-        desc5: 'Theme color and layout presets persist across sessions.'
+      greeting: 'Hello, {userName}',
+      platformDesc:
+        'Manage AI workflows and knowledge assets here, with quick access to monitoring and system settings.',
+      capabilitiesTitle: 'Core Capabilities',
+      quickAccessTitle: 'Quick Access',
+      enterModule: 'Open',
+      workflow: {
+        title: 'AI Workflow',
+        desc: 'Design, debug, and publish AI pipelines with version history and execution records.'
       },
-      creativity: 'Creativity'
+      knowledgeBase: {
+        title: 'Knowledge Base',
+        desc: 'Organize documents on top of the file manager to power retrieval and AI applications.'
+      },
+      quickLinks: {
+        monitoring: 'Monitoring',
+        userManagement: 'User Management',
+        roleManagement: 'Role Management',
+        requestLogs: 'Request Logs'
+      }
     },
     chat: {
       heroTitle: 'AI Workspace Stack',
@@ -562,7 +560,7 @@ const local: App.I18n.Schema = {
       getDetailFailed: 'Failed to get alert details'
     },
     logManagement: {
-      title: 'Log Management',
+      title: 'Request Logs',
       action: 'Action',
       module: 'Module',
       username: 'Username',
@@ -615,6 +613,65 @@ const local: App.I18n.Schema = {
       clearLogsSuccess: 'Logs cleared successfully',
       getDetailFailed: 'Failed to get log details'
     },
+    knowledgeBase: {
+      title: 'Knowledge Base',
+      createTitle: 'Create Knowledge Base',
+      editTitle: 'Edit Knowledge Base',
+      documentsTitle: 'Documents',
+      documentsSubtitle: 'Manage documents, indexing, and retrieval testing',
+      searchPlaceholder: 'Search by name or description',
+      name: 'Name',
+      namePlaceholder: 'Enter knowledge base name',
+      nameRequired: 'Please enter a name',
+      description: 'Description',
+      descriptionPlaceholder: 'Enter description',
+      embeddingModel: 'Embedding Model',
+      embeddingModelPlaceholder: 'e.g. text-embedding-3-small',
+      tags: 'Tags',
+      documentCount: 'Documents',
+      chunkCount: 'Chunks',
+      indexStatusLabel: 'Index Status',
+      updatedAt: 'Updated At',
+      enter: 'Open',
+      reindex: 'Reindex All',
+      reindexStarted: 'Reindex started',
+      reindexDocument: 'Reindex Document',
+      reindexDocumentStarted: 'Document reindex started',
+      confirmDelete: 'Delete knowledge base "{name}" and all its documents?',
+      backToList: 'Back to List',
+      searchTest: 'Search Test',
+      searchTestTitle: 'Retrieval Test',
+      searchQuery: 'Query',
+      searchQueryPlaceholder: 'Enter your question or keywords',
+      minScore: 'Min Score',
+      runSearch: 'Search',
+      noSearchResults: 'No results',
+      selectDocumentHint: 'Select a document to view index status and chunks',
+      folderSelectedHint: 'Folders do not have chunk details',
+      documentPanel: 'Document Details',
+      documentName: 'Document',
+      docStatusLabel: 'Index Status',
+      errorMessage: 'Error',
+      chunkList: 'Chunks',
+      noChunks: 'No chunks yet',
+      sidebar: {
+        quickAccess: 'Quick Access',
+        fileTypes: 'File Types',
+        folders: 'Folders'
+      },
+      indexStatus: {
+        pending: 'Pending',
+        indexing: 'Indexing',
+        ready: 'Ready',
+        failed: 'Failed'
+      },
+      docStatus: {
+        uploaded: 'Uploaded',
+        processing: 'Processing',
+        indexed: 'Indexed',
+        failed: 'Failed'
+      }
+    },
     aiWorkflow: {
       name: 'Workflow name',
       description: 'Description',
@@ -624,7 +681,7 @@ const local: App.I18n.Schema = {
       archived: 'Archived'
     },
     versionLogManagement: {
-      title: 'Version Log Management',
+      title: 'Version Logs',
       version: 'Version',
       type: 'Type',
       releaseDate: 'Release Date',

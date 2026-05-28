@@ -1,7 +1,7 @@
 const local: App.I18n.Schema = {
   system: {
     title: '墨流',
-    subtitle: 'Markdown 智能工作台',
+    subtitle: 'AI 智能管理后台',
     updateTitle: '系统版本更新通知',
     updateContent: '检测到系统有新版本发布，是否立即刷新页面？',
     updateConfirm: '立即刷新',
@@ -165,6 +165,10 @@ const local: App.I18n.Schema = {
       resetSuccessMsg: '重置成功'
     }
   },
+  menuGroup: {
+    systemManagement: '系统管理',
+    devTools: '开发示例'
+  },
   route: {
     'login': '登录',
     403: '无权限',
@@ -178,7 +182,8 @@ const local: App.I18n.Schema = {
     'utils': '工具',
     'component': '组件示例',
     'mobile': '移动端',
-    'file-manager': '文件管理器',
+    'file-manager': '知识库',
+    'file-manager-documents': '知识库文档',
     'monitoring': '仪表盘',
     'user-management': '用户管理',
     'role-management': '角色管理',
@@ -186,8 +191,8 @@ const local: App.I18n.Schema = {
     'announcement-management': '公告管理',
     'notification-management': '通知管理',
     'alert-management': '告警管理',
-    'log-management': '日志管理',
-    'version-log-management': '版本日志管理',
+    'log-management': '请求日志',
+    'version-log-management': '版本日志',
     'ai-workflow': 'AI工作流',
     'ai-workflow-editor': 'AI工作流编辑器'
   },
@@ -257,33 +262,25 @@ const local: App.I18n.Schema = {
       }
     },
     home: {
-      branchDesc:
-        '为了方便大家开发和更新合并，我们对main分支的代码进行了精简，只保留了首页菜单，其余内容已移至example分支进行维护。预览地址显示的内容即为example分支的内容。',
-      greeting: '早安，{userName}, 今天又是充满活力的一天!',
-      weatherDesc: '今日多云转晴，20℃ - 25℃!',
-      projectCount: '项目数',
-      todo: '待办',
-      message: '消息',
-      downloadCount: '下载量',
-      registerCount: '注册量',
-      schedule: '作息安排',
-      study: '学习',
-      work: '工作',
-      rest: '休息',
-      entertainment: '娱乐',
-      visitCount: '访问量',
-      turnover: '成交额',
-      dealCount: '成交量',
-      projectNews: {
-        title: '项目动态',
-        moreNews: '更多动态',
-        desc1: '墨流 完成登录页动态背景与毛玻璃卡片视觉升级。',
-        desc2: 'Markdown 预览引擎接入 Mermaid 与代码高亮插件。',
-        desc3: 'AI 工作区能力栈页面已支持包索引与命令目录浏览。',
-        desc4: '文件上传模块新增监控 SSE 与多语言抽屉。',
-        desc5: '主题色与布局配置已支持一键切换与持久化。'
+      greeting: '你好，{userName}',
+      platformDesc: '集中管理 AI 工作流与知识库，并在此进入运维监控与系统配置。',
+      capabilitiesTitle: '核心能力',
+      quickAccessTitle: '快捷入口',
+      enterModule: '进入模块',
+      workflow: {
+        title: 'AI 工作流',
+        desc: '可视化编排、调试与发布 AI 流程，支持版本管理与执行记录。'
       },
-      creativity: '创意'
+      knowledgeBase: {
+        title: '知识库',
+        desc: '基于文件管理构建文档资产，为检索增强与 AI 应用提供知识来源。'
+      },
+      quickLinks: {
+        monitoring: '运维监控',
+        userManagement: '用户管理',
+        roleManagement: '角色管理',
+        requestLogs: '请求日志'
+      }
     },
     chat: {
       heroTitle: 'AI Workspace 能力栈',
@@ -557,7 +554,7 @@ const local: App.I18n.Schema = {
       getDetailFailed: '获取告警详情失败'
     },
     logManagement: {
-      title: '日志管理',
+      title: '请求日志',
       action: '操作类型',
       module: '模块',
       username: '用户名',
@@ -610,6 +607,65 @@ const local: App.I18n.Schema = {
       clearLogsSuccess: '清空日志成功',
       getDetailFailed: '获取日志详情失败'
     },
+    knowledgeBase: {
+      title: '知识库',
+      createTitle: '新建知识库',
+      editTitle: '编辑知识库',
+      documentsTitle: '文档管理',
+      documentsSubtitle: '管理知识库中的文档资产，支持上传、索引与检索测试',
+      searchPlaceholder: '搜索知识库名称或描述',
+      name: '名称',
+      namePlaceholder: '请输入知识库名称',
+      nameRequired: '请输入知识库名称',
+      description: '描述',
+      descriptionPlaceholder: '请输入描述',
+      embeddingModel: 'Embedding 模型',
+      embeddingModelPlaceholder: '如 text-embedding-3-small',
+      tags: '标签',
+      documentCount: '文档数',
+      chunkCount: '分块数',
+      indexStatusLabel: '索引状态',
+      updatedAt: '更新时间',
+      enter: '进入',
+      reindex: '重建索引',
+      reindexStarted: '已开始重建索引',
+      reindexDocument: '重建文档索引',
+      reindexDocumentStarted: '文档索引任务已启动',
+      confirmDelete: '确认删除知识库「{name}」吗？将同时删除其下所有文档。',
+      backToList: '返回列表',
+      searchTest: '检索测试',
+      searchTestTitle: '检索测试',
+      searchQuery: '查询内容',
+      searchQueryPlaceholder: '输入要检索的问题或关键词',
+      minScore: '最低分数',
+      runSearch: '开始检索',
+      noSearchResults: '暂无检索结果',
+      selectDocumentHint: '选择文档查看索引状态与分块',
+      folderSelectedHint: '当前选中的是文件夹',
+      documentPanel: '文档详情',
+      documentName: '文档名称',
+      docStatusLabel: '索引状态',
+      errorMessage: '错误信息',
+      chunkList: '分块列表',
+      noChunks: '暂无分块数据',
+      sidebar: {
+        quickAccess: '快捷访问',
+        fileTypes: '文件类型',
+        folders: '文件夹'
+      },
+      indexStatus: {
+        pending: '待索引',
+        indexing: '索引中',
+        ready: '就绪',
+        failed: '失败'
+      },
+      docStatus: {
+        uploaded: '已上传',
+        processing: '索引中',
+        indexed: '已索引',
+        failed: '索引失败'
+      }
+    },
     aiWorkflow: {
       name: '工作流名称',
       description: '描述',
@@ -619,7 +675,7 @@ const local: App.I18n.Schema = {
       archived: '已归档'
     },
     versionLogManagement: {
-      title: '版本日志管理',
+      title: '版本日志',
       version: '版本号',
       type: '版本类型',
       releaseDate: '发布日期',

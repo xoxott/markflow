@@ -23,6 +23,7 @@ declare module "@elegant-router/types" {
     "chat": "/chat";
     "component": "/component";
     "file-manager": "/file-manager";
+    "file-manager-documents": "/file-manager/:kbId";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
@@ -78,6 +79,7 @@ declare module "@elegant-router/types" {
     | "chat"
     | "component"
     | "file-manager"
+    | "file-manager-documents"
     | "home"
     | "iframe-page"
     | "login"
@@ -120,6 +122,7 @@ declare module "@elegant-router/types" {
     | "chat"
     | "component"
     | "file-manager"
+    | "file-manager-documents"
     | "home"
     | "markdownedit"
     | "mobile"

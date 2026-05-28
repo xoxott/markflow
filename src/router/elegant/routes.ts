@@ -66,7 +66,20 @@ export const generatedRoutes: GeneratedRoute[] = [
     meta: {
       title: 'file-manager',
       i18nKey: 'route.file-manager',
-      icon: 'mdi:file-tree'
+      icon: 'mdi:book-open-page-variant',
+      order: 3
+    }
+  },
+  {
+    name: 'file-manager-documents',
+    path: '/file-manager/:kbId',
+    component: 'layout.base$view.file-manager-documents',
+    props: true,
+    meta: {
+      title: 'file-manager-documents',
+      i18nKey: 'route.file-manager-documents',
+      hideInMenu: true,
+      activeMenu: 'file-manager'
     }
   },
   {
@@ -76,7 +89,7 @@ export const generatedRoutes: GeneratedRoute[] = [
     meta: {
       title: 'home',
       i18nKey: 'route.home',
-      icon: 'mdi:monitor-dashboard',
+      icon: 'mdi:home-outline',
       order: 1
     }
   },
@@ -152,7 +165,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'monitoring',
       i18nKey: 'route.monitoring',
       icon: 'mdi:monitor-dashboard',
-      order: 3
+      order: 4
     }
   },
   {
@@ -251,7 +264,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'ai-workflow',
       i18nKey: 'route.ai-workflow',
       icon: 'mdi:workflow',
-      order: 12
+      order: 2
     }
   },
   {

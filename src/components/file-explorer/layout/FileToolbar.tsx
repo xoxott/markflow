@@ -53,7 +53,8 @@ export default defineComponent({
     onNewFolder: Function as PropType<() => void>,
     dataSourceType: { type: String as PropType<DataSourceType>, default: 'local' },
     onDataSourceTypeChange: Function as PropType<(type: DataSourceType) => void>,
-    onOpenLocalFolder: Function as PropType<() => void>
+    onOpenLocalFolder: Function as PropType<() => void>,
+    hideDataSourceSwitch: { type: Boolean, default: false }
   },
 
   setup(props) {
@@ -202,69 +203,73 @@ export default defineComponent({
           {/* 左侧：模式切换和视图控制 */}
           <div class="flex flex-shrink-0 items-center gap-2">
             {/* 数据源模式切换 */}
-            {isDesktop.value ? (
-              // 桌面端：按钮组
-              <NButtonGroup>
-                <NTooltip>
-                  {{
-                    trigger: () => (
-                      <NButton
-                        type={props.dataSourceType === 'local' ? 'primary' : 'default'}
-                        ghost={props.dataSourceType !== 'local'}
-                        onClick={() => props.onDataSourceTypeChange?.('local')}
-                      >
-                        <NIcon size={16}>
-                          <DeviceDesktop />
-                        </NIcon>
-                      </NButton>
-                    ),
-                    default: () => '本地模式'
-                  }}
-                </NTooltip>
-                <NTooltip>
-                  {{
-                    trigger: () => (
-                      <NButton
-                        type={props.dataSourceType === 'server' ? 'primary' : 'default'}
-                        ghost={props.dataSourceType !== 'server'}
-                        onClick={() => props.onDataSourceTypeChange?.('server')}
-                      >
-                        <NIcon size={16}>
-                          <Cloud />
-                        </NIcon>
-                      </NButton>
-                    ),
-                    default: () => '服务器模式'
-                  }}
-                </NTooltip>
-              </NButtonGroup>
-            ) : (
-              // 移动/平板端：下拉菜单
-              <NDropdown options={dataSourceOptions.value} onSelect={handleDataSourceSelect}>
-                <NButton>
-                  <NIcon size={16}>
-                    {props.dataSourceType === 'local' ? <DeviceDesktop /> : <Cloud />}
-                  </NIcon>
-                </NButton>
-              </NDropdown>
-            )}
+            {!props.hideDataSourceSwitch &&
+              (isDesktop.value ? (
+                // 桌面端：按钮组
+                <NButtonGroup>
+                  <NTooltip>
+                    {{
+                      trigger: () => (
+                        <NButton
+                          type={props.dataSourceType === 'local' ? 'primary' : 'default'}
+                          ghost={props.dataSourceType !== 'local'}
+                          onClick={() => props.onDataSourceTypeChange?.('local')}
+                        >
+                          <NIcon size={16}>
+                            <DeviceDesktop />
+                          </NIcon>
+                        </NButton>
+                      ),
+                      default: () => '本地模式'
+                    }}
+                  </NTooltip>
+                  <NTooltip>
+                    {{
+                      trigger: () => (
+                        <NButton
+                          type={props.dataSourceType === 'server' ? 'primary' : 'default'}
+                          ghost={props.dataSourceType !== 'server'}
+                          onClick={() => props.onDataSourceTypeChange?.('server')}
+                        >
+                          <NIcon size={16}>
+                            <Cloud />
+                          </NIcon>
+                        </NButton>
+                      ),
+                      default: () => '服务器模式'
+                    }}
+                  </NTooltip>
+                </NButtonGroup>
+              ) : (
+                // 移动/平板端：下拉菜单
+                <NDropdown options={dataSourceOptions.value} onSelect={handleDataSourceSelect}>
+                  <NButton>
+                    <NIcon size={16}>
+                      {props.dataSourceType === 'local' ? <DeviceDesktop /> : <Cloud />}
+                    </NIcon>
+                  </NButton>
+                </NDropdown>
+              ))}
 
             {/* 打开本地文件夹按钮（仅本地模式，桌面端显示） */}
-            {isDesktop.value && props.dataSourceType === 'local' && props.onOpenLocalFolder && (
-              <NTooltip>
-                {{
-                  trigger: () => (
-                    <NButton onClick={props.onOpenLocalFolder}>
-                      <NIcon size={16}>
-                        <Folder />
-                      </NIcon>
-                      <span class="ml-1 hidden lg:inline">打开文件夹</span>
-                    </NButton>
-                  ),
-                  default: () => '打开本地文件夹'
-                }}
-              </NTooltip>
-            )}
+            {!props.hideDataSourceSwitch &&
+              isDesktop.value &&
+              props.dataSourceType === 'local' &&
+              props.onOpenLocalFolder && (
+                <NTooltip>
+                  {{
+                    trigger: () => (
+                      <NButton onClick={props.onOpenLocalFolder}>
+                        <NIcon size={16}>
+                          <Folder />
+                        </NIcon>
+                        <span class="ml-1 hidden lg:inline">打开文件夹</span>
+                      </NButton>
+                    ),
+                    default: () => '打开本地文件夹'
+                  }}
+                </NTooltip>
+              )}
 
             {/* 分隔线 */}
             <div class="h-6 w-px" style={{ backgroundColor: themeVars.value.dividerColor }} />
