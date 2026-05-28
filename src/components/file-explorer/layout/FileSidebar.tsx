@@ -1,5 +1,5 @@
 import type { Component, PropType } from 'vue';
-import { computed, defineComponent, h, ref } from 'vue';
+import { computed, defineComponent, h, markRaw, ref } from 'vue';
 import {
   type MenuOption,
   NBadge,
@@ -45,19 +45,19 @@ export default defineComponent({
     quickAccessItems: {
       type: Array as PropType<QuickAccessItem[]>,
       default: () => [
-        { id: 'recent', label: '最近使用', icon: Clock, path: '/recent' },
-        { id: 'starred', label: '已加星标', icon: Star, path: '/starred' },
-        { id: 'trash', label: '回收站', icon: Trash, path: '/trash' }
+        { id: 'recent', label: '最近使用', icon: markRaw(Clock), path: '/recent' },
+        { id: 'starred', label: '已加星标', icon: markRaw(Star), path: '/starred' },
+        { id: 'trash', label: '回收站', icon: markRaw(Trash), path: '/trash' }
       ]
     },
     fileTypeItems: {
       type: Array as PropType<QuickAccessItem[]>,
       default: () => [
-        { id: 'documents', label: '文档', icon: FileText, path: '/type/documents' },
-        { id: 'images', label: '图片', icon: Photo, path: '/type/images' },
-        { id: 'music', label: '音乐', icon: Music, path: '/type/music' },
-        { id: 'videos', label: '视频', icon: Video, path: '/type/videos' },
-        { id: 'archives', label: '压缩包', icon: Archive, path: '/type/archives' }
+        { id: 'documents', label: '文档', icon: markRaw(FileText), path: '/type/documents' },
+        { id: 'images', label: '图片', icon: markRaw(Photo), path: '/type/images' },
+        { id: 'music', label: '音乐', icon: markRaw(Music), path: '/type/music' },
+        { id: 'videos', label: '视频', icon: markRaw(Video), path: '/type/videos' },
+        { id: 'archives', label: '压缩包', icon: markRaw(Archive), path: '/type/archives' }
       ]
     },
     treeData: {
@@ -100,7 +100,7 @@ export default defineComponent({
 
     // 渲染菜单项的图标
     const renderMenuIcon = (icon: Component) => {
-      return () => h(NIcon, null, { default: () => h(icon) });
+      return () => h(NIcon, null, { default: () => h(markRaw(icon)) });
     };
 
     // 构建菜单选项
@@ -112,7 +112,7 @@ export default defineComponent({
         options.push({
           label: props.quickAccessLabel,
           key: 'quick-access',
-          icon: () => h(NIcon, null, { default: () => h(Rocket) }),
+          icon: () => h(NIcon, null, { default: () => h(markRaw(Rocket)) }),
           children: props.quickAccessItems.map(item => ({
             key: item.path,
             label: item.label, // 关键：保持为字符串
@@ -129,7 +129,7 @@ export default defineComponent({
         options.push({
           label: props.fileTypesLabel,
           key: 'file-types',
-          icon: () => h(NIcon, null, { default: () => h(File) }),
+          icon: () => h(NIcon, null, { default: () => h(markRaw(File)) }),
           children: props.fileTypeItems.map(item => ({
             key: item.path,
             label: item.label,

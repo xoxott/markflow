@@ -83,7 +83,7 @@ export default defineComponent({
           width={fileDrawerWidth.value}
           minWidth={360}
           resizable
-          drawerClass="file-drawer-shell--resizable-right"
+          class="file-drawer-shell--resizable-right"
           contentClass="h-full"
           onUpdateWidth={width => {
             fileDrawerWidth.value = width;

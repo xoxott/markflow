@@ -1,4 +1,5 @@
 import type { Component } from 'vue';
+import { markRaw } from 'vue';
 import type { TreeOption } from 'naive-ui';
 import {
   AlertTriangle,
@@ -14,15 +15,15 @@ import {
 import type { QuickAccessItem } from '@/components/file-explorer/layout/FileSidebar';
 
 const ICON_MAP: Record<string, Component> = {
-  'files': Files,
-  'clock': Clock,
-  'alert-triangle': AlertTriangle,
-  'loader': Loader,
-  'file-text': FileText,
-  'photo': Photo,
-  'video': Video,
-  'archive': Archive,
-  'file': File
+  'files': markRaw(Files),
+  'clock': markRaw(Clock),
+  'alert-triangle': markRaw(AlertTriangle),
+  'loader': markRaw(Loader),
+  'file-text': markRaw(FileText),
+  'photo': markRaw(Photo),
+  'video': markRaw(Video),
+  'archive': markRaw(Archive),
+  'file': markRaw(File)
 };
 
 export function mapSidebarItems(items: Api.KnowledgeBase.SidebarItem[]): QuickAccessItem[] {

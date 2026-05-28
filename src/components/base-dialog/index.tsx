@@ -484,7 +484,7 @@ export default defineComponent({
         trapFocus={false}
         autoFocus={false}
         closeOnEsc={closeOnEsc.value}
-        unstableShowMask={showMask.value}
+        showMask={showMask.value}
         maskClosable={maskClosable.value}
         onMaskClick={handleMaskClick}
         onUpdateShow={(show: boolean) => !show && handleClose()}
