@@ -42,8 +42,7 @@ export default defineComponent({
     onFitView: { type: Function as PropType<() => void>, default: undefined },
     showMinimap: { type: Boolean, default: false },
     onToggleMinimap: { type: Function as PropType<() => void>, default: undefined },
-    onClear: { type: Function as PropType<() => void>, default: undefined }
-    ,
+    onClear: { type: Function as PropType<() => void>, default: undefined },
     onImport: { type: Function as PropType<() => void>, default: undefined },
     onExport: { type: Function as PropType<() => void>, default: undefined }
   },
