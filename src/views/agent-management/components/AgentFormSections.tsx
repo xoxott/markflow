@@ -1,4 +1,4 @@
-import { type PropType, defineComponent, ref } from 'vue';
+import { type PropType, type VNode, defineComponent, ref } from 'vue';
 import {
   NButton,
   NForm,
@@ -216,7 +216,7 @@ export default defineComponent({
       </NForm>
     );
 
-    const sectionRenderers: Record<SectionKey, () => JSX.Element> = {
+    const sectionRenderers: Record<SectionKey, () => VNode> = {
       basic: renderBasic,
       prompt: renderPrompt,
       tools: renderTools,
