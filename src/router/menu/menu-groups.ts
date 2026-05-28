@@ -8,12 +8,22 @@ export const TOP_LEVEL_MENU_KEYS: Array<{ key: RouteKey; order: number }> = [
   { key: 'monitoring', order: 4 }
 ];
 
+export interface MenuSubGroupDefinition {
+  type: 'subgroup';
+  key: string;
+  i18nKey: App.I18n.I18nKey;
+  icon: string;
+  children: RouteKey[];
+}
+
+export type MenuGroupChild = RouteKey | MenuSubGroupDefinition;
+
 export interface MenuGroupDefinition {
   key: string;
   i18nKey: App.I18n.I18nKey;
   icon: string;
   order: number;
-  children: RouteKey[];
+  children: MenuGroupChild[];
 }
 
 /** 菜单分组：收纳平铺模块，不改变实际路由路径 */
@@ -30,8 +40,13 @@ export const MENU_GROUP_DEFINITIONS: MenuGroupDefinition[] = [
       'announcement-management',
       'notification-management',
       'alert-management',
-      'log-management',
-      'version-log-management'
+      {
+        type: 'subgroup',
+        key: 'log-management-group',
+        i18nKey: 'menuGroup.logManagement',
+        icon: 'mdi:file-document-multiple-outline',
+        children: ['log-management', 'version-log-management']
+      }
     ]
   },
   {

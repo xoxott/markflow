@@ -7,7 +7,11 @@ import type {
 } from '@elegant-router/types';
 import { useSvgIcon } from '@/hooks/common/icon';
 import { $t } from '@/locales';
-import { MENU_GROUP_DEFINITIONS, TOP_LEVEL_MENU_KEYS } from '@/router/menu/menu-groups';
+import {
+  MENU_GROUP_DEFINITIONS,
+  type MenuGroupChild,
+  TOP_LEVEL_MENU_KEYS
+} from '@/router/menu/menu-groups';
 
 /**
  * Filter auth routes by roles
@@ -106,6 +110,45 @@ export function getGlobalMenusByAuthRoutes(routes: ElegantConstRoute[]) {
  *
  * @param flatMenus Menus generated from flat auth routes
  */
+function resolveMenuGroupChild(
+  child: MenuGroupChild,
+  menuMap: Map<string, App.Global.Menu>,
+  groupedKeys: Set<string>,
+  SvgIconVNode: ReturnType<typeof useSvgIcon>['SvgIconVNode']
+): App.Global.Menu | null {
+  if (typeof child === 'string') {
+    const menu = menuMap.get(child);
+
+    if (menu) {
+      groupedKeys.add(child);
+    }
+
+    return menu ?? null;
+  }
+
+  const subChildren = child.children
+    .map(key => menuMap.get(key))
+    .filter((menu): menu is App.Global.Menu => Boolean(menu));
+
+  if (subChildren.length === 0) {
+    return null;
+  }
+
+  subChildren.forEach(subMenu => groupedKeys.add(subMenu.key));
+
+  const firstChild = subChildren[0];
+
+  return {
+    key: child.key,
+    label: $t(child.i18nKey),
+    i18nKey: child.i18nKey,
+    routeKey: firstChild.routeKey,
+    routePath: firstChild.routePath,
+    icon: SvgIconVNode({ icon: child.icon, fontSize: 20 }),
+    children: subChildren
+  };
+}
+
 export function groupGlobalMenus(flatMenus: App.Global.Menu[]) {
   const menuMap = new Map(flatMenus.map(menu => [menu.key, menu]));
   const groupedKeys = new Set<string>();
@@ -123,14 +166,12 @@ export function groupGlobalMenus(flatMenus: App.Global.Menu[]) {
 
   MENU_GROUP_DEFINITIONS.forEach(group => {
     const children = group.children
-      .map(key => menuMap.get(key))
+      .map(child => resolveMenuGroupChild(child, menuMap, groupedKeys, SvgIconVNode))
       .filter((menu): menu is App.Global.Menu => Boolean(menu));
 
     if (children.length === 0) {
       return;
     }
-
-    children.forEach(child => groupedKeys.add(child.key));
 
     const firstChild = children[0];
 

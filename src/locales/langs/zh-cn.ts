@@ -167,7 +167,8 @@ const local: App.I18n.Schema = {
   },
   menuGroup: {
     systemManagement: '系统管理',
-    devTools: '开发示例'
+    devTools: '开发示例',
+    logManagement: '日志管理'
   },
   route: {
     'login': '登录',

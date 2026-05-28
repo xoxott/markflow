@@ -427,6 +427,7 @@ declare namespace App {
       menuGroup: {
         systemManagement: string;
         devTools: string;
+        logManagement: string;
       };
       route: Record<I18nRouteKey, string>;
       page: {

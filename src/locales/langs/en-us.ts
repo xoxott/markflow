@@ -169,7 +169,8 @@ const local: App.I18n.Schema = {
   },
   menuGroup: {
     systemManagement: 'System Management',
-    devTools: 'Development & Examples'
+    devTools: 'Development & Examples',
+    logManagement: 'Log Management'
   },
   route: {
     'login': 'Login',
