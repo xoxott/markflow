@@ -23,10 +23,20 @@ export interface UseFlowCanvasShortcutsOptions {
   guidesManager: UseFlowCanvasStateReturn['guidesManager'];
   addNode: UseFlowCanvasStateReturn['addNode'];
   addEdge: UseFlowCanvasStateReturn['addEdge'];
+  /** 是否注册剪贴板快捷键（默认 true） */
+  clipboardShortcuts?: boolean;
 }
 
 export function useFlowCanvasShortcuts(options: UseFlowCanvasShortcutsOptions) {
-  const { canvasRef, config, flowState, guidesManager, addNode, addEdge } = options;
+  const {
+    canvasRef,
+    config,
+    flowState,
+    guidesManager,
+    addNode,
+    addEdge,
+    clipboardShortcuts = true
+  } = options;
 
   const {
     nodes,
@@ -159,17 +169,23 @@ export function useFlowCanvasShortcuts(options: UseFlowCanvasShortcutsOptions) {
     edges,
     removeNode,
     removeEdge,
-    clipboard: {
-      copy: () => {
-        copySelection().catch(err => logger.warn('[useFlowCanvasShortcuts] copy failed', err));
-      },
-      cut: () => {
-        cutSelection().catch(err => logger.warn('[useFlowCanvasShortcuts] cut failed', err));
-      },
-      paste: async () => {
-        await pasteClipboard();
-      }
-    },
+    ...(clipboardShortcuts
+      ? {
+          clipboard: {
+            copy: () => {
+              copySelection().catch(err =>
+                logger.warn('[useFlowCanvasShortcuts] copy failed', err)
+              );
+            },
+            cut: () => {
+              cutSelection().catch(err => logger.warn('[useFlowCanvasShortcuts] cut failed', err));
+            },
+            paste: async () => {
+              await pasteClipboard();
+            }
+          }
+        }
+      : {}),
     canvasRef
   });
 

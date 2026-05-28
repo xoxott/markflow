@@ -286,7 +286,8 @@ export function useFlowCanvasOrchestrator(
     flowState,
     guidesManager,
     addNode,
-    addEdge
+    addEdge,
+    clipboardShortcuts: props.clipboardShortcuts !== false
   });
 
   const { start: startPropsSync, stop: stopPropsSync } = useFlowCanvasPropsSync({

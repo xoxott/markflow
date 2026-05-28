@@ -11,6 +11,7 @@ import { FlowCanvas } from '@/components/flow';
 import type { UseWorkflowEditorReturn } from '../hooks/useWorkflowEditor';
 import type { WorkflowFlowCanvasExpose } from '../types/workflow-node-data';
 import WorkflowFlowOverlays from './WorkflowFlowOverlays';
+import WorkflowContextMenu from './WorkflowContextMenu';
 import { WORKFLOW_FLOW_CONFIG } from './workflow-flow-config';
 
 export default defineComponent({
@@ -66,6 +67,7 @@ export default defineComponent({
               id={`workflow-${props.workflowId ?? 'draft'}`}
               class="h-full w-full"
               config={WORKFLOW_FLOW_CONFIG}
+              clipboardShortcuts={false}
               initialNodes={nodes}
               initialEdges={edges}
               initialViewport={viewport}
@@ -77,6 +79,7 @@ export default defineComponent({
               onNodes-change={() => editor.markDirty()}
             >
               <WorkflowFlowOverlays editor={editor} onFitView={editor.fitView} />
+              <WorkflowContextMenu editor={editor} />
             </FlowCanvas>
           </div>
         </div>

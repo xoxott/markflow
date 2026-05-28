@@ -57,4 +57,6 @@ export interface FlowCanvasProps {
   class?: string;
   /** 跟随应用 Naive / themeStore 主题（默认 true） */
   syncAppTheme?: boolean;
+  /** 是否注册 Ctrl+C / X / V 剪贴板快捷键（默认 true；业务侧可关闭后自行处理） */
+  clipboardShortcuts?: boolean;
 }

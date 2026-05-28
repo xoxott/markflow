@@ -97,6 +97,11 @@ export default defineComponent({
     syncAppTheme: {
       type: Boolean,
       default: true
+    },
+    /** 是否注册 Ctrl+C / X / V 剪贴板快捷键（默认 true） */
+    clipboardShortcuts: {
+      type: Boolean,
+      default: true
     }
   },
   emits: [

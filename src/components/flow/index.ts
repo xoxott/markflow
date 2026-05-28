@@ -94,6 +94,8 @@ export { default as FlowMinimap } from './components/FlowMinimap';
 export { default as FlowToolbar } from './components/FlowToolbar';
 export { default as FlowEmptyState } from './components/FlowEmptyState';
 export { default as FlowPerformanceMonitor } from './components/FlowPerformanceMonitor';
+export { default as FlowContextMenu } from './components/FlowContextMenu';
+export type { FlowContextMenuProps } from './components/FlowContextMenu';
 export type {
   FlowMinimapProps,
   MinimapPosition,

@@ -271,7 +271,7 @@ export default defineComponent({
       props.canvasRef,
       'contextmenu',
       (event: MouseEvent) => {
-        if (!props.enabled || props.config.value.interaction?.enableContextMenu === false) {
+        if (!props.enabled) {
           return;
         }
 

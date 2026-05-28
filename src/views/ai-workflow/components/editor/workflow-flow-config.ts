@@ -40,7 +40,8 @@ export const WORKFLOW_FLOW_CONFIG: Partial<FlowConfig> = {
     enableMultiSelection: true,
     multiSelectKey: 'ctrl',
     enableBoxSelection: true,
-    boxSelectionKey: 'shift'
+    boxSelectionKey: 'shift',
+    enableContextMenu: false
   },
   performance: {
     enableViewportCulling: true,
