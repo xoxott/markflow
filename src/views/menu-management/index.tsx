@@ -52,6 +52,7 @@ export default defineComponent({
               default: () => (
                 <MenuTreePanel
                   treeData={filteredTree.value}
+                  pathTreeData={treeData.value}
                   loading={loading.value}
                   selectedKey={selectedKey.value}
                   searchKeyword={searchKeyword.value}
@@ -75,6 +76,10 @@ export default defineComponent({
           <MenuDetailPanel
             node={selectedNode.value}
             treeData={treeData.value}
+            onSelect={(id: string) => {
+              searchKeyword.value = '';
+              selectedKey.value = id;
+            }}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggle-status={handleToggleStatus}

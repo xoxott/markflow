@@ -6,13 +6,14 @@ import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
 import { MENU_TYPE_META } from '../constants';
 import type { MenuTreeNode } from '../types';
-import { getAllExpandableKeys } from '../utils/menu-tree';
+import { getAllExpandableKeys, findMenuPath } from '../utils/menu-tree';
 import MenuEmptyState from './MenuEmptyState';
 
 export default defineComponent({
   name: 'MenuTreePanel',
   props: {
     treeData: { type: Array as PropType<MenuTreeNode[]>, default: () => [] },
+    pathTreeData: { type: Array as PropType<MenuTreeNode[]>, default: undefined },
     loading: { type: Boolean, default: false },
     selectedKey: { type: String as PropType<string | null>, default: null },
     searchKeyword: { type: String, default: '' }
@@ -38,6 +39,19 @@ export default defineComponent({
         }
       },
       { immediate: true }
+    );
+
+    watch(
+      () => props.selectedKey,
+      key => {
+        if (!key) return;
+        const source = props.pathTreeData ?? props.treeData;
+        if (!source.length) return;
+        const path = findMenuPath(source, key);
+        if (path.length <= 1) return;
+        const ancestorKeys = path.slice(0, -1).map(node => node.id);
+        expandedKeys.value = [...new Set([...expandedKeys.value, ...ancestorKeys])];
+      }
     );
 
     const createOptions = computed<DropdownOption[]>(() => [

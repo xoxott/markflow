@@ -14,7 +14,7 @@ export default defineComponent({
     node: { type: Object as PropType<MenuTreeNode | null>, default: null },
     treeData: { type: Array as PropType<MenuTreeNode[]>, default: () => [] }
   },
-  emits: ['edit', 'delete', 'toggle-status', 'add-child'],
+  emits: ['edit', 'delete', 'toggle-status', 'add-child', 'select'],
   setup(props, { emit }) {
     const breadcrumb = computed(() =>
       props.node ? findMenuPath(props.treeData, props.node.id) : []
@@ -62,9 +62,24 @@ export default defineComponent({
               <div class="menu-management__panel-body">
                 {breadcrumb.value.length > 1 ? (
                   <NBreadcrumb>
-                    {breadcrumb.value.map(item => (
-                      <NBreadcrumbItem key={item.id}>{item.name}</NBreadcrumbItem>
-                    ))}
+                    {breadcrumb.value.map((item, index) => {
+                      const isLast = index === breadcrumb.value.length - 1;
+                      return (
+                        <NBreadcrumbItem
+                          key={item.id}
+                          clickable={!isLast}
+                          onClick={
+                            isLast
+                              ? undefined
+                              : () => {
+                                  emit('select', item.id);
+                                }
+                          }
+                        >
+                          {item.name}
+                        </NBreadcrumbItem>
+                      );
+                    })}
                   </NBreadcrumb>
                 ) : null}
 

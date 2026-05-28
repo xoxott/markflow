@@ -22,6 +22,10 @@
     font-size: 13px;
   }
 
+  :deep(.n-breadcrumb-item:not(.n-breadcrumb-item--clickable)) {
+    cursor: default;
+  }
+
   &__panel-title {
     font-size: 15px;
     font-weight: 600;
