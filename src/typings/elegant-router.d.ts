@@ -43,6 +43,11 @@ declare module "@elegant-router/types" {
     "menu-management": "/menu-management";
     "ai-workflow": "/ai-workflow";
     "ai-workflow-editor": "/ai-workflow/editor/:id";
+    "agent-management": "/agent-management";
+    "agent-management-editor": "/agent-management/editor/:id";
+    "model-profile-management": "/model-profile-management";
+    "agent-team-management": "/agent-team-management";
+    "agent-runtime": "/agent-runtime";
   };
 
   /**
@@ -100,6 +105,11 @@ declare module "@elegant-router/types" {
     | "menu-management"
     | "ai-workflow"
     | "ai-workflow-editor"
+    | "agent-management"
+    | "agent-management-editor"
+    | "model-profile-management"
+    | "agent-team-management"
+    | "agent-runtime"
   >;
 
   /**
@@ -142,6 +152,11 @@ declare module "@elegant-router/types" {
     | "menu-management"
     | "ai-workflow"
     | "ai-workflow-editor"
+    | "agent-management"
+    | "agent-management-editor"
+    | "model-profile-management"
+    | "agent-team-management"
+    | "agent-runtime"
   >;
 
   /**

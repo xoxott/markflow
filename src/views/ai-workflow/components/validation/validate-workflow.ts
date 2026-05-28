@@ -72,6 +72,35 @@ function collectValidationIssues(
         });
       }
     }
+
+    if (node.type === 'ai') {
+      const cfg = node.config as Api.Workflow.AINodeConfig;
+      const mode = cfg.mode ?? 'template';
+      if (mode === 'template' && !cfg.agentTemplateId) {
+        errors.push({
+          type: 'error',
+          nodeId: node.id,
+          code: 'AI_NO_TEMPLATE',
+          message: `AI 节点「${node.name}」未绑定智能体模板`
+        });
+      }
+      if (mode === 'manual' && !cfg.model) {
+        errors.push({
+          type: 'error',
+          nodeId: node.id,
+          code: 'AI_NO_MODEL',
+          message: `AI 节点「${node.name}」未配置模型`
+        });
+      }
+      if (mode === 'manual' && !cfg.prompt) {
+        errors.push({
+          type: 'warning',
+          nodeId: node.id,
+          code: 'AI_NO_PROMPT',
+          message: `AI 节点「${node.name}」未配置提示词`
+        });
+      }
+    }
   });
 
   detectCycles(nodes, connections).forEach(cycle => {

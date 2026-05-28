@@ -1,4 +1,4 @@
-import { type PropType, defineComponent, reactive, watch } from 'vue';
+import { type PropType, defineComponent, reactive, ref, watch } from 'vue';
 import {
   NButton,
   NDivider,
@@ -7,9 +7,12 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NSelect
+  NSelect,
+  NSwitch
 } from 'naive-ui';
+import { mockAgentApi } from '@/service/api/agent-mock';
 import { MonacoEditor } from '@/components/monaco';
+import AgentTemplateSelect from '@/components/agent/AgentTemplateSelect';
 
 /** 编辑器右侧内嵌配置面板（与画布同区域，不使用全局 Drawer） */
 export default defineComponent({
@@ -37,47 +40,111 @@ export default defineComponent({
       config: {}
     });
 
+    const manualOverride = ref(false);
+
     watch(
       () => props.node,
       node => {
         if (node) {
           formData.label = node.name || '';
           formData.description = node.description || '';
-          formData.config = { ...node.config };
+          formData.config = {
+            mode: 'template',
+            ...node.config
+          };
+          manualOverride.value = formData.config.mode === 'manual';
         }
       },
       { immediate: true }
     );
 
-    const handleSave = async () => {
-      if (!props.node || !props.onUpdate) return;
+    async function applyTemplate(template: Api.AgentManagement.AgentTemplateListItem) {
+      formData.config.agentTemplateId = template.id;
+      formData.config.agentTemplateVersion = template.version;
+      formData.config.mode = manualOverride.value ? 'manual' : 'template';
 
-      await props.onUpdate(props.node.id, {
-        name: formData.label,
-        description: formData.description,
-        config: formData.config
-      });
-    };
+      if (!manualOverride.value) {
+        formData.config.model = template.modelLabel ?? 'inherit';
+        formData.config.systemPrompt = template.systemPrompt;
+        formData.config.maxTokens = undefined;
+        if (template.maxTurns !== undefined && template.maxTurns !== null) {
+          formData.config.overrides = {
+            ...formData.config.overrides,
+            maxTurns: template.maxTurns
+          };
+        }
+      }
+
+      if (props.node && props.onUpdate) {
+        await props.onUpdate(props.node.id, {
+          config: { ...formData.config }
+        });
+      }
+    }
 
     const renderAIConfig = () => (
       <>
-        <NFormItem label="模型">
-          <NSelect
-            v-model:value={formData.config.model}
-            options={[
-              { label: 'GPT-4', value: 'gpt-4' },
-              { label: 'GPT-3.5', value: 'gpt-3.5-turbo' },
-              { label: 'Claude', value: 'claude-3' }
-            ]}
-            placeholder="选择AI模型"
-          />
+        <NFormItem label="配置模式">
+          <NSwitch
+            value={manualOverride.value}
+            onUpdateValue={(v: boolean) => {
+              manualOverride.value = v;
+              formData.config.mode = v ? 'manual' : 'template';
+            }}
+          >
+            {{
+              checked: () => '手动覆盖',
+              unchecked: () => '模板绑定'
+            }}
+          </NSwitch>
         </NFormItem>
+
+        {!manualOverride.value ? (
+          <NFormItem label="智能体模板">
+            <AgentTemplateSelect
+              value={formData.config.agentTemplateId}
+              onUpdateValue={async (_id, template) => {
+                if (template) await applyTemplate(template);
+              }}
+            />
+          </NFormItem>
+        ) : (
+          <NFormItem label="模型">
+            <NSelect
+              v-model:value={formData.config.model}
+              options={[
+                { label: 'GPT-4', value: 'gpt-4' },
+                { label: 'GPT-3.5', value: 'gpt-3.5-turbo' },
+                { label: 'Claude', value: 'claude-3' }
+              ]}
+              placeholder="选择AI模型"
+            />
+          </NFormItem>
+        )}
+
+        {formData.config.agentTemplateId && !manualOverride.value && (
+          <NFormItem label="模板版本">
+            <span class="text-xs text-gray-500">
+              v{formData.config.agentTemplateVersion ?? '?'}
+            </span>
+          </NFormItem>
+        )}
+
         <NFormItem label="提示词">
           <NInput
             v-model:value={formData.config.prompt}
             type="textarea"
             rows={4}
             placeholder="输入提示词"
+          />
+        </NFormItem>
+        <NFormItem label="系统提示">
+          <NInput
+            v-model:value={formData.config.systemPrompt}
+            type="textarea"
+            rows={3}
+            placeholder="系统提示（模板模式下可覆盖）"
+            disabled={!manualOverride.value && !!formData.config.agentTemplateId}
           />
         </NFormItem>
         <NFormItem label="温度">
@@ -234,6 +301,25 @@ export default defineComponent({
         default:
           return null;
       }
+    };
+
+    const handleSave = async () => {
+      if (!props.node || !props.onUpdate) return;
+
+      if (
+        formData.config.mode !== 'manual' &&
+        formData.config.agentTemplateId &&
+        !formData.config.agentTemplateVersion
+      ) {
+        const detail = await mockAgentApi.fetchAgentDetail(formData.config.agentTemplateId);
+        formData.config.agentTemplateVersion = detail.data.version;
+      }
+
+      await props.onUpdate(props.node.id, {
+        name: formData.label,
+        description: formData.description,
+        config: formData.config
+      });
     };
 
     return () => {

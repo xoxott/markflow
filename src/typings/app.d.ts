@@ -425,6 +425,7 @@ declare namespace App {
         };
       };
       menuGroup: {
+        aiManagement: string;
         systemManagement: string;
         devTools: string;
         logManagement: string;
@@ -715,6 +716,35 @@ declare namespace App {
           statusUpdated: string;
           sidebarRefreshed: string;
           confirmDelete: string;
+        };
+        agentManagement: {
+          add: string;
+          searchPlaceholder: string;
+          name: string;
+          agentType: string;
+          source: string;
+          model: string;
+          tools: string;
+          status: string;
+          version: string;
+          updatedAt: string;
+          copy: string;
+          publish: string;
+          disable: string;
+          export: string;
+          reloadRegistry: string;
+        };
+        modelProfileManagement: {
+          add: string;
+          searchPlaceholder: string;
+          name: string;
+          provider: string;
+          modelId: string;
+          credential: string;
+          default: string;
+          enabled: string;
+          testConnection: string;
+          credentialDialogTitle: string;
         };
         announcementManagement: {
           title: string;

@@ -168,6 +168,7 @@ const local: App.I18n.Schema = {
     }
   },
   menuGroup: {
+    aiManagement: 'AI Management',
     systemManagement: 'System Management',
     devTools: 'Development & Examples',
     logManagement: 'Log Management'
@@ -198,7 +199,12 @@ const local: App.I18n.Schema = {
     'version-log-management': 'Version Logs',
     'menu-management': 'Menu Management',
     'ai-workflow': 'AI Workflow',
-    'ai-workflow-editor': 'AI Workflow Editor'
+    'ai-workflow-editor': 'AI Workflow Editor',
+    'agent-management': 'Agent Management',
+    'agent-management-editor': 'Agent Editor',
+    'model-profile-management': 'Model Profiles',
+    'agent-team-management': 'Agent Teams',
+    'agent-runtime': 'Agent Runtime'
   },
   page: {
     login: {
@@ -496,6 +502,35 @@ const local: App.I18n.Schema = {
       statusUpdated: 'Status updated',
       sidebarRefreshed: 'Sidebar refreshed',
       confirmDelete: 'Delete menu "{name}"?'
+    },
+    agentManagement: {
+      add: 'New Agent',
+      searchPlaceholder: 'Search name, agent type or description',
+      name: 'Name',
+      agentType: 'Agent Type',
+      source: 'Source',
+      model: 'Model',
+      tools: 'Tools',
+      status: 'Status',
+      version: 'Version',
+      updatedAt: 'Updated At',
+      copy: 'Copy',
+      publish: 'Publish',
+      disable: 'Disable',
+      export: 'Export',
+      reloadRegistry: 'Reload Registry'
+    },
+    modelProfileManagement: {
+      add: 'New Model Profile',
+      searchPlaceholder: 'Search name or model ID',
+      name: 'Name',
+      provider: 'Provider',
+      modelId: 'Model ID',
+      credential: 'Credential',
+      default: 'Default',
+      enabled: 'Enabled',
+      testConnection: 'Test Connection',
+      credentialDialogTitle: 'Configure API Credential'
     },
     announcementManagement: {
       title: 'Announcement Management',

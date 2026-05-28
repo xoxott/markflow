@@ -296,7 +296,7 @@ importers:
         version: 7.7.6(rollup@4.53.2)(vite@6.3.5(@types/node@22.15.17)(jiti@2.6.1)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1))(vue@3.5.13(typescript@5.6.3))
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
       vue-eslint-parser:
         specifier: 10.1.3
         version: 10.1.3(eslint@9.26.0(jiti@2.6.1))
@@ -324,7 +324,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-agent-session:
     dependencies:
@@ -343,7 +343,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-auth:
     dependencies:
@@ -359,7 +359,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-commands:
     dependencies:
@@ -381,7 +381,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-context:
     dependencies:
@@ -394,7 +394,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-coordinator:
     dependencies:
@@ -413,7 +413,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-hooks:
     dependencies:
@@ -429,7 +429,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-mcp:
     dependencies:
@@ -448,7 +448,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-memory:
     dependencies:
@@ -461,7 +461,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-recovery:
     dependencies:
@@ -477,7 +477,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-runtime:
     dependencies:
@@ -529,7 +529,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-sdk:
     dependencies:
@@ -596,7 +596,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-server:
     dependencies:
@@ -627,7 +627,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-skill:
     dependencies:
@@ -649,7 +649,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-state:
     dependencies:
@@ -674,7 +674,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-stream-executor:
     dependencies:
@@ -690,7 +690,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-subagent:
     dependencies:
@@ -718,7 +718,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-tool-adapter:
     dependencies:
@@ -737,7 +737,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-tool-core:
     dependencies:
@@ -750,7 +750,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-tools:
     dependencies:
@@ -778,7 +778,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/ai-web-server:
     dependencies:
@@ -809,7 +809,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/alova:
     dependencies:
@@ -936,7 +936,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.6.3)
@@ -983,7 +983,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^4.0.8
-        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+        version: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   packages/materials:
     dependencies:
@@ -8458,7 +8458,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
+      vitest: 4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1)
 
   '@vitest/utils@4.0.16':
     dependencies:
@@ -12979,7 +12979,7 @@ snapshots:
       tsx: 4.19.4
       yaml: 2.8.1
 
-  vitest@4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16(vitest@4.0.8))(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1):
+  vitest@4.0.8(@types/debug@4.1.12)(@types/node@22.15.17)(@vitest/ui@4.0.16)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@26.1.0)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1):
     dependencies:
       '@vitest/expect': 4.0.8
       '@vitest/mocker': 4.0.8(vite@6.3.5(@types/node@22.15.17)(jiti@2.6.1)(sass@1.88.0)(tsx@4.19.4)(yaml@2.8.1))

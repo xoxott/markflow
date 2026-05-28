@@ -21,6 +21,7 @@
 /// <reference path="./api/monitoring.d.ts" />
 /// <reference path="./api/knowledge-base.d.ts" />
 /// <reference path="./api/menu-management.d.ts" />
+/// <reference path="./api/agent-management.d.ts" />
 
 declare namespace Api {
   // All API types are now defined in separate files

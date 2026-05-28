@@ -289,5 +289,61 @@ export const generatedRoutes: GeneratedRoute[] = [
       hideInMenu: true,
       activeMenu: 'ai-workflow'
     }
+  },
+  {
+    name: 'agent-management',
+    path: '/agent-management',
+    component: 'layout.base$view.agent-management',
+    meta: {
+      title: 'agent-management',
+      i18nKey: 'route.agent-management',
+      icon: 'mdi:robot-outline',
+      order: 3
+    }
+  },
+  {
+    name: 'agent-management-editor',
+    path: '/agent-management/editor/:id',
+    component: 'layout.base$view.agent-management-editor',
+    props: true,
+    meta: {
+      title: 'agent-management-editor',
+      i18nKey: 'route.agent-management-editor',
+      hideInMenu: true,
+      activeMenu: 'agent-management'
+    }
+  },
+  {
+    name: 'model-profile-management',
+    path: '/model-profile-management',
+    component: 'layout.base$view.model-profile-management',
+    meta: {
+      title: 'model-profile-management',
+      i18nKey: 'route.model-profile-management',
+      icon: 'mdi:brain',
+      order: 4
+    }
+  },
+  {
+    name: 'agent-team-management',
+    path: '/agent-team-management',
+    component: 'layout.base$view.agent-team-management',
+    meta: {
+      title: 'agent-team-management',
+      i18nKey: 'route.agent-team-management',
+      icon: 'mdi:account-group-outline',
+      order: 5
+    }
+  },
+  {
+    name: 'agent-runtime',
+    path: '/agent-runtime',
+    component: 'layout.base$view.agent-runtime',
+    meta: {
+      title: 'agent-runtime',
+      i18nKey: 'route.agent-runtime',
+      icon: 'mdi:chart-timeline-variant',
+      order: 6
+    }
   }
 ];

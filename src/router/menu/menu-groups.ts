@@ -29,6 +29,18 @@ export interface MenuGroupDefinition {
 /** 菜单分组：收纳平铺模块，不改变实际路由路径 */
 export const MENU_GROUP_DEFINITIONS: MenuGroupDefinition[] = [
   {
+    key: 'ai-management',
+    i18nKey: 'menuGroup.aiManagement',
+    icon: 'mdi:robot-outline',
+    order: 3,
+    children: [
+      'agent-management',
+      'model-profile-management',
+      'agent-team-management',
+      'agent-runtime'
+    ]
+  },
+  {
     key: 'system-management',
     i18nKey: 'menuGroup.systemManagement',
     icon: 'mdi:cog-outline',

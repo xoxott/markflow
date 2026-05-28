@@ -38,5 +38,10 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   'log-management': () => import('@/views/log-management/index'),
   'version-log-management': () => import('@/views/version-log-management/index'),
   'ai-workflow': () => import('@/views/ai-workflow/index'),
-  'ai-workflow-editor': () => import('@/views/ai-workflow/editor/index')
+  'ai-workflow-editor': () => import('@/views/ai-workflow/editor/index'),
+  'agent-management': () => import('@/views/agent-management/index'),
+  'agent-management-editor': () => import('@/views/agent-management/editor/index'),
+  'model-profile-management': () => import('@/views/model-profile-management/index'),
+  'agent-team-management': () => import('@/views/agent-team-management/index'),
+  'agent-runtime': () => import('@/views/agent-runtime/index')
 };

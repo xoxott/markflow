@@ -166,6 +166,7 @@ const local: App.I18n.Schema = {
     }
   },
   menuGroup: {
+    aiManagement: 'AI 管理',
     systemManagement: '系统管理',
     devTools: '开发示例',
     logManagement: '日志管理'
@@ -196,7 +197,12 @@ const local: App.I18n.Schema = {
     'version-log-management': '版本日志',
     'menu-management': '菜单管理',
     'ai-workflow': 'AI工作流',
-    'ai-workflow-editor': 'AI工作流编辑器'
+    'ai-workflow-editor': 'AI工作流编辑器',
+    'agent-management': '智能体管理',
+    'agent-management-editor': '智能体编辑器',
+    'model-profile-management': '模型配置',
+    'agent-team-management': '团队编排',
+    'agent-runtime': '运行监控'
   },
   page: {
     login: {
@@ -489,6 +495,35 @@ const local: App.I18n.Schema = {
       statusUpdated: '状态已更新',
       sidebarRefreshed: '侧边栏已刷新',
       confirmDelete: '确定删除菜单「{name}」吗？'
+    },
+    agentManagement: {
+      add: '新建智能体',
+      searchPlaceholder: '搜索名称、Agent Type 或描述',
+      name: '名称',
+      agentType: 'Agent Type',
+      source: '来源',
+      model: '模型',
+      tools: '工具',
+      status: '状态',
+      version: '版本',
+      updatedAt: '更新时间',
+      copy: '复制',
+      publish: '发布',
+      disable: '停用',
+      export: '导出',
+      reloadRegistry: '重载 Registry'
+    },
+    modelProfileManagement: {
+      add: '新建模型配置',
+      searchPlaceholder: '搜索名称或 Model ID',
+      name: '名称',
+      provider: 'Provider',
+      modelId: 'Model ID',
+      credential: '凭证',
+      default: '默认',
+      enabled: '启用',
+      testConnection: '测试连接',
+      credentialDialogTitle: '配置 API 凭证'
     },
     announcementManagement: {
       title: '公告管理',

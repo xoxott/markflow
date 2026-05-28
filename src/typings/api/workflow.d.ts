@@ -83,11 +83,23 @@ declare namespace Api {
 
     /** AI 节点配置 */
     interface AINodeConfig {
-      model: string;
-      prompt: string;
+      /** 引用模式：模板 vs 手动 */
+      mode?: 'template' | 'manual';
+      /** 已发布智能体模板 ID */
+      agentTemplateId?: string;
+      /** 绑定时的模板版本快照 */
+      agentTemplateVersion?: number;
+      /** manual 模式或 override */
+      model?: string;
+      prompt?: string;
       temperature?: number;
       maxTokens?: number;
       systemPrompt?: string;
+      /** 节点级覆盖 */
+      overrides?: {
+        maxTurns?: number;
+        tools?: string[];
+      };
     }
 
     /** HTTP 节点配置 */

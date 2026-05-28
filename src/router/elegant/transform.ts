@@ -189,7 +189,12 @@ const routeMap: RouteMap = {
   'version-log-management': '/version-log-management',
   'menu-management': '/menu-management',
   'ai-workflow': '/ai-workflow',
-  'ai-workflow-editor': '/ai-workflow/editor/:id'
+  'ai-workflow-editor': '/ai-workflow/editor/:id',
+  'agent-management': '/agent-management',
+  'agent-management-editor': '/agent-management/editor/:id',
+  'model-profile-management': '/model-profile-management',
+  'agent-team-management': '/agent-team-management',
+  'agent-runtime': '/agent-runtime'
 };
 
 /**
