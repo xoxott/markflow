@@ -1,9 +1,17 @@
 <script lang="ts" setup>
-defineOptions({ name: 'SystemLogo' });
+import logoSvg from '@/assets/svg-icon/logo.svg?raw';
+
+defineOptions({ name: 'SystemLogo', inheritAttrs: false });
 </script>
 
 <template>
-  <IconLocalLogo />
+  <span class="system-logo inline-flex shrink-0" v-bind="$attrs" v-html="logoSvg" />
 </template>
 
-<style scoped></style>
+<style scoped>
+.system-logo :deep(svg) {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+</style>
