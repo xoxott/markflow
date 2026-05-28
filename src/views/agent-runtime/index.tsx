@@ -1,4 +1,4 @@
-import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
+import { computed, defineComponent, getCurrentInstance, nextTick, ref } from 'vue';
 import {
   NButton,
   NDrawer,
@@ -33,6 +33,10 @@ const RUN_STATUS_TYPE: Record<string, 'default' | 'success' | 'warning' | 'error
   failed: 'error',
   stopped: 'warning'
 };
+
+function releaseFocus() {
+  (document.activeElement as HTMLElement | null)?.blur?.();
+}
 
 export default defineComponent({
   name: 'AgentRuntime',
@@ -121,6 +125,7 @@ export default defineComponent({
     ]);
 
     async function handleViewRuns(session: Session) {
+      releaseFocus();
       sessionFilter.value = session.sessionId;
       (runsTable.searchParams as Api.AgentManagement.AgentRunListParams).sessionId =
         session.sessionId;
@@ -129,6 +134,7 @@ export default defineComponent({
     }
 
     async function handleStopSession(session: Session) {
+      releaseFocus();
       await dialog.confirm({
         title: '停止会话',
         content: `确定停止会话 "${session.title ?? session.sessionId}" 吗？`,
@@ -150,9 +156,11 @@ export default defineComponent({
     }
 
     async function handleViewEvents(run: Run) {
+      releaseFocus();
       selectedRun.value = run;
       const result = await fetchAgentRunEvents(run.runId);
       events.value = result.data;
+      await nextTick();
       eventsVisible.value = true;
     }
 
@@ -237,7 +245,7 @@ export default defineComponent({
 
     return () => (
       <div class="h-full flex flex-col p-4">
-        <NTabs v-model:value={activeTab.value} type="line" animated>
+        <NTabs v-model:value={activeTab.value} type="line" animated={false}>
           <NTabPane name="sessions" tab="Sessions">
             <TablePage
               class="h-full"
@@ -285,9 +293,11 @@ export default defineComponent({
         <NDrawer
           show={eventsVisible.value}
           width={520}
+          trapFocus
+          autoFocus
           onUpdateShow={(v: boolean) => (eventsVisible.value = v)}
         >
-          <NDrawerContent title={`Run 事件 — ${selectedRun.value?.runId ?? ''}`}>
+          <NDrawerContent closable title={`Run 事件 — ${selectedRun.value?.runId ?? ''}`}>
             <div class="space-y-2">
               {events.value.map(e => (
                 <div key={e.seq} class="border rounded p-2 text-xs">
