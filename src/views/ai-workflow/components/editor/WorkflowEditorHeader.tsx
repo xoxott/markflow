@@ -88,7 +88,7 @@ export default defineComponent({
           <NTooltip>
             {{
               trigger: () => (
-                <NButton size="tiny" quaternary disabled={!props.canUndo} onClick={props.onUndo}>
+                <NButton size="small" quaternary disabled={!props.canUndo} onClick={props.onUndo}>
                   <NIcon size={16}>
                     <Icon icon="mdi:undo" />
                   </NIcon>
@@ -100,7 +100,7 @@ export default defineComponent({
           <NTooltip>
             {{
               trigger: () => (
-                <NButton size="tiny" quaternary disabled={!props.canRedo} onClick={props.onRedo}>
+                <NButton size="small" quaternary disabled={!props.canRedo} onClick={props.onRedo}>
                   <NIcon size={16}>
                     <Icon icon="mdi:redo" />
                   </NIcon>
@@ -115,7 +115,7 @@ export default defineComponent({
           <NTooltip>
             {{
               trigger: () => (
-                <NButton size="tiny" quaternary onClick={props.onFitView}>
+                <NButton size="small" quaternary onClick={props.onFitView}>
                   <NIcon size={16}>
                     <Icon icon="mdi:fit-to-screen" />
                   </NIcon>
@@ -128,7 +128,7 @@ export default defineComponent({
             {{
               trigger: () => (
                 <NButton
-                  size="tiny"
+                  size="small"
                   quaternary
                   type={props.showMinimap ? 'primary' : 'default'}
                   onClick={props.onToggleMinimap}
@@ -144,7 +144,7 @@ export default defineComponent({
           <NTooltip>
             {{
               trigger: () => (
-                <NButton size="tiny" quaternary onClick={props.onValidate}>
+                <NButton size="small" quaternary onClick={props.onValidate}>
                   <NIcon size={16}>
                     <Icon icon="mdi:check-circle-outline" />
                   </NIcon>
@@ -160,7 +160,7 @@ export default defineComponent({
             {{
               trigger: () => (
                 <NButton
-                  size="tiny"
+                  size="small"
                   quaternary
                   type={props.showLeftPanel ? 'primary' : 'default'}
                   onClick={props.onToggleLeftPanel}
@@ -177,7 +177,7 @@ export default defineComponent({
             {{
               trigger: () => (
                 <NButton
-                  size="tiny"
+                  size="small"
                   quaternary
                   type={props.showRightPanel ? 'primary' : 'default'}
                   onClick={props.onToggleRightPanel}
@@ -193,10 +193,10 @@ export default defineComponent({
         </div>
 
         <div class="workflow-editor-header__save-group">
-          <NButton size="tiny" onClick={props.onClear}>
+          <NButton size="small" secondary onClick={props.onClear}>
             清空
           </NButton>
-          <NButton size="tiny" type="primary" loading={props.isSaving} onClick={props.onSave}>
+          <NButton size="small" type="primary" loading={props.isSaving} onClick={props.onSave}>
             保存
           </NButton>
         </div>

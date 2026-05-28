@@ -1,25 +1,19 @@
-import { defineComponent, getCurrentInstance, reactive, ref } from 'vue';
+import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  NButton,
-  NCard,
-  NDataTable,
-  NForm,
-  NFormItem,
-  NInput,
-  NSelect,
-  NSpace,
-  NTag,
-  useMessage
-} from 'naive-ui';
+import { useMessage } from 'naive-ui';
 import { mockWorkflowApi } from '@/service/api/workflow-mock';
-import { useTable } from '@/hooks/common/table';
-import { useNaiveForm } from '@/hooks/common/form';
 import { useDialog } from '@/components/base-dialog/useDialog';
+import TablePage from '@/components/table-page/TablePage';
+import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
 // 暂时使用 Mock 数据，后续替换为真实 API
 import type { WorkflowFormData } from './components/dialogs/dialog';
 import { useWorkflowDialog } from './components';
+import {
+  WORKFLOW_LIST_SCROLL_X,
+  createWorkflowSearchFields,
+  createWorkflowTableColumns
+} from './listUiConfig';
 
 const {
   fetchWorkflowList,
@@ -43,152 +37,16 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const dialog = useDialog(instance?.appContext.app);
     const workflowDialog = useWorkflowDialog();
-    const { formRef: searchFormRef, resetFields } = useNaiveForm();
 
     const selectedRowKeys = ref<string[]>([]);
 
-    // 搜索表单
-    const searchForm = reactive({
-      search: '',
-      status: undefined as Api.Workflow.WorkflowStatus | undefined
-    });
-
-    // 状态选项
-    const statusOptions = [
-      { label: '全部', value: undefined },
-      { label: '草稿', value: 'draft' },
-      { label: '已发布', value: 'published' },
-      { label: '已归档', value: 'archived' }
-    ];
-
-    const statusTypeMap = {
-      draft: 'default',
-      published: 'success',
-      archived: 'warning'
-    } as const;
-
-    const statusLabelMap = {
-      draft: '草稿',
-      published: '已发布',
-      archived: '已归档'
-    };
-
-    // 创建表格列
-    function createColumns() {
-      return [
-        {
-          type: 'selection',
-          width: 50
-        },
-        {
-          title: $t('common.index'),
-          key: 'index',
-          width: 80
-        },
-        {
-          title: '名称',
-          key: 'name',
-          width: 200,
-          ellipsis: {
-            tooltip: true
-          }
-        },
-        {
-          title: '描述',
-          key: 'description',
-          width: 250,
-          ellipsis: {
-            tooltip: true
-          },
-          render: (row: Workflow) => row.description || '-'
-        },
-        {
-          title: '状态',
-          key: 'status',
-          width: 100,
-          render: (row: Workflow) => (
-            <NTag type={statusTypeMap[row.status]}>{statusLabelMap[row.status]}</NTag>
-          )
-        },
-        {
-          title: '版本',
-          key: 'version',
-          width: 80,
-          render: (row: Workflow) => `v${row.version}`
-        },
-        {
-          title: '节点数',
-          key: 'nodeCount',
-          width: 100
-        },
-        {
-          title: '执行次数',
-          key: 'executionCount',
-          width: 100
-        },
-        {
-          title: '最后执行时间',
-          key: 'lastExecutedAt',
-          width: 180,
-          render: (row: Workflow) => {
-            if (!row.lastExecutedAt) return '-';
-            return new Date(row.lastExecutedAt).toLocaleString('zh-CN');
-          }
-        },
-        {
-          title: '创建时间',
-          key: 'createdAt',
-          width: 180,
-          render: (row: Workflow) => new Date(row.createdAt).toLocaleString('zh-CN')
-        },
-        {
-          title: $t('common.operate'),
-          key: 'operate',
-          width: 380,
-          fixed: 'right',
-          render: (row: Workflow) => (
-            <NSpace size="small">
-              <NButton size="small" type="primary" onClick={() => handleEdit(row)}>
-                编辑
-              </NButton>
-              <NButton size="small" onClick={() => handleCopy(row)}>
-                复制
-              </NButton>
-              <NButton size="small" type="info" onClick={() => handleExecute(row)}>
-                执行
-              </NButton>
-              <NButton size="small" onClick={() => handleVersionHistory(row)}>
-                版本
-              </NButton>
-              {row.status === 'draft' && (
-                <NButton size="small" type="success" onClick={() => handlePublish(row)}>
-                  发布
-                </NButton>
-              )}
-              {row.status === 'published' && (
-                <NButton size="small" type="warning" onClick={() => handleArchive(row)}>
-                  归档
-                </NButton>
-              )}
-              <NButton size="small" type="error" onClick={() => handleDelete(row)}>
-                {$t('common.delete')}
-              </NButton>
-            </NSpace>
-          )
-        }
-      ];
-    }
-
-    // 表格配置
-    const { columns, data, loading, pagination, getData, updateSearchParams, resetSearchParams } =
-      useTable({
+    const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
+      useAdminListTable({
         apiFn: fetchWorkflowList,
-        apiParams: {
-          page: 1,
-          limit: 10,
-          ...searchForm
+        listFilters: {
+          search: '',
+          status: undefined
         },
-        columns: () => createColumns() as any,
         showTotal: true,
         immediate: true
       });
@@ -318,22 +176,6 @@ export default defineComponent({
       });
     }
 
-    // 搜索
-    function handleSearch() {
-      updateSearchParams({
-        page: 1,
-        ...searchForm
-      });
-      getData();
-    }
-
-    // 重置
-    function handleReset() {
-      resetFields();
-      resetSearchParams();
-      getData();
-    }
-
     // 批量删除
     async function handleBatchDelete() {
       if (selectedRowKeys.value.length === 0) {
@@ -353,77 +195,48 @@ export default defineComponent({
       });
     }
 
+    const searchConfig = computed(() => createWorkflowSearchFields());
+
+    const tableColumns = computed(() =>
+      createWorkflowTableColumns({
+        onEdit: handleEdit,
+        onCopy: handleCopy,
+        onExecute: handleExecute,
+        onVersion: handleVersionHistory,
+        onPublish: handlePublish,
+        onArchive: handleArchive,
+        onDelete: handleDelete
+      })
+    );
+
     return () => (
-      <NSpace vertical size={16}>
-        {/* 搜索栏 */}
-        <NCard>
-          <NForm ref={searchFormRef} model={searchForm} inline>
-            <NFormItem path="search">
-              <NInput
-                v-model:value={searchForm.search}
-                placeholder="搜索工作流名称或描述"
-                style={{ width: '250px' }}
-                clearable
-                onKeyup={(e: KeyboardEvent) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  }
-                }}
-              />
-            </NFormItem>
-            <NFormItem path="status">
-              <NSelect
-                v-model:value={searchForm.status}
-                placeholder="选择状态"
-                style={{ width: '120px' }}
-                clearable
-                options={statusOptions}
-              />
-            </NFormItem>
-            <NFormItem>
-              <NSpace>
-                <NButton type="primary" onClick={handleSearch}>
-                  {$t('common.search')}
-                </NButton>
-                <NButton onClick={handleReset}>{$t('common.reset')}</NButton>
-              </NSpace>
-            </NFormItem>
-          </NForm>
-        </NCard>
-
-        {/* 操作栏 */}
-        <NCard>
-          <NSpace>
-            <NButton type="primary" onClick={handleAdd}>
-              新建工作流
-            </NButton>
-            <NButton
-              type="error"
-              disabled={selectedRowKeys.value.length === 0}
-              onClick={handleBatchDelete}
-            >
-              {$t('common.batchDelete')}
-            </NButton>
-            <NButton onClick={getData}>{$t('common.refresh')}</NButton>
-          </NSpace>
-        </NCard>
-
-        {/* 表格 */}
-        <NCard>
-          <NDataTable
-            columns={columns.value as any}
-            data={data.value}
-            loading={loading.value}
-            pagination={pagination}
-            rowKey={(row: Workflow) => row.id}
-            checkedRowKeys={selectedRowKeys.value}
-            onUpdateCheckedRowKeys={keys => {
-              selectedRowKeys.value = keys as string[];
-            }}
-            scrollX={2000}
-          />
-        </NCard>
-      </NSpace>
+      <TablePage
+        class="h-full"
+        searchConfig={searchConfig.value}
+        searchModel={searchParams}
+        onSearch={onSearch}
+        onReset={onReset}
+        actionConfig={{
+          preset: {
+            add: { label: '新建工作流', onClick: handleAdd },
+            batchDelete: { onClick: handleBatchDelete },
+            refresh: { onClick: getData }
+          }
+        }}
+        columns={tableColumns.value}
+        data={data.value}
+        loading={loading.value}
+        pagination={pagination}
+        selectedKeys={selectedRowKeys.value}
+        onUpdateSelectedKeys={keys => {
+          selectedRowKeys.value = keys as string[];
+        }}
+        rowKey="id"
+        scrollX={WORKFLOW_LIST_SCROLL_X}
+        searchLabelWidth={96}
+        searchCardBordered={false}
+        actionCardBordered={false}
+      />
     );
   }
 });
