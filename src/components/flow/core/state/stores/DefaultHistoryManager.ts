@@ -30,6 +30,8 @@ export class DefaultHistoryManager implements IHistoryManager {
   private maxHistorySize: number = 50;
   /** 历史变化订阅者 */
   private listeners: Set<() => void> = new Set();
+  /** 正在从快照恢复（撤销/重做/restore 期间为 true，用于抑制自动 pushHistory） */
+  private restoringDepth = 0;
 
   constructor(store: IStateStore, options?: DefaultHistoryManagerOptions) {
     this.store = store;
@@ -50,6 +52,11 @@ export class DefaultHistoryManager implements IHistoryManager {
         console.error('[FlowHistoryManager] listener error:', error);
       }
     });
+  }
+
+  /** 是否正在从快照恢复状态（自动历史记录应跳过） */
+  isRestoring(): boolean {
+    return this.restoringDepth > 0;
   }
 
   /** 订阅历史变化（push / undo / redo / clear / restore / reset 都会触发） */
@@ -187,19 +194,24 @@ export class DefaultHistoryManager implements IHistoryManager {
    * @param snapshot 状态快照
    */
   restoreSnapshot(snapshot: FlowStateSnapshot): void {
-    // 恢复节点
-    this.store.setNodes(snapshot.nodes);
+    this.restoringDepth += 1;
+    try {
+      // 恢复节点
+      this.store.setNodes(snapshot.nodes);
 
-    // 恢复连接线
-    this.store.setEdges(snapshot.edges);
+      // 恢复连接线
+      this.store.setEdges(snapshot.edges);
 
-    // 恢复视口
-    this.store.setViewport(snapshot.viewport);
+      // 恢复视口
+      this.store.setViewport(snapshot.viewport);
 
-    // 恢复选择状态（如果支持）
-    if (this.store.setSelectedNodeIds && this.store.setSelectedEdgeIds) {
-      this.store.setSelectedNodeIds(snapshot.selectedNodeIds);
-      this.store.setSelectedEdgeIds(snapshot.selectedEdgeIds);
+      // 恢复选择状态（如果支持）
+      if (this.store.setSelectedNodeIds && this.store.setSelectedEdgeIds) {
+        this.store.setSelectedNodeIds(snapshot.selectedNodeIds);
+        this.store.setSelectedEdgeIds(snapshot.selectedEdgeIds);
+      }
+    } finally {
+      this.restoringDepth -= 1;
     }
   }
 

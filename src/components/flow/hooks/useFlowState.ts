@@ -6,7 +6,6 @@
  */
 
 import { type Ref, markRaw, onUnmounted, ref } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
 import { DefaultStateStore } from '../core/state/stores/DefaultStateStore';
 import { DefaultHistoryManager } from '../core/state/stores/DefaultHistoryManager';
 import type {
@@ -218,19 +217,50 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
 
   const unsubscribeHistory = historyManager.subscribe?.(syncHistoryFlags) ?? (() => {});
 
-  if (autoSaveHistory) {
-    const debouncedPushHistory = useDebounceFn(() => {
-      historyManager.pushHistory();
-    }, 300);
+  const HISTORY_DEBOUNCE_MS = 300;
+  let historyDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let historyPushPending = false;
 
+  const flushPendingHistoryPush = () => {
+    if (historyDebounceTimer !== null) {
+      clearTimeout(historyDebounceTimer);
+      historyDebounceTimer = null;
+    }
+    if (historyPushPending) {
+      historyPushPending = false;
+      historyManager.pushHistory();
+    }
+  };
+
+  const scheduleHistoryPush = () => {
+    if (historyManager.isRestoring()) {
+      return;
+    }
+    historyPushPending = true;
+    if (historyDebounceTimer !== null) {
+      clearTimeout(historyDebounceTimer);
+    }
+    historyDebounceTimer = setTimeout(() => {
+      historyDebounceTimer = null;
+      if (historyPushPending) {
+        historyPushPending = false;
+        historyManager.pushHistory();
+      }
+    }, HISTORY_DEBOUNCE_MS);
+  };
+
+  if (autoSaveHistory) {
     // 使用订阅机制替代深度监听，只监听节点和连接线的变化
     const historyUnsubscribe = store.subscribe(changeType => {
       if (changeType === 'nodes' || changeType === 'edges' || changeType === 'all') {
-        debouncedPushHistory();
+        scheduleHistoryPush();
       }
     });
 
     onUnmounted(() => {
+      if (historyDebounceTimer !== null) {
+        clearTimeout(historyDebounceTimer);
+      }
       historyUnsubscribe();
       unsubscribeHistory();
       disposeVueBridge();
@@ -378,9 +408,11 @@ export function useFlowState(options: UseFlowStateOptions = {}): UseFlowStateRet
       historyManager.pushHistory();
     },
     undo: () => {
+      flushPendingHistoryPush();
       return historyManager.undo();
     },
     redo: () => {
+      flushPendingHistoryPush();
       return historyManager.redo();
     },
     canUndo,
