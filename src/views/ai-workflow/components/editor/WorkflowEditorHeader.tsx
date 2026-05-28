@@ -43,6 +43,9 @@ export default defineComponent({
     showMinimap: { type: Boolean, default: false },
     onToggleMinimap: { type: Function as PropType<() => void>, default: undefined },
     onClear: { type: Function as PropType<() => void>, default: undefined }
+    ,
+    onImport: { type: Function as PropType<() => void>, default: undefined },
+    onExport: { type: Function as PropType<() => void>, default: undefined }
   },
   setup(props) {
     const titleTip = computed(() => {
@@ -193,6 +196,38 @@ export default defineComponent({
         </div>
 
         <div class="workflow-editor-header__save-group">
+          <NTooltip>
+            {{
+              trigger: () => (
+                <NButton size="small" secondary onClick={props.onImport}>
+                  <div class="flex items-center gap-4px">
+                    <NIcon size={16}>
+                      <Icon icon="mdi:import" />
+                    </NIcon>
+                    <span>导入</span>
+                  </div>
+                </NButton>
+              ),
+              default: () => '从 JSON 文件导入工作流'
+            }}
+          </NTooltip>
+
+          <NTooltip>
+            {{
+              trigger: () => (
+                <NButton size="small" secondary onClick={props.onExport}>
+                  <div class="flex items-center gap-4px">
+                    <NIcon size={16}>
+                      <Icon icon="mdi:export" />
+                    </NIcon>
+                    <span>导出</span>
+                  </div>
+                </NButton>
+              ),
+              default: () => '导出为 JSON 文件'
+            }}
+          </NTooltip>
+
           <NButton size="small" secondary onClick={props.onClear}>
             清空
           </NButton>

@@ -47,6 +47,13 @@ export interface WorkflowFlowCanvasExpose {
   layoutLocked: Ref<boolean> | boolean;
   setLayoutLocked: (locked: boolean) => void;
   toggleLayoutLock: () => void;
+  /** 导出 Flow snapshot（用于导入/导出） */
+  exportJSON: (options?: { includeViewport?: boolean; includeGuides?: boolean }) => unknown;
+  /** 导入 Flow snapshot（用于导入/导出） */
+  importJSON: (
+    input: unknown,
+    options?: { replace?: boolean; includeViewport?: boolean }
+  ) => boolean;
 }
 
 /** WorkflowEditorCanvas 组件暴露 API */

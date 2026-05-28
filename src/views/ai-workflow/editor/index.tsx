@@ -12,6 +12,7 @@ import {
 import WorkflowEditorHeader from '../components/editor/WorkflowEditorHeader';
 import WorkflowEditorWorkspace from '../components/editor/WorkflowEditorWorkspace';
 import { useWorkflowEditor } from '../components/hooks/useWorkflowEditor';
+import { definitionToFlowState } from '../components/adapters/flow-adapter';
 
 const { fetchWorkflowDetail, fetchUpdateWorkflow } = mockWorkflowApi;
 
@@ -29,6 +30,7 @@ export default defineComponent({
     const showRightPanel = ref(false);
     const selectedNode = ref<Api.Workflow.WorkflowNode | null>(null);
     const canvasRef = ref<WorkflowEditorCanvasExpose | null>(null);
+    const importInputRef = ref<HTMLInputElement | null>(null);
 
     const definition = computed(
       () =>
@@ -95,6 +97,75 @@ export default defineComponent({
       router.push('/ai-workflow');
     }
 
+    function downloadJSON(filename: string, content: unknown) {
+      const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function handleExport() {
+      const def = editor.getDefinition();
+      if (!def) {
+        message.warning('画布未就绪，无法导出');
+        return;
+      }
+      const name = workflow.value?.name?.trim() || 'workflow';
+      const id = workflowId.value || 'draft';
+      downloadJSON(`${name}-${id}.json`, def);
+      message.success('已导出 JSON');
+    }
+
+    function handleImportClick() {
+      importInputRef.value?.click();
+    }
+
+    async function handleImportFile(e: Event) {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as Api.Workflow.WorkflowDefinition;
+
+        if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as any).nodes)) {
+          message.error('导入失败：JSON 不是合法的工作流定义');
+          return;
+        }
+
+        const api = editor.canvasRef.value;
+        if (!api?.importJSON) {
+          message.warning('画布未就绪，无法导入');
+          return;
+        }
+
+        const state = definitionToFlowState(parsed);
+        const snapshot = {
+          version: 1,
+          nodes: state.nodes,
+          edges: state.edges,
+          viewport: state.viewport
+        };
+        const ok = api.importJSON(snapshot, { replace: true, includeViewport: true });
+        if (!ok) {
+          message.error('导入失败：解析 Flow 快照失败');
+          return;
+        }
+        editor.markDirty();
+        message.success('导入成功（记得保存工作流）');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '未知错误';
+        message.error(`导入失败：${msg}`);
+      }
+    }
+
     watch(selectedNode, node => {
       if (!node) showRightPanel.value = false;
     });
@@ -108,6 +179,13 @@ export default defineComponent({
 
     return () => (
       <div class="workflow-editor h-full flex flex-col bg-gray-50 dark:bg-gray-950">
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json,.json"
+          class="hidden"
+          onChange={handleImportFile}
+        />
         <WorkflowEditorHeader
           title={workflow.value?.name || '工作流编辑器'}
           description={workflow.value?.description}
@@ -133,6 +211,8 @@ export default defineComponent({
           showMinimap={editor.showMinimap.value}
           onToggleMinimap={editor.toggleMinimap}
           onClear={editor.clearCanvas}
+          onImport={handleImportClick}
+          onExport={handleExport}
         />
 
         <div class="min-h-0 flex flex-1 overflow-hidden">
