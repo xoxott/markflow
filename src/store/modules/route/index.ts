@@ -18,6 +18,7 @@ import { getRouteName, getRoutePath } from '@/router/elegant/transform';
 import { useAuthStore } from '../auth';
 import { useTabStore } from '../tab';
 import {
+  buildGlobalMenusFromSerializedMenuTree,
   filterAuthRoutesByRoles,
   getBreadcrumbsByRoute,
   getCacheRouteNames,
@@ -89,8 +90,15 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
   const menus = ref<App.Global.Menu[]>([]);
   const searchMenus = computed(() => transformMenuToSearchMenus(menus.value));
 
+  /** Pre-built menus from dynamic API */
+  const dynamicSerializedMenus = shallowRef<Api.MenuManagement.SerializedMenuNode[] | null>(null);
+
   /** Get global menus */
   function getGlobalMenus(routes: ElegantConstRoute[]) {
+    if (authRouteMode.value === 'dynamic' && dynamicSerializedMenus.value?.length) {
+      menus.value = buildGlobalMenusFromSerializedMenuTree(dynamicSerializedMenus.value);
+      return;
+    }
     menus.value = groupGlobalMenus(getGlobalMenusByAuthRoutes(routes));
   }
 
@@ -216,10 +224,12 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
 
   /** Init dynamic auth route */
   async function initDynamicAuthRoute() {
-    const { data, error } = await fetchGetUserRoutes();
+    const { data, error } = await fetchGetUserRoutes(authStore.roleCodes);
 
     if (!error) {
-      const { routes, home } = data;
+      const { routes, home, menus: serializedMenus } = data;
+
+      dynamicSerializedMenus.value = serializedMenus ?? null;
 
       addAuthRoutes(routes);
 
@@ -234,6 +244,13 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
       // if fetch user routes failed, reset store
       authStore.resetStore();
     }
+  }
+
+  /** Reload auth routes after menu configuration changes */
+  async function reloadAuthRoutes() {
+    setIsInitAuthRoute(false);
+    resetVueRoutes();
+    await initAuthRoute();
   }
 
   /** handle constant and auth routes */
@@ -347,6 +364,7 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
     initAuthRoute,
     isInitAuthRoute,
     setIsInitAuthRoute,
+    reloadAuthRoutes,
     getIsAuthRouteExist,
     getSelectedMenuKeyPath,
     onRouteSwitchWhenLoggedIn,

@@ -16,6 +16,7 @@ declare namespace Api {
     interface UserRoute {
       routes: MenuRoute[];
       home: import('@elegant-router/types').LastLevelRouteKey;
+      menus?: Api.MenuManagement.SerializedMenuNode[];
     }
   }
 }

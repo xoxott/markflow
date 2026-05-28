@@ -213,6 +213,33 @@ export function groupGlobalMenus(flatMenus: App.Global.Menu[]) {
   });
 }
 
+/** Build global menus from serialized menu tree (dynamic mode) */
+export function buildGlobalMenusFromSerializedMenuTree(
+  nodes: Api.MenuManagement.SerializedMenuNode[]
+): App.Global.Menu[] {
+  const { SvgIconVNode } = useSvgIcon();
+
+  const convert = (items: Api.MenuManagement.SerializedMenuNode[]): App.Global.Menu[] =>
+    items.map(item => {
+      const menu: App.Global.Menu = {
+        key: item.key,
+        label: item.i18nKey ? $t(item.i18nKey) : item.label,
+        i18nKey: item.i18nKey ?? null,
+        routeKey: item.routeKey,
+        routePath: item.routePath,
+        icon: item.icon ? SvgIconVNode({ icon: item.icon, fontSize: 20 }) : undefined
+      };
+
+      if (item.children?.length) {
+        menu.children = convert(item.children);
+      }
+
+      return menu;
+    });
+
+  return convert(nodes);
+}
+
 /**
  * Update locale of global menus
  *

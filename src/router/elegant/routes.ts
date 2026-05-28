@@ -130,6 +130,17 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'menu-management',
+    path: '/menu-management',
+    component: 'layout.base$view.menu-management',
+    meta: {
+      title: 'menu-management',
+      i18nKey: 'route.menu-management',
+      icon: 'mdi:menu',
+      order: 6
+    }
+  },
+  {
     name: 'mobile',
     path: '/mobile',
     component: 'layout.base$view.mobile',

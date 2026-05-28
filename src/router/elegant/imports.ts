@@ -24,6 +24,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   'file-manager-documents': () => import('@/views/file-manager/documents/index'),
   'home': () => import('@/views/home/index'),
   'markdownedit': () => import('@/views/markdownEdit/index'),
+  'menu-management': () => import('@/views/menu-management/index'),
   'mobile': () => import('@/views/mobile/index.vue'),
   'upload': () => import('@/views/upload/index'),
   'utils': () => import('@/views/utils/index.vue'),

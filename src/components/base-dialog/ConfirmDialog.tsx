@@ -45,10 +45,14 @@ export default defineComponent({
       return colorMap[type];
     };
 
-    // 关闭弹窗
+    // 关闭弹窗（不触发 onCancel，用于确认成功后的关闭）
+    const closeDialog = () => {
+      emit('update:show', false);
+    };
+
     const handleClose = () => {
       props.config.onCancel?.();
-      emit('update:show', false);
+      closeDialog();
     };
 
     const dialogConfig = computed(() => ({
@@ -67,7 +71,7 @@ export default defineComponent({
       loading.value = true;
       try {
         await props.config.onConfirm();
-        handleClose();
+        closeDialog();
       } catch (error) {
         console.error('Confirm action failed:', error);
       } finally {
@@ -78,7 +82,7 @@ export default defineComponent({
     // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
-      handleClose();
+      closeDialog();
     };
 
     return () => {

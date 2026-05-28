@@ -187,6 +187,7 @@ const routeMap: RouteMap = {
   'alert-management': '/alert-management',
   'log-management': '/log-management',
   'version-log-management': '/version-log-management',
+  'menu-management': '/menu-management',
   'ai-workflow': '/ai-workflow',
   'ai-workflow-editor': '/ai-workflow/editor/:id'
 };

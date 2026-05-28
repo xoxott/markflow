@@ -40,6 +40,7 @@ export const MENU_GROUP_DEFINITIONS: MenuGroupDefinition[] = [
       'announcement-management',
       'notification-management',
       'alert-management',
+      'menu-management',
       {
         type: 'subgroup',
         key: 'log-management-group',

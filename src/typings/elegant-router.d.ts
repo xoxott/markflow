@@ -40,6 +40,7 @@ declare module "@elegant-router/types" {
     "alert-management": "/alert-management";
     "log-management": "/log-management";
     "version-log-management": "/version-log-management";
+    "menu-management": "/menu-management";
     "ai-workflow": "/ai-workflow";
     "ai-workflow-editor": "/ai-workflow/editor/:id";
   };
@@ -96,6 +97,7 @@ declare module "@elegant-router/types" {
     | "alert-management"
     | "log-management"
     | "version-log-management"
+    | "menu-management"
     | "ai-workflow"
     | "ai-workflow-editor"
   >;
@@ -137,6 +139,7 @@ declare module "@elegant-router/types" {
     | "alert-management"
     | "log-management"
     | "version-log-management"
+    | "menu-management"
     | "ai-workflow"
     | "ai-workflow-editor"
   >;
