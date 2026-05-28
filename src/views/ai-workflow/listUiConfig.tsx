@@ -65,7 +65,7 @@ export function createWorkflowTableColumns(
       fixed: 'left',
       ellipsis: { tooltip: true },
       render: (row: Workflow) => (
-        <div class="flex flex-col gap-2px min-w-0">
+        <div class="min-w-0 flex flex-col gap-2px">
           <NText strong class="truncate">
             {row.name}
           </NText>
@@ -177,4 +177,3 @@ export function createWorkflowTableColumns(
     }
   ];
 }
-
