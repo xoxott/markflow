@@ -150,7 +150,8 @@ export const FlowInteractionConfigSchema = z.object({
   nodesConnectable: z.boolean().optional(),
   nodesSelectable: z.boolean().optional(),
   edgesSelectable: z.boolean().optional(),
-  edgesDeletable: z.boolean().optional()
+  edgesDeletable: z.boolean().optional(),
+  enableContextMenu: z.boolean().optional()
 });
 
 /** 性能配置 Schema */

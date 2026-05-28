@@ -175,8 +175,7 @@ export function applyClipboardPayload(
       position: {
         x: node.position.x + offset.x,
         y: node.position.y + offset.y
-      },
-      selected: true
+      }
     };
   });
 
@@ -189,8 +188,7 @@ export function applyClipboardPayload(
         ...deepCloneEdge(edge),
         id: generateId(),
         source,
-        target,
-        selected: false
+        target
       };
     })
     .filter((e): e is FlowEdge => e !== null);

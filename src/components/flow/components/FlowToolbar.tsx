@@ -102,6 +102,12 @@ export interface FlowToolbarProps {
   showDragSnapGuidesToggle?: boolean;
   /** 拖拽对齐参考线状态变化 */
   onDragSnapGuidesChange?: (enabled: boolean) => void;
+  /** 是否显示小地图 */
+  showMinimap?: boolean;
+  /** 是否显示小地图开关 */
+  showMinimapToggle?: boolean;
+  /** 小地图显示状态变化 */
+  onShowMinimapChange?: (show: boolean) => void;
   /** 覆盖 config 中的 locale */
   locale?: FlowLocale;
 }
@@ -190,6 +196,18 @@ export default defineComponent({
       type: Function as PropType<(enabled: boolean) => void>,
       default: undefined
     },
+    showMinimap: {
+      type: Boolean,
+      default: false
+    },
+    showMinimapToggle: {
+      type: Boolean,
+      default: true
+    },
+    onShowMinimapChange: {
+      type: Function as PropType<(show: boolean) => void>,
+      default: undefined
+    },
     locale: {
       type: String as PropType<FlowLocale>,
       default: undefined
@@ -242,6 +260,10 @@ export default defineComponent({
 
     const handleToggleDragSnapGuides = () => {
       props.onDragSnapGuidesChange?.(!props.dragSnapGuides);
+    };
+
+    const handleToggleShowMinimap = () => {
+      props.onShowMinimapChange?.(!props.showMinimap);
     };
 
     return () => {
@@ -310,6 +332,22 @@ export default defineComponent({
               active: props.dragSnapGuides,
               ariaPressed: props.dragSnapGuides,
               onClick: handleToggleDragSnapGuides
+            })}
+
+          {props.showMinimapToggle &&
+            props.onShowMinimapChange &&
+            renderToolbarIconButton({
+              icon: 'mdi:map-outline',
+              ariaLabel: props.showMinimap
+                ? t('toolbar.minimapHideTitle')
+                : t('toolbar.minimapShowTitle'),
+              tooltip: props.showMinimap
+                ? t('toolbar.minimapHideTitle')
+                : t('toolbar.minimapShowTitle'),
+              placement: tooltipPlacement.value,
+              active: props.showMinimap,
+              ariaPressed: props.showMinimap,
+              onClick: handleToggleShowMinimap
             })}
 
           {props.onFitView &&

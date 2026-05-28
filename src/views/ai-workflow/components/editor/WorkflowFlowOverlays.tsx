@@ -2,6 +2,7 @@
 
 import { type PropType, computed, defineComponent } from 'vue';
 import { FlowMinimap, FlowToolbar, useFlowCanvasContext } from '@/components/flow';
+import type { UseWorkflowEditorReturn } from '../hooks/useWorkflowEditor';
 import {
   WORKFLOW_MINIMAP_SIZE,
   WORKFLOW_MINIMAP_THEME,
@@ -12,6 +13,10 @@ import '../styles/workflow-minimap.scss';
 export default defineComponent({
   name: 'WorkflowFlowOverlays',
   props: {
+    editor: {
+      type: Object as PropType<UseWorkflowEditorReturn>,
+      required: true
+    },
     onFitView: {
       type: Function as PropType<() => void>,
       default: undefined
@@ -40,6 +45,8 @@ export default defineComponent({
           onShowRulerChange={ctx.setShowRuler}
           dragSnapGuides={dragSnapGuides.value}
           onDragSnapGuidesChange={ctx.setDragSnapGuidesEnabled}
+          showMinimap={props.editor.showMinimap.value}
+          onShowMinimapChange={props.editor.setShowMinimap}
           onZoomChange={zoom => ctx.setViewport({ zoom })}
           onFitView={props.onFitView}
           onResetView={() => ctx.setViewport({ x: 0, y: 0, zoom: 1 })}
@@ -47,7 +54,7 @@ export default defineComponent({
         <FlowMinimap
           class="workflow-minimap"
           position="bottom-right"
-          visible
+          visible={props.editor.showMinimap.value}
           size={WORKFLOW_MINIMAP_SIZE}
           theme={WORKFLOW_MINIMAP_THEME}
           resolveNodeColor={resolveWorkflowMinimapNodeColor}

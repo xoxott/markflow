@@ -93,7 +93,7 @@ export function useNodeState(options: UseNodeStateOptions): UseNodeStateReturn {
     const isLocked = lockedNodeIdsSet.value.has(node.id);
     const isDragging = draggingNodeId?.value === node.id;
 
-    const selected = isSelected || node.selected === true;
+    const selected = isSelected;
     const locked = isLocked || node.locked === true;
 
     // 性能优化：使用数字位标志作为缓存键，避免字符串拼接

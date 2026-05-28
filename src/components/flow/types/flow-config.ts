@@ -11,7 +11,7 @@ import type { FlowEdge, FlowEdgePathGenerator, FlowEdgeType } from './flow-edge'
 // 注意：删除了下列死字段（既无消费方，也未在文档中作为公开 API 暴露）：
 // - canvas.fitViewOnResize（无实现）
 // - canvas.zoomOnDoubleClick（无实现）
-// - interaction.enableContextMenu / connectOnClick / connectionMode（无实现）
+// - interaction.enableContextMenu / connectOnClick / connectionMode（connectOnClick / connectionMode 无实现）
 // - performance.enableVirtualScroll / virtualScrollBuffer（已被 enableViewportCulling 取代）
 // - FlowConfig 顶层的 toolbar / minimap / emptyState / background（用 slot 方式扩展）
 
@@ -208,6 +208,8 @@ export interface FlowInteractionConfig {
   edgesSelectable?: boolean;
   /** 是否启用连接线删除 */
   edgesDeletable?: boolean;
+  /** 是否启用画布右键菜单（默认 true） */
+  enableContextMenu?: boolean;
 }
 
 /** 性能配置 */

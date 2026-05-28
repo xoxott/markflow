@@ -53,6 +53,7 @@ declare module 'vue' {
     FlowAlignmentGuides: typeof import('./../components/flow/components/FlowAlignmentGuides.tsx')['default']
     FlowBackground: typeof import('./../components/flow/components/FlowBackground.tsx')['default']
     FlowCanvas: typeof import('./../components/flow/components/FlowCanvas.tsx')['default']
+    FlowContextMenu: typeof import('./../components/flow/components/FlowContextMenu.tsx')['default']
     FlowEdges: typeof import('./../components/flow/components/FlowEdges.tsx')['default']
     'FlowEdges.mount.test': typeof import('./../components/flow/__tests__/FlowEdges.mount.test.tsx')['default']
     FlowEmptyState: typeof import('./../components/flow/components/FlowEmptyState.tsx')['default']

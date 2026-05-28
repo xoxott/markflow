@@ -18,6 +18,9 @@ export const flowZhCN: FlowI18nMessages = {
     dragSnapGuides: '对齐线',
     dragSnapGuidesEnableTitle: '拖节点时显示对齐参考线并吸附',
     dragSnapGuidesDisableTitle: '关闭拖拽对齐参考线',
+    minimap: '小地图',
+    minimapShowTitle: '显示小地图',
+    minimapHideTitle: '隐藏小地图',
     fitView: '适应',
     resetView: '重置'
   },
@@ -31,5 +34,12 @@ export const flowZhCN: FlowI18nMessages = {
   handle: {
     source: '输出端口 {id}',
     target: '输入端口 {id}'
+  },
+  contextMenu: {
+    deleteNode: '删除节点',
+    deleteEdge: '删除连接线',
+    copy: '复制',
+    cut: '剪切',
+    paste: '粘贴'
   }
 };

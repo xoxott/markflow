@@ -40,6 +40,8 @@ export default defineComponent({
     onUndo: { type: Function as PropType<() => void>, default: undefined },
     onRedo: { type: Function as PropType<() => void>, default: undefined },
     onFitView: { type: Function as PropType<() => void>, default: undefined },
+    showMinimap: { type: Boolean, default: false },
+    onToggleMinimap: { type: Function as PropType<() => void>, default: undefined },
     onClear: { type: Function as PropType<() => void>, default: undefined }
   },
   setup(props) {
@@ -120,6 +122,23 @@ export default defineComponent({
                 </NButton>
               ),
               default: () => '适应画布'
+            }}
+          </NTooltip>
+          <NTooltip>
+            {{
+              trigger: () => (
+                <NButton
+                  size="tiny"
+                  quaternary
+                  type={props.showMinimap ? 'primary' : 'default'}
+                  onClick={props.onToggleMinimap}
+                >
+                  <NIcon size={16}>
+                    <Icon icon="mdi:map-outline" />
+                  </NIcon>
+                </NButton>
+              ),
+              default: () => (props.showMinimap ? '隐藏小地图' : '显示小地图')
             }}
           </NTooltip>
           <NTooltip>

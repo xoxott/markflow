@@ -61,7 +61,7 @@ export default defineComponent({
             borderColor: `${props.color}30`
           }}
         >
-          <NIcon size={props.variant === 'canvas' ? 18 : 20}>
+          <NIcon size={props.variant === 'canvas' ? undefined : 20}>
             <Icon icon={props.icon} />
           </NIcon>
         </div>

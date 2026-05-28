@@ -18,6 +18,9 @@ export const flowEnUS: FlowI18nMessages = {
     dragSnapGuides: 'Align',
     dragSnapGuidesEnableTitle: 'Show alignment guides and snap while dragging nodes',
     dragSnapGuidesDisableTitle: 'Hide alignment guides while dragging',
+    minimap: 'Minimap',
+    minimapShowTitle: 'Show minimap',
+    minimapHideTitle: 'Hide minimap',
     fitView: 'Fit view',
     resetView: 'Reset view'
   },
@@ -31,5 +34,12 @@ export const flowEnUS: FlowI18nMessages = {
   handle: {
     source: 'Output port {id}',
     target: 'Input port {id}'
+  },
+  contextMenu: {
+    deleteNode: 'Delete node',
+    deleteEdge: 'Delete edge',
+    copy: 'Copy',
+    cut: 'Cut',
+    paste: 'Paste'
   }
 };

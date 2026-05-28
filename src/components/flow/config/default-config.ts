@@ -107,7 +107,8 @@ export const DEFAULT_INTERACTION_CONFIG: FlowInteractionConfig = {
   nodesConnectable: true,
   nodesSelectable: true,
   edgesSelectable: true,
-  edgesDeletable: true
+  edgesDeletable: true,
+  enableContextMenu: true
 };
 
 /** 默认性能配置 */

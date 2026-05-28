@@ -25,6 +25,7 @@ import FlowAlignmentGuides from './FlowAlignmentGuides';
 import FlowSelectionBox from './FlowSelectionBox';
 import FlowViewportContainer from './FlowViewportContainer';
 import ConnectionPreview from './ConnectionPreview';
+import FlowContextMenu from './FlowContextMenu';
 
 export type { FlowCanvasProps } from '../types/flow-canvas';
 
@@ -411,6 +412,26 @@ export default defineComponent({
         })()}
 
         {slots.default && slots.default()}
+
+        {core.config.value.interaction?.enableContextMenu !== false && (
+          <FlowContextMenu
+            canvasRef={core.canvasRef}
+            config={core.config}
+            nodes={core.nodes}
+            edges={core.edges}
+            selectedNodeIds={core.selectedNodeIds}
+            selectedEdgeIds={core.selectedEdgeIds}
+            getNodeById={core.getNodeById}
+            selectNode={core.selectNode}
+            selectEdge={core.selectEdge}
+            deselectAll={core.deselectAll}
+            removeNode={core.removeNode}
+            removeEdge={core.removeEdge}
+            copySelection={core.copySelection}
+            cutSelection={core.cutSelection}
+            pasteClipboard={core.pasteClipboard}
+          />
+        )}
       </div>
     );
   }

@@ -32,6 +32,7 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   const isDirty = ref(false);
   const isSaving = ref(false);
   const lastValidation = ref<ReturnType<typeof validateWorkflowGraph> | null>(null);
+  const showMinimap = ref(false);
 
   const defaultViewport: FlowViewport = { x: 0, y: 0, zoom: 1 };
 
@@ -258,6 +259,13 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     isDirty,
     isSaving,
     lastValidation,
+    showMinimap,
+    setShowMinimap: (value: boolean) => {
+      showMinimap.value = value;
+    },
+    toggleMinimap: () => {
+      showMinimap.value = !showMinimap.value;
+    },
     getDefinition,
     handleDragOver,
     handleDrop,
@@ -270,6 +278,7 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     undo,
     redo,
     fitView,
-    clearCanvas
+    clearCanvas,
+    markDirty
   };
 }

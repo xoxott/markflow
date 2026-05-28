@@ -130,6 +130,8 @@ export default defineComponent({
           onUndo={editor.undo}
           onRedo={editor.redo}
           onFitView={editor.fitView}
+          showMinimap={editor.showMinimap.value}
+          onToggleMinimap={editor.toggleMinimap}
           onClear={editor.clearCanvas}
         />
 

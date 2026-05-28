@@ -21,7 +21,8 @@ export type FlowI18nKey =
   | `toolbar.${keyof FlowI18nMessages['toolbar']}`
   | `emptyState.${keyof FlowI18nMessages['emptyState']}`
   | `node.${keyof FlowI18nMessages['node']}`
-  | `handle.${keyof FlowI18nMessages['handle']}`;
+  | `handle.${keyof FlowI18nMessages['handle']}`
+  | `contextMenu.${keyof FlowI18nMessages['contextMenu']}`;
 
 export function resolveFlowMessage(
   messages: FlowI18nMessages,

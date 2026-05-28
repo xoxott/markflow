@@ -74,10 +74,10 @@ export default defineComponent({
               onNode-click={editor.handleNodeClick}
               onConnect={editor.handleConnect}
               onViewport-change={editor.handleViewportChange}
-              v-slots={{
-                default: () => <WorkflowFlowOverlays onFitView={editor.fitView} />
-              }}
-            />
+              onNodes-change={() => editor.markDirty()}
+            >
+              <WorkflowFlowOverlays editor={editor} onFitView={editor.fitView} />
+            </FlowCanvas>
           </div>
         </div>
       );

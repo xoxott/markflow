@@ -22,6 +22,9 @@ export interface FlowI18nMessages {
     dragSnapGuides: string;
     dragSnapGuidesEnableTitle: string;
     dragSnapGuidesDisableTitle: string;
+    minimap: string;
+    minimapShowTitle: string;
+    minimapHideTitle: string;
     fitView: string;
     resetView: string;
   };
@@ -37,5 +40,12 @@ export interface FlowI18nMessages {
     /** 占位符 {id}，无 id 时可省略 */
     source: string;
     target: string;
+  };
+  contextMenu: {
+    deleteNode: string;
+    deleteEdge: string;
+    copy: string;
+    cut: string;
+    paste: string;
   };
 }
