@@ -233,7 +233,9 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      save();
+      if (isDirty.value) {
+        save();
+      }
     }
   }
 

@@ -1,8 +1,11 @@
 import '../styles/workflow-editor-header.scss';
 
-import { type PropType, computed, defineComponent } from 'vue';
-import { NButton, NIcon, NTooltip } from 'naive-ui';
+import { type PropType, type Ref, computed, defineComponent, ref } from 'vue';
+import { NButton, NIcon, NPopover, NTooltip } from 'naive-ui';
+import type { FormInst } from 'naive-ui';
 import { Icon } from '@iconify/vue';
+import WorkflowMetaFields from '../shared/WorkflowMetaFields';
+import type { WorkflowMetaForm } from '../shared/workflow-meta';
 import type { WorkflowValidationResult } from '../validation/validate-workflow';
 
 export default defineComponent({
@@ -16,6 +19,16 @@ export default defineComponent({
       type: String,
       default: ''
     },
+    metaForm: {
+      type: Object as PropType<WorkflowMetaForm>,
+      default: undefined
+    },
+    metaFormRef: {
+      type: Object as PropType<Ref<FormInst | null>>,
+      default: undefined
+    },
+    isMetaDirty: { type: Boolean, default: false },
+    isMetaSaving: { type: Boolean, default: false },
     showLeftPanel: {
       type: Boolean,
       default: true
@@ -35,6 +48,7 @@ export default defineComponent({
     onBack: { type: Function as PropType<() => void>, default: undefined },
     onToggleLeftPanel: { type: Function as PropType<() => void>, default: undefined },
     onToggleRightPanel: { type: Function as PropType<() => void>, default: undefined },
+    onSaveMeta: { type: Function as PropType<() => void>, default: undefined },
     onSave: { type: Function as PropType<() => void>, default: undefined },
     onValidate: { type: Function as PropType<() => void>, default: undefined },
     onUndo: { type: Function as PropType<() => void>, default: undefined },
@@ -47,6 +61,8 @@ export default defineComponent({
     onExport: { type: Function as PropType<() => void>, default: undefined }
   },
   setup(props) {
+    const showMetaPopover = ref(false);
+
     const titleTip = computed(() => {
       if (!props.description) return props.title;
       return `${props.title}\n${props.description}`;
@@ -83,7 +99,56 @@ export default defineComponent({
             }}
           </NTooltip>
 
-          {props.isDirty && <span class="workflow-editor-header__status">未保存</span>}
+          {props.metaForm && (
+            <NPopover
+              show={showMetaPopover.value}
+              onUpdateShow={(value: boolean) => {
+                showMetaPopover.value = value;
+              }}
+              trigger="click"
+              placement="bottom-start"
+            >
+              {{
+                trigger: () => (
+                  <NTooltip>
+                    {{
+                      trigger: () => (
+                        <NButton size="small" secondary>
+                          <div class="flex items-center gap-4px">
+                            <NIcon size={16}>
+                              <Icon icon="mdi:pencil-outline" />
+                            </NIcon>
+                            <span>编辑信息</span>
+                          </div>
+                        </NButton>
+                      ),
+                      default: () => '编辑工作流名称、描述、标签与状态'
+                    }}
+                  </NTooltip>
+                ),
+                default: () => (
+                  <div class="workflow-editor-header__meta-form">
+                    <WorkflowMetaFields
+                      formRef={props.metaFormRef}
+                      model={props.metaForm!}
+                      showStatus
+                    />
+                  </div>
+                )
+              }}
+            </NPopover>
+          )}
+
+          {props.isMetaDirty && (
+            <span class="workflow-editor-header__status workflow-editor-header__status--meta">
+              信息未保存
+            </span>
+          )}
+          {props.isDirty && (
+            <span class="workflow-editor-header__status workflow-editor-header__status--canvas">
+              画布未保存
+            </span>
+          )}
         </div>
 
         <div class="workflow-editor-header__actions">
@@ -195,6 +260,27 @@ export default defineComponent({
         </div>
 
         <div class="workflow-editor-header__save-group">
+          <NButton
+            size="small"
+            secondary
+            disabled={!props.isMetaDirty}
+            loading={props.isMetaSaving}
+            onClick={props.onSaveMeta}
+          >
+            保存信息
+          </NButton>
+          <NButton
+            size="small"
+            type="primary"
+            disabled={!props.isDirty}
+            loading={props.isSaving}
+            onClick={props.onSave}
+          >
+            保存画布
+          </NButton>
+
+          <div class="workflow-editor-header__divider" />
+
           <NTooltip>
             {{
               trigger: () => (
@@ -229,9 +315,6 @@ export default defineComponent({
 
           <NButton size="small" secondary onClick={props.onClear}>
             清空
-          </NButton>
-          <NButton size="small" type="primary" loading={props.isSaving} onClick={props.onSave}>
-            保存
           </NButton>
         </div>
       </header>

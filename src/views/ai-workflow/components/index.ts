@@ -8,6 +8,7 @@ export { default as NodeLibraryPanel } from './panels/NodeLibraryPanel';
 export { default as NodeConfigPanel } from './panels/NodeConfigPanel';
 
 export { useWorkflowEditor } from './hooks/useWorkflowEditor';
+export { useWorkflowMeta } from './hooks/useWorkflowMeta';
 export { useWorkflowDialog } from './dialogs/useWorkflowDialog';
 
 export {

@@ -45,6 +45,27 @@
     .dark & {
       color: #fbbf24;
     }
+
+    &--meta {
+      color: #2563eb;
+
+      .dark & {
+        color: #60a5fa;
+      }
+    }
+
+    &--canvas {
+      color: #d97706;
+
+      .dark & {
+        color: #fbbf24;
+      }
+    }
+  }
+
+  &__meta-form {
+    width: 320px;
+    padding: 4px 0;
   }
 
   &__actions {

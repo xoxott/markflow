@@ -4,7 +4,6 @@ import type { WorkflowNodeTypeConfig } from '../registry/node-registry';
 import WorkflowNodeCard from './WorkflowNodeCard';
 import '../styles/workflow-flow-nodes.scss';
 
-/** 创建与画布节点同尺寸的拖拽预览（避免 cloneNode 带入节点库面板的多余宽度） */
 export function createWorkflowDragImage(config: WorkflowNodeTypeConfig): HTMLElement {
   const host = document.createElement('div');
   Object.assign(host.style, {

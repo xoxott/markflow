@@ -1,144 +1,114 @@
-import { type PropType, defineComponent, onMounted, ref } from 'vue';
-import {
-  type DataTableColumns,
-  NButton,
-  NDataTable,
-  NEmpty,
-  NSpace,
-  NSpin,
-  NTag,
-  useDialog,
-  useMessage
-} from 'naive-ui';
-// 暂时使用 Mock 数据，后续替换为真实 API
+import type { PropType } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
+import { NButton, NDataTable, NSpace, NSpin } from 'naive-ui';
 import { mockWorkflowApi } from '@/service/api/workflow-mock';
+import BaseDialog from '@/components/base-dialog';
+import type { VersionHistoryDialogOptions } from './dialog';
+
 const { fetchWorkflowVersions } = mockWorkflowApi;
 
 export default defineComponent({
   name: 'VersionHistoryDialog',
   props: {
-    workflowId: {
-      type: String as PropType<string>,
+    show: { type: Boolean, required: true },
+    config: {
+      type: Object as PropType<VersionHistoryDialogOptions>,
       required: true
-    },
-    onRestore: {
-      type: Function as PropType<(version: number) => Promise<void>>,
-      default: undefined
     }
   },
-  setup(props) {
-    const message = useMessage();
-    const dialog = useDialog();
-    const loading = ref(true);
+  emits: ['update:show'],
+  setup(props, { emit }) {
+    const loading = ref(false);
     const versions = ref<Api.Workflow.WorkflowVersion[]>([]);
     const restoring = ref<number | null>(null);
 
-    const columns: DataTableColumns<Api.Workflow.WorkflowVersion> = [
-      {
-        title: '版本号',
-        key: 'version',
-        width: 100,
-        render: row => <NTag type="info">v{row.version}</NTag>
-      },
-      {
-        title: '创建时间',
-        key: 'createdAt',
-        width: 180,
-        render: row => new Date(row.createdAt).toLocaleString('zh-CN')
-      },
-      {
-        title: '创建者',
-        key: 'createdBy',
-        width: 120,
-        render: row => row.createdBy || '-'
-      },
-      {
-        title: '变更说明',
-        key: 'changes',
-        ellipsis: {
-          tooltip: true
-        },
-        render: row => row.changes || '无'
-      },
-      {
-        title: '节点数',
-        key: 'nodeCount',
-        width: 100,
-        render: row => row.definition?.nodes?.length || 0
-      },
-      {
-        title: '操作',
-        key: 'actions',
-        width: 120,
-        fixed: 'right',
-        render: row => (
-          <NSpace size="small">
-            <NButton
-              size="small"
-              type="primary"
-              loading={restoring.value === row.version}
-              disabled={restoring.value !== null}
-              onClick={() => handleRestore(row.version)}
-            >
-              恢复
-            </NButton>
-          </NSpace>
-        )
-      }
-    ];
+    const dialogConfig = computed(() => ({
+      title: '版本历史',
+      width: 720,
+      height: 'auto',
+      draggable: true,
+      onClose: () => emit('update:show', false)
+    }));
 
-    async function loadData() {
+    async function loadVersions() {
       loading.value = true;
       try {
-        const { data } = await fetchWorkflowVersions(props.workflowId);
-        versions.value = data || [];
-      } catch (error: any) {
-        message.error(`加载版本历史失败: ${error.message}`);
+        const { data } = await fetchWorkflowVersions(props.config.workflowId);
+        versions.value = Array.isArray(data) ? data : [];
       } finally {
         loading.value = false;
       }
     }
 
     async function handleRestore(version: number) {
-      dialog.warning({
-        title: '确认恢复',
-        content: `确定要恢复到版本 v${version} 吗？当前版本将被保存为新版本。`,
-        positiveText: '确定',
-        negativeText: '取消',
-        onPositiveClick: async () => {
-          if (!props.onRestore) {
-            message.warning('未提供恢复回调函数');
-            return;
-          }
-
-          restoring.value = version;
-          try {
-            await props.onRestore(version);
-            message.success('版本恢复成功');
-            await loadData();
-          } catch (error: any) {
-            message.error(`版本恢复失败: ${error.message}`);
-          } finally {
-            restoring.value = null;
-          }
-        }
-      });
+      if (!props.config.onRestore) return;
+      restoring.value = version;
+      try {
+        await props.config.onRestore(version);
+        await loadVersions();
+      } finally {
+        restoring.value = null;
+      }
     }
 
+    const columns = [
+      {
+        title: '版本',
+        key: 'version',
+        width: 80,
+        render: (row: Api.Workflow.WorkflowVersion) => `v${row.version}`
+      },
+      {
+        title: '说明',
+        key: 'changes',
+        ellipsis: { tooltip: true },
+        render: (row: Api.Workflow.WorkflowVersion) => row.changes || '-'
+      },
+      {
+        title: '创建时间',
+        key: 'createdAt',
+        width: 180,
+        render: (row: Api.Workflow.WorkflowVersion) =>
+          new Date(row.createdAt).toLocaleString('zh-CN')
+      },
+      {
+        title: '操作',
+        key: 'action',
+        width: 100,
+        render: (row: Api.Workflow.WorkflowVersion) =>
+          props.config.onRestore ? (
+            <NButton
+              size="small"
+              loading={restoring.value === row.version}
+              onClick={() => handleRestore(row.version)}
+            >
+              恢复
+            </NButton>
+          ) : (
+            '-'
+          )
+      }
+    ];
+
     onMounted(() => {
-      loadData();
+      loadVersions();
     });
 
     return () => (
-      <div class="p-4">
-        <NSpin show={loading.value}>
-          {versions.value.length > 0 ? (
-            <NDataTable columns={columns} data={versions.value} bordered={false} />
-          ) : (
-            <NEmpty description="暂无版本历史" />
-          )}
-        </NSpin>
-      </div>
+      <BaseDialog show={props.show} config={dialogConfig.value}>
+        {{
+          default: () => (
+            <NSpin show={loading.value}>
+              <NDataTable columns={columns} data={versions.value} size="small" />
+            </NSpin>
+          ),
+          footer: () => (
+            <NSpace justify="end">
+              <NButton onClick={() => emit('update:show', false)}>关闭</NButton>
+            </NSpace>
+          )
+        }}
+      </BaseDialog>
     );
   }
 });

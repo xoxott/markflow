@@ -1,8 +1,11 @@
-import { type PropType, computed, defineComponent, reactive, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui';
+import type { PropType } from 'vue';
+import { computed, defineComponent, reactive, watch } from 'vue';
+import { NButton, NSpace } from 'naive-ui';
 import { useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
+import { type WorkflowMetaForm, createEmptyWorkflowMetaForm } from '../shared/workflow-meta';
+import WorkflowMetaFields from '../shared/WorkflowMetaFields';
 import type { WorkflowDialogOptions } from './dialog';
 
 export default defineComponent({
@@ -16,37 +19,46 @@ export default defineComponent({
   },
   emits: ['update:show'],
   setup(props, { emit }) {
-    const { formRef, validate, restoreValidation } = useNaiveForm();
-    const formModel = reactive({
-      name: props.config.formData?.name ?? '',
-      description: props.config.formData?.description ?? '',
-      status: props.config.formData?.status ?? 'draft'
-    });
+    const { formRef, validate } = useNaiveForm();
+
+    const formModel = reactive<WorkflowMetaForm>(createEmptyWorkflowMetaForm());
+
+    watch(
+      () => props.config.formData,
+      newData => {
+        formModel.name = newData.name ?? '';
+        formModel.description = newData.description ?? '';
+        formModel.tags = [...(newData.tags ?? [])];
+        formModel.status = newData.status ?? 'draft';
+      },
+      { deep: true, immediate: true }
+    );
 
     const handleClose = () => {
-      props.config.onClose?.();
+      props.config.onCancel?.();
       emit('update:show', false);
     };
 
     const dialogConfig = computed(() => ({
       ...props.config,
       onClose: handleClose,
-      title: props.config.title ?? (props.config.isEdit ? $t('common.edit') : $t('common.add')),
-      width: props.config.width ?? 600,
+      title: props.config.title ?? (props.config.isEdit ? $t('common.edit') : '新建工作流'),
+      width: props.config.width ?? 520,
       height: props.config.height ?? 'auto',
       draggable: props.config.draggable ?? true,
-      resizable: props.config.resizable ?? false,
-      maskClosable: props.config.maskClosable ?? false
+      resizable: props.config.resizable ?? false
     }));
 
     const handleConfirm = async () => {
-      if (!(await validate())) return;
-      await props.config.onConfirm(formModel);
-      handleClose();
-    };
+      const isValid = await validate();
+      if (!isValid) return;
 
-    const handleCancel = () => {
-      props.config.onCancel?.();
+      await props.config.onConfirm({
+        name: formModel.name,
+        description: formModel.description,
+        tags: formModel.tags,
+        status: formModel.status
+      });
       handleClose();
     };
 
@@ -54,7 +66,7 @@ export default defineComponent({
       () => props.show,
       show => {
         if (show) {
-          restoreValidation();
+          formRef.value?.restoreValidation();
         }
       }
     );
@@ -63,32 +75,15 @@ export default defineComponent({
       <BaseDialog show={props.show} config={dialogConfig.value}>
         {{
           default: () => (
-            <NForm ref={formRef} model={formModel}>
-              <NFormItem label={$t('page.aiWorkflow.name')} path="name">
-                <NInput v-model:value={formModel.name} placeholder={$t('page.aiWorkflow.name')} />
-              </NFormItem>
-              <NFormItem label={$t('page.aiWorkflow.description')} path="description">
-                <NInput
-                  v-model:value={formModel.description}
-                  placeholder={$t('page.aiWorkflow.description')}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.aiWorkflow.status')} path="status">
-                <NSelect
-                  v-model:value={formModel.status}
-                  options={[
-                    { label: $t('page.aiWorkflow.draft'), value: 'draft' },
-                    { label: $t('page.aiWorkflow.active'), value: 'active' },
-                    { label: $t('page.aiWorkflow.archived'), value: 'archived' }
-                  ]}
-                  placeholder={$t('page.aiWorkflow.status')}
-                />
-              </NFormItem>
-            </NForm>
+            <WorkflowMetaFields
+              formRef={formRef}
+              model={formModel}
+              showStatus={props.config.isEdit}
+            />
           ),
           footer: () => (
             <NSpace justify="end">
-              <NButton onClick={handleCancel}>{$t('common.cancel')}</NButton>
+              <NButton onClick={handleClose}>{$t('common.cancel')}</NButton>
               <NButton type="primary" onClick={handleConfirm}>
                 {$t('common.confirm')}
               </NButton>

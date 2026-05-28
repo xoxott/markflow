@@ -1,8 +1,17 @@
-import { computed, defineComponent, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import {
+  computed,
+  defineComponent,
+  getCurrentInstance,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch
+} from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { mockWorkflowApi } from '@/service/api/workflow-mock';
 import { readExposedBool } from '@/components/flow/internal';
+import { useDialog } from '@/components/base-dialog/useDialog';
 import {
   NodeConfigPanel,
   NodeLibraryPanel,
@@ -12,6 +21,7 @@ import {
 import WorkflowEditorHeader from '../components/editor/WorkflowEditorHeader';
 import WorkflowEditorWorkspace from '../components/editor/WorkflowEditorWorkspace';
 import { useWorkflowEditor } from '../components/hooks/useWorkflowEditor';
+import { useWorkflowMeta } from '../components/hooks/useWorkflowMeta';
 import { definitionToFlowState } from '../components/adapters/flow-adapter';
 
 const { fetchWorkflowDetail, fetchUpdateWorkflow } = mockWorkflowApi;
@@ -22,6 +32,8 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
     const message = useMessage();
+    const instance = getCurrentInstance();
+    const dialog = useDialog(instance?.appContext.app);
 
     const workflowId = computed(() => route.params.id as string);
     const workflow = ref<Api.Workflow.Workflow | null>(null);
@@ -41,12 +53,20 @@ export default defineComponent({
         }
     );
 
+    const meta = useWorkflowMeta({
+      workflowId,
+      updateWorkflow: fetchUpdateWorkflow,
+      onUpdated: updated => {
+        workflow.value = updated;
+      }
+    });
+
     async function handleSave(definitionPayload: Api.Workflow.WorkflowDefinition) {
       if (!workflowId.value) return;
 
       try {
         await fetchUpdateWorkflow(workflowId.value, { definition: definitionPayload });
-        message.success('保存成功');
+        message.success('画布已保存');
         if (workflow.value) {
           workflow.value.definition = definitionPayload;
         }
@@ -76,6 +96,7 @@ export default defineComponent({
       try {
         const { data } = await fetchWorkflowDetail(workflowId.value);
         workflow.value = data;
+        meta.syncFromWorkflow(data);
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : '加载失败';
         message.error(`加载工作流失败: ${msg}`);
@@ -90,11 +111,32 @@ export default defineComponent({
       if (selectedNode.value?.id === nodeId) {
         Object.assign(selectedNode.value, updates);
       }
-      message.success('节点配置已更新（记得保存工作流）');
+      message.success('节点配置已更新（记得保存画布）');
     }
 
-    function handleBack() {
-      router.push('/ai-workflow');
+    async function confirmLeaveIfDirty(): Promise<boolean> {
+      if (!meta.isMetaDirty.value && !editor.isDirty.value) {
+        return true;
+      }
+
+      return new Promise(resolve => {
+        dialog.confirm({
+          title: '未保存的修改',
+          content: '当前有未保存的工作流信息或画布修改，确定要离开吗？',
+          confirmText: '离开',
+          cancelText: '留下',
+          type: 'warning',
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false)
+        });
+      });
+    }
+
+    async function handleBack() {
+      const canLeave = await confirmLeaveIfDirty();
+      if (canLeave) {
+        router.push('/ai-workflow');
+      }
     }
 
     function downloadJSON(filename: string, content: unknown) {
@@ -115,7 +157,7 @@ export default defineComponent({
         message.warning('画布未就绪，无法导出');
         return;
       }
-      const name = workflow.value?.name?.trim() || 'workflow';
+      const name = meta.metaForm.name.trim() || workflow.value?.name?.trim() || 'workflow';
       const id = workflowId.value || 'draft';
       downloadJSON(`${name}-${id}.json`, def);
       message.success('已导出 JSON');
@@ -159,10 +201,18 @@ export default defineComponent({
           return;
         }
         editor.markDirty();
-        message.success('导入成功（记得保存工作流）');
+        message.success('导入成功（记得保存画布）');
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '未知错误';
         message.error(`导入失败：${msg}`);
+      }
+    }
+
+    function handleEditorKeydown(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 's' || !e.shiftKey) return;
+      e.preventDefault();
+      if (meta.isMetaDirty.value) {
+        meta.saveMeta();
       }
     }
 
@@ -170,8 +220,18 @@ export default defineComponent({
       if (!node) showRightPanel.value = false;
     });
 
+    onBeforeRouteLeave(async (_to, _from, next) => {
+      const canLeave = await confirmLeaveIfDirty();
+      next(canLeave);
+    });
+
     onMounted(() => {
       loadWorkflow();
+      window.addEventListener('keydown', handleEditorKeydown);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', handleEditorKeydown);
     });
 
     const canUndo = computed(() => readExposedBool(editor.canvasRef.value?.canUndo));
@@ -187,8 +247,12 @@ export default defineComponent({
           onChange={handleImportFile}
         />
         <WorkflowEditorHeader
-          title={workflow.value?.name || '工作流编辑器'}
-          description={workflow.value?.description}
+          title={meta.metaForm.name || workflow.value?.name || '工作流编辑器'}
+          description={meta.metaForm.description || workflow.value?.description}
+          metaForm={meta.metaForm}
+          metaFormRef={meta.formRef}
+          isMetaDirty={meta.isMetaDirty.value}
+          isMetaSaving={meta.isMetaSaving.value}
           showLeftPanel={showLeftPanel.value}
           showRightPanel={showRightPanel.value}
           isDirty={editor.isDirty.value}
@@ -203,6 +267,7 @@ export default defineComponent({
           onToggleRightPanel={() => {
             showRightPanel.value = !showRightPanel.value;
           }}
+          onSaveMeta={meta.saveMeta}
           onSave={editor.save}
           onValidate={editor.validate}
           onUndo={editor.undo}
