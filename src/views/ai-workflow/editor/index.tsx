@@ -132,11 +132,8 @@ export default defineComponent({
       });
     }
 
-    async function handleBack() {
-      const canLeave = await confirmLeaveIfDirty();
-      if (canLeave) {
-        router.push('/ai-workflow');
-      }
+    function handleBack() {
+      router.push('/ai-workflow');
     }
 
     function downloadJSON(filename: string, content: unknown) {
