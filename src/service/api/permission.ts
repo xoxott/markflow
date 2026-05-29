@@ -95,6 +95,3 @@ export function fetchTogglePermissionStatus(id: number, isActive: boolean) {
     data: { isActive }
   });
 }
-
-/** @deprecated 使用 `@/service/api/role` 的 `fetchAssignRolePermissions` */
-export { fetchAssignRolePermissions as fetchAssignPermissionsToRole } from './role';
