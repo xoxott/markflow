@@ -35,6 +35,19 @@ declare namespace Api {
       roles: Role[];
     }
 
+    /** User statistics */
+    interface UserStats {
+      total: number;
+      active: number;
+      inactive: number;
+      online: number;
+      offline: number;
+      blacklisted: number;
+    }
+
+    /** Export format */
+    type ExportFormat = 'csv' | 'xlsx';
+
     /** User list query parameters */
     interface UserListParams extends Common.PaginationParams {
       /** Search keyword (username or email) */
@@ -47,6 +60,15 @@ declare namespace Api {
       isBlacklisted?: Common.QueryBoolean;
       /** Filter by role code */
       roleCode?: string;
+      /** Sort field */
+      sortBy?: string;
+      /** Sort direction */
+      sortOrder?: 'asc' | 'desc';
+    }
+
+    /** Export users query parameters */
+    interface ExportUsersParams extends Omit<UserListParams, 'page' | 'limit'> {
+      format: ExportFormat;
     }
 
     /** Create user request (ai-server CreateUserInput) */
@@ -55,6 +77,8 @@ declare namespace Api {
       email: string;
       password: string;
       verificationCode: string;
+      /** Initial role IDs; defaults to regular user role when omitted */
+      roleIds?: number[];
     }
 
     /** Update user request (ai-server UpdateUserInput) */
@@ -63,6 +87,11 @@ declare namespace Api {
       email?: string;
       password?: string;
       avatar?: string;
+    }
+
+    /** Assign user roles request */
+    interface AssignUserRolesRequest {
+      roleIds: number[];
     }
 
     /** Batch delete users request (ai-server BatchDeleteInput) */
@@ -75,6 +104,12 @@ declare namespace Api {
       userIds: number[];
       isActive: boolean;
       reason?: string;
+    }
+
+    /** Batch blacklist users request */
+    interface BatchBlacklistRequest {
+      userIds: number[];
+      reason: string;
     }
 
     /** User list response (after transformBackendResponse) */
@@ -102,5 +137,8 @@ declare namespace Api {
 
     /** Role list response (after transformBackendResponse) */
     type RoleListResponse = ListData<Role>;
+
+    /** Online users response */
+    type OnlineUsersResponse = User[];
   }
 }

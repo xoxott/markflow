@@ -1,10 +1,18 @@
-import { NBadge, NButton, NPopover, NSpace, NSwitch, NTag, NText } from 'naive-ui';
+import { NBadge, NButton, NDropdown, NPopover, NSpace, NSwitch, NTag, NText } from 'naive-ui';
+import type { DropdownOption } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { formatApiDateTime } from '@/utils/datetime';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
 type User = Api.UserManagement.User;
+
+const SORT_BY_OPTIONS = [
+  { label: () => $t('page.userManagement.createdAt'), value: 'createdAt' },
+  { label: () => $t('page.userManagement.lastLoginAt'), value: 'lastLoginAt' },
+  { label: () => $t('page.userManagement.lastActivityAt'), value: 'lastActivityAt' },
+  { label: () => $t('page.userManagement.username'), value: 'username' }
+];
 
 /** 静态筛选项 + 角色下拉（选项由接口数据在页面侧传入） */
 export function createUserSearchFields(roles: Api.UserManagement.Role[]): SearchFieldConfig[] {
@@ -60,14 +68,92 @@ export function createUserSearchFields(roles: Api.UserManagement.Role[]): Search
         label: role.name,
         value: role.code
       }))
+    },
+    {
+      type: 'select',
+      field: 'sortBy',
+      label: $t('page.userManagement.sortByLabel'),
+      placeholder: $t('page.userManagement.sortByLabel'),
+      width: '130px',
+      options: SORT_BY_OPTIONS.map(opt => ({
+        label: typeof opt.label === 'function' ? opt.label() : opt.label,
+        value: opt.value
+      }))
+    },
+    {
+      type: 'select',
+      field: 'sortOrder',
+      label: $t('page.userManagement.sortOrderLabel'),
+      placeholder: $t('page.userManagement.sortOrderLabel'),
+      width: '130px',
+      options: [
+        { label: $t('page.userManagement.sortAsc'), value: 'asc' },
+        { label: $t('page.userManagement.sortDesc'), value: 'desc' }
+      ]
     }
   ];
 }
 
 export interface UserTableColumnHandlers {
+  onDetail: (row: User) => void;
   onEdit: (row: User) => void;
   onDelete: (row: User) => void;
   onToggleStatus: (id: number, isActive: boolean) => void;
+  onAssignRoles: (row: User) => void;
+  onBlacklist: (row: User) => void;
+  onUnblacklist: (row: User) => void;
+  onKick: (row: User) => void;
+}
+
+function buildRowActionOptions(row: User): DropdownOption[] {
+  const options: DropdownOption[] = [
+    { label: $t('page.userManagement.userDetail'), key: 'detail' },
+    { label: $t('common.edit'), key: 'edit' },
+    { label: $t('page.userManagement.assignRoles'), key: 'assignRoles' }
+  ];
+
+  if (row.isBlacklisted) {
+    options.push({ label: $t('page.userManagement.unblacklist'), key: 'unblacklist' });
+  } else {
+    options.push({ label: $t('page.userManagement.blacklist'), key: 'blacklist' });
+  }
+
+  if (row.isOnline) {
+    options.push({ label: $t('page.userManagement.kickOffline'), key: 'kick' });
+  }
+
+  options.push({ type: 'divider', key: 'divider' });
+  options.push({ label: $t('common.delete'), key: 'delete' });
+
+  return options;
+}
+
+function handleRowAction(key: string, row: User, h: UserTableColumnHandlers) {
+  switch (key) {
+    case 'detail':
+      h.onDetail(row);
+      break;
+    case 'edit':
+      h.onEdit(row);
+      break;
+    case 'assignRoles':
+      h.onAssignRoles(row);
+      break;
+    case 'blacklist':
+      h.onBlacklist(row);
+      break;
+    case 'unblacklist':
+      h.onUnblacklist(row);
+      break;
+    case 'kick':
+      h.onKick(row);
+      break;
+    case 'delete':
+      h.onDelete(row);
+      break;
+    default:
+      break;
+  }
 }
 
 export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnConfig<User>[] {
@@ -82,7 +168,10 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       },
       render: (row: User) => (
         <NSpace size="small" align="center">
-          <div class="flex items-center gap-6px">
+          <div
+            class="flex cursor-pointer items-center gap-6px hover:text-primary"
+            onClick={() => h.onDetail(row)}
+          >
             {row.avatar ? (
               <img
                 src={row.avatar}
@@ -191,7 +280,7 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
                   <div class="max-w-300px">
                     {row.blacklistReason && (
                       <div class="mb-4px">
-                        <NText strong>原因: </NText>
+                        <NText strong>{$t('page.userManagement.blacklistReasonLabel')}: </NText>
                         <NText>{row.blacklistReason}</NText>
                       </div>
                     )}
@@ -220,7 +309,14 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       key: 'lastLoginAt',
       width: 160,
       render: 'date',
-      renderConfig: { format: 'smart', emptyText: '从未登录' }
+      renderConfig: { format: 'smart', emptyText: $t('page.userManagement.neverLoggedIn') }
+    },
+    {
+      title: $t('page.userManagement.lastActivityAt'),
+      key: 'lastActivityAt',
+      width: 160,
+      render: 'date',
+      renderConfig: { format: 'smart', emptyText: $t('page.userManagement.neverActive') }
     },
     {
       title: $t('page.userManagement.createdAt'),
@@ -232,26 +328,24 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
     {
       title: $t('common.operate'),
       key: 'action',
-      width: 180,
+      width: 120,
       fixed: 'right',
       render: (row: User) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" secondary onClick={() => h.onEdit(row)}>
+        <NDropdown
+          trigger="click"
+          options={buildRowActionOptions(row)}
+          onSelect={(key: string) => handleRowAction(key, row, h)}
+        >
+          <NButton size="small" type="primary" secondary>
             <div class="flex items-center gap-4px">
-              <div class="i-carbon-edit text-14px" />
-              <span>{$t('common.edit')}</span>
+              <div class="i-carbon-overflow-menu-horizontal text-14px" />
+              <span>{$t('common.operate')}</span>
             </div>
           </NButton>
-          <NButton size="small" type="error" secondary onClick={() => h.onDelete(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-trash-can text-14px" />
-              <span>{$t('common.delete')}</span>
-            </div>
-          </NButton>
-        </NSpace>
+        </NDropdown>
       )
     }
   ];
 }
 
-export const USER_LIST_SCROLL_X = 1600;
+export const USER_LIST_SCROLL_X = 1900;

@@ -1,6 +1,6 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui';
 import { useVerificationCode } from '@/hooks/business/verification-code';
 import { useFormRules, useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
@@ -113,37 +113,61 @@ export default defineComponent({
                 <NInput v-model:value={formModel.email} placeholder={$t('form.email.required')} />
               </NFormItem>
               {!props.config.isEdit && (
-                <NFormItem label="验证码" path="verificationCode">
-                  <div class="w-full flex items-center gap-8px">
-                    <NInput
-                      v-model:value={formModel.verificationCode}
-                      maxlength={6}
-                      placeholder={$t('page.login.common.codePlaceholder')}
-                      class="flex-1"
+                <>
+                  <NFormItem
+                    label={$t('page.userManagement.verificationCode')}
+                    path="verificationCode"
+                  >
+                    <div class="w-full flex items-center gap-8px">
+                      <NInput
+                        v-model:value={formModel.verificationCode}
+                        maxlength={6}
+                        placeholder={$t('page.login.common.codePlaceholder')}
+                        class="flex-1"
+                      />
+                      <NButton
+                        secondary
+                        disabled={isCounting.value}
+                        loading={loading.value}
+                        onClick={handleSendCode}
+                      >
+                        {label.value}
+                      </NButton>
+                    </div>
+                  </NFormItem>
+                  <NFormItem label={$t('page.userManagement.role')}>
+                    <NSelect
+                      v-model:value={formModel.roleIds}
+                      multiple
+                      filterable
+                      clearable
+                      maxTagCount="responsive"
+                      placeholder={$t('page.userManagement.rolePlaceholder')}
+                      options={props.config.roleOptions}
                     />
-                    <NButton
-                      secondary
-                      disabled={isCounting.value}
-                      loading={loading.value}
-                      onClick={handleSendCode}
-                    >
-                      {label.value}
-                    </NButton>
-                  </div>
-                </NFormItem>
+                  </NFormItem>
+                </>
               )}
-              <NFormItem label="密码" path="password">
+              <NFormItem label={$t('page.userManagement.password')} path="password">
                 <NInput
                   v-model:value={formModel.password}
                   type="password"
                   placeholder={
                     props.config.isEdit
-                      ? $t('page.userManagement.passwordPlaceholderEdit' as any)
-                      : $t('page.userManagement.passwordPlaceholder' as any)
+                      ? $t('page.userManagement.passwordPlaceholderEdit')
+                      : $t('page.userManagement.passwordPlaceholder')
                   }
                   showPasswordOn="click"
                 />
               </NFormItem>
+              {props.config.isEdit && (
+                <NFormItem label={$t('page.userManagement.avatar')}>
+                  <NInput
+                    v-model:value={formModel.avatar}
+                    placeholder={$t('page.userManagement.avatarPlaceholder')}
+                  />
+                </NFormItem>
+              )}
             </NForm>
           ),
           footer: () => (
