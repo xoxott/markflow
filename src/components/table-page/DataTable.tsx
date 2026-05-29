@@ -81,8 +81,8 @@ export default defineComponent({
       default: undefined
     },
     /**
-     * 为 true 时根据容器高度启用 NDataTable `flexHeight`（表体滚动、分页器固定底部）。
-     * 显式传入 `maxHeight` 或在 `tableProps` 中设置 `flexHeight` 时不会自动覆盖。
+     * 为 true 时根据容器高度启用 NDataTable `flexHeight`（表体滚动、分页器固定底部）。 显式传入 `maxHeight` 或在 `tableProps` 中设置
+     * `flexHeight` 时不会自动覆盖。
      */
     autoHeight: {
       type: Boolean,
@@ -236,7 +236,7 @@ export default defineComponent({
     return () => (
       <div
         ref={containerRef}
-        class="h-full min-h-0 flex flex-col [&_.n-data-table]:h-full [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table\_\_pagination]:px-16px"
+        class="h-full min-h-0 flex flex-col [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table]:h-full [&_.n-data-table\_\_pagination]:px-16px"
       >
         <NDataTable {...mergedTableProps.value} />
       </div>

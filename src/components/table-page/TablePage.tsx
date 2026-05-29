@@ -450,22 +450,22 @@ export default defineComponent({
             {slots.tablePrepend ? <div class="flex-shrink-0">{slots.tablePrepend()}</div> : null}
             <div class="min-h-0 flex-1">
               <DataTable
-              columns={displayColumns.value}
-              data={props.data}
-              loading={props.loading}
-              pagination={props.pagination}
-              selectedKeys={props.selectedKeys}
-              rowKey={props.rowKey}
-              onUpdateSelectedKeys={props.onUpdateSelectedKeys}
-              scrollX={props.scrollX}
-              showIndex={props.showIndex}
-              showSelection={props.showSelection}
-              striped={props.striped}
-              size={props.size}
-              bordered={props.bordered}
-              maxHeight={props.maxHeight}
-              autoHeight={props.autoHeight}
-              tableProps={props.tableProps}
+                columns={displayColumns.value}
+                data={props.data}
+                loading={props.loading}
+                pagination={props.pagination}
+                selectedKeys={props.selectedKeys}
+                rowKey={props.rowKey}
+                onUpdateSelectedKeys={props.onUpdateSelectedKeys}
+                scrollX={props.scrollX}
+                showIndex={props.showIndex}
+                showSelection={props.showSelection}
+                striped={props.striped}
+                size={props.size}
+                bordered={props.bordered}
+                maxHeight={props.maxHeight}
+                autoHeight={props.autoHeight}
+                tableProps={props.tableProps}
               />
             </div>
             {slots.tableAppend ? <div class="flex-shrink-0">{slots.tableAppend()}</div> : null}
