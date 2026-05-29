@@ -6,6 +6,8 @@ export interface UserFormData {
   username: string;
   email: string;
   password: string;
+  /** 编辑用户修改密码时必填（须与 password 一致） */
+  confirmPassword: string;
   /** 创建用户时必填（ai-server CreateUserInput） */
   verificationCode: string;
   /** 创建用户时的初始角色 */

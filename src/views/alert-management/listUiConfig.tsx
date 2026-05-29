@@ -1,5 +1,6 @@
-import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { NSwitch, NTag } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -156,33 +157,41 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
         return new Date(row.createdAt).toLocaleString('zh-CN');
       }
     },
-    {
-      title: $t('common.operate'),
-      key: 'operate',
-      width: 280,
-      fixed: 'right',
-      render: (row: Alert) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          {row.status === 'active' && (
-            <>
-              <NButton size="small" type="info" onClick={() => h.onAcknowledge(row)}>
-                {$t('page.alertManagement.acknowledge')}
-              </NButton>
-              <NButton size="small" type="success" onClick={() => h.onResolve(row)}>
-                {$t('page.alertManagement.resolve')}
-              </NButton>
-            </>
-          )}
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-            {$t('common.delete')}
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'inline',
+      maxShow: 2,
+      buttons: [
+        {
+          label: $t('common.edit'),
+          type: 'primary',
+          icon: 'carbon:edit',
+          onClick: h.onEdit
+        },
+        {
+          key: 'acknowledge',
+          label: $t('page.alertManagement.acknowledge'),
+          type: 'info',
+          icon: 'carbon:checkmark',
+          show: (row: Alert) => row.status === 'active',
+          onClick: h.onAcknowledge
+        },
+        {
+          key: 'resolve',
+          label: $t('page.alertManagement.resolve'),
+          type: 'success',
+          icon: 'carbon:checkmark-filled',
+          show: (row: Alert) => row.status === 'active',
+          onClick: h.onResolve
+        },
+        {
+          label: $t('common.delete'),
+          type: 'error',
+          icon: 'carbon:trash-can',
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const ALERT_LIST_SCROLL_X = 2400;
+export const ALERT_LIST_SCROLL_X = 2192;

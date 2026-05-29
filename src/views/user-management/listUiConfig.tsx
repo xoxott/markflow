@@ -1,7 +1,7 @@
-import { NBadge, NButton, NDropdown, NPopover, NSpace, NSwitch, NTag, NText } from 'naive-ui';
-import type { DropdownOption } from 'naive-ui';
+import { NBadge, NPopover, NSpace, NSwitch, NTag, NText } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { formatApiDateTime } from '@/utils/datetime';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -103,57 +103,6 @@ export interface UserTableColumnHandlers {
   onBlacklist: (row: User) => void;
   onUnblacklist: (row: User) => void;
   onKick: (row: User) => void;
-}
-
-function buildRowActionOptions(row: User): DropdownOption[] {
-  const options: DropdownOption[] = [
-    { label: $t('page.userManagement.userDetail'), key: 'detail' },
-    { label: $t('common.edit'), key: 'edit' },
-    { label: $t('page.userManagement.assignRoles'), key: 'assignRoles' }
-  ];
-
-  if (row.isBlacklisted) {
-    options.push({ label: $t('page.userManagement.unblacklist'), key: 'unblacklist' });
-  } else {
-    options.push({ label: $t('page.userManagement.blacklist'), key: 'blacklist' });
-  }
-
-  if (row.isOnline) {
-    options.push({ label: $t('page.userManagement.kickOffline'), key: 'kick' });
-  }
-
-  options.push({ type: 'divider', key: 'divider' });
-  options.push({ label: $t('common.delete'), key: 'delete' });
-
-  return options;
-}
-
-function handleRowAction(key: string, row: User, h: UserTableColumnHandlers) {
-  switch (key) {
-    case 'detail':
-      h.onDetail(row);
-      break;
-    case 'edit':
-      h.onEdit(row);
-      break;
-    case 'assignRoles':
-      h.onAssignRoles(row);
-      break;
-    case 'blacklist':
-      h.onBlacklist(row);
-      break;
-    case 'unblacklist':
-      h.onUnblacklist(row);
-      break;
-    case 'kick':
-      h.onKick(row);
-      break;
-    case 'delete':
-      h.onDelete(row);
-      break;
-    default:
-      break;
-  }
 }
 
 export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnConfig<User>[] {
@@ -325,27 +274,43 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       render: 'date',
       renderConfig: { format: 'datetime' }
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 120,
-      fixed: 'right',
-      render: (row: User) => (
-        <NDropdown
-          trigger="click"
-          options={buildRowActionOptions(row)}
-          onSelect={(key: string) => handleRowAction(key, row, h)}
-        >
-          <NButton size="small" type="primary" secondary>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-overflow-menu-horizontal text-14px" />
-              <span>{$t('common.operate')}</span>
-            </div>
-          </NButton>
-        </NDropdown>
-      )
-    }
+    createActionColumn({
+      mode: 'menu',
+      buttons: [
+        { key: 'detail', label: $t('page.userManagement.userDetail'), onClick: h.onDetail },
+        { key: 'edit', label: $t('common.edit'), onClick: h.onEdit },
+        {
+          key: 'assignRoles',
+          label: $t('page.userManagement.assignRoles'),
+          onClick: h.onAssignRoles
+        },
+        {
+          key: 'unblacklist',
+          label: $t('page.userManagement.unblacklist'),
+          show: (row: User) => row.isBlacklisted,
+          onClick: h.onUnblacklist
+        },
+        {
+          key: 'blacklist',
+          label: $t('page.userManagement.blacklist'),
+          show: (row: User) => !row.isBlacklisted,
+          onClick: h.onBlacklist
+        },
+        {
+          key: 'kick',
+          label: $t('page.userManagement.kickOffline'),
+          show: (row: User) => row.isOnline,
+          onClick: h.onKick
+        },
+        {
+          key: 'delete',
+          label: $t('common.delete'),
+          divider: true,
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const USER_LIST_SCROLL_X = 1900;
+export const USER_LIST_SCROLL_X = 1852;

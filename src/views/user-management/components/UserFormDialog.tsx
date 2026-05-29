@@ -43,6 +43,23 @@ export default defineComponent({
           trigger: 'blur'
         }
       ],
+      confirmPassword: props.config.isEdit
+        ? [
+            {
+              validator: (_rule: unknown, value: string) => {
+                if (!formModel.password) return true;
+                if (!value) {
+                  return new Error($t('form.confirmPwd.required'));
+                }
+                if (value !== formModel.password) {
+                  return new Error($t('form.confirmPwd.invalid'));
+                }
+                return true;
+              },
+              trigger: 'blur'
+            }
+          ]
+        : [],
       verificationCode: props.config.isEdit ? [] : formRules.code
     }));
 
@@ -160,6 +177,16 @@ export default defineComponent({
                   showPasswordOn="click"
                 />
               </NFormItem>
+              {props.config.isEdit && (
+                <NFormItem label={$t('page.userManagement.confirmPassword')} path="confirmPassword">
+                  <NInput
+                    v-model:value={formModel.confirmPassword}
+                    type="password"
+                    placeholder={$t('page.userManagement.confirmPasswordPlaceholder')}
+                    showPasswordOn="click"
+                  />
+                </NFormItem>
+              )}
               {props.config.isEdit && (
                 <NFormItem label={$t('page.userManagement.avatar')}>
                   <NInput

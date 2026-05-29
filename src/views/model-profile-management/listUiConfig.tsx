@@ -1,4 +1,5 @@
-import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { NSwitch, NTag } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -75,29 +76,35 @@ export function createModelProfileTableColumns(
         <NSwitch value={row.enabled} onUpdateValue={(v: boolean) => h.onToggleEnabled(row, v)} />
       )
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 280,
-      fixed: 'right',
-      render: (row: Profile) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NButton size="small" onClick={() => h.onCredential(row)}>
-            {$t('page.modelProfileManagement.credential')}
-          </NButton>
-          <NButton size="small" onClick={() => h.onTest(row)}>
-            {$t('page.modelProfileManagement.testConnection')}
-          </NButton>
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-            {$t('common.delete')}
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'inline',
+      maxShow: 2,
+      buttons: [
+        {
+          label: $t('common.edit'),
+          type: 'primary',
+          icon: 'carbon:edit',
+          onClick: h.onEdit
+        },
+        {
+          label: $t('page.modelProfileManagement.credential'),
+          icon: 'carbon:password',
+          onClick: h.onCredential
+        },
+        {
+          label: $t('page.modelProfileManagement.testConnection'),
+          icon: 'carbon:connection-signal',
+          onClick: h.onTest
+        },
+        {
+          label: $t('common.delete'),
+          type: 'error',
+          icon: 'carbon:trash-can',
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const MODEL_PROFILE_LIST_SCROLL_X = 1200;
+export const MODEL_PROFILE_LIST_SCROLL_X = 992;

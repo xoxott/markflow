@@ -1,26 +1,13 @@
 import { type PropType, defineComponent } from 'vue';
-import { NBadge, NButton, NSpace, NText, NTooltip } from 'naive-ui';
+import { NSpace, NText } from 'naive-ui';
 import TableColumnSetting from '@/components/advanced/table-column-setting';
-import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
+import { ActionButton, ActionDropdownButton, ActionIconButton } from './actions';
 import type { ActionBarColumnSetting, ActionBarProps, PresetButtonType } from './types';
 
-/** Uno `i-{collection}-{name}` 或 Iconify `{collection}:{name}` 统一为 SvgIcon 可用的 Iconify 名 */
-function resolveIconifyIcon(icon: string) {
-  if (icon.includes(':')) return icon;
-  if (icon.startsWith('i-')) {
-    const rest = icon.slice(2);
-    const dashIndex = rest.indexOf('-');
-    if (dashIndex > 0) {
-      return `${rest.slice(0, dashIndex)}:${rest.slice(dashIndex + 1)}`;
-    }
-  }
-  return icon;
-}
-
 /**
- * 表格工具条：预设按钮（新增 / 批量删除 / 刷新 / 导出）、自定义按钮与可选列设置。 默认整体靠右；仅在 `config.showStats === true`
- * 时左侧展示统计、右侧为按钮组（两端对齐）。
+ * 表格工具条：预设按钮（新增 / 批量删除 / 刷新 / 导出）、自定义按钮、下拉按钮与可选列设置。 整体 w-full；有 statsRender
+ * 时左侧统计、右侧按钮组（ml-auto）；无统计时按钮靠右。
  */
 export default defineComponent({
   name: 'ActionBar',
@@ -43,7 +30,6 @@ export default defineComponent({
     }
   },
   setup(props) {
-    /** 在 render 内调用，切换语言时文案会随 locale 更新 */
     const getPresetButtonMap = (): Record<
       PresetButtonType,
       {
@@ -79,88 +65,40 @@ export default defineComponent({
       }
     });
 
-    const renderIconOnlyButton = (options: {
-      label: string;
-      icon: string;
-      type: 'default' | 'primary' | 'error';
-      disabled?: boolean;
-      loading?: boolean;
-      onClick?: () => void | Promise<void>;
-    }) => (
-      <NTooltip>
-        {{
-          trigger: () => (
-            <NButton
-              type={options.type}
-              disabled={options.disabled}
-              loading={options.loading}
-              onClick={options.onClick}
-              aria-label={options.label}
-            >
-              <SvgIcon icon={resolveIconifyIcon(options.icon)} class="text-16px" />
-            </NButton>
-          ),
-          default: () => options.label
-        }}
-      </NTooltip>
-    );
-
     const renderPresetButton = (buttonType: PresetButtonType, buttonConfig: any) => {
       const preset = getPresetButtonMap()[buttonType];
       const { label = preset.label, icon = preset.icon, onClick, disabled, loading } = buttonConfig;
 
       const isDisabled = disabled || (preset.needSelection && props.selectedKeys.length === 0);
-      const iconifyIcon = resolveIconifyIcon(icon);
 
       if (preset.iconOnly) {
-        return renderIconOnlyButton({
-          label,
-          icon: iconifyIcon,
-          type: preset.type,
-          disabled: isDisabled,
-          loading,
-          onClick
-        });
+        return (
+          <ActionIconButton
+            label={label}
+            icon={icon}
+            type={preset.type}
+            disabled={isDisabled}
+            loading={loading}
+            onClick={onClick}
+          />
+        );
       }
 
       return (
-        <NButton type={preset.type} disabled={isDisabled} loading={loading} onClick={onClick}>
-          <div class="flex items-center gap-4px">
-            <SvgIcon icon={iconifyIcon} class="text-16px" />
-            <span>{label}</span>
-            {buttonType === 'batchDelete' && props.selectedKeys.length > 0 && (
-              <NBadge value={props.selectedKeys.length} type="error" />
-            )}
-          </div>
-        </NButton>
-      );
-    };
-
-    const renderCustomButton = (buttonConfig: any, index: number) => {
-      const {
-        label,
-        icon,
-        type = 'default',
-        secondary = false,
-        onClick,
-        disabled,
-        loading
-      } = buttonConfig;
-
-      return (
-        <NButton
-          key={index}
-          type={type}
-          secondary={secondary}
-          disabled={disabled}
+        <ActionButton
+          label={label}
+          icon={icon}
+          type={preset.type}
+          disabled={isDisabled}
           loading={loading}
           onClick={onClick}
-        >
-          <div class="flex items-center gap-4px">
-            {icon ? <SvgIcon icon={resolveIconifyIcon(icon)} class="text-16px" /> : null}
-            <span>{label}</span>
-          </div>
-        </NButton>
+          badge={
+            buttonType === 'batchDelete' && props.selectedKeys.length > 0
+              ? props.selectedKeys.length
+              : undefined
+          }
+          badgeType="error"
+        />
       );
     };
 
@@ -189,17 +127,18 @@ export default defineComponent({
       );
     };
 
+    const resolveDisabled = (disabled?: boolean | (() => boolean)) => {
+      if (typeof disabled === 'function') return disabled();
+      return disabled ?? false;
+    };
+
     return () => {
       const showStats = props.config.showStats ?? false;
+
       return (
-        <div
-          class={[
-            'flex flex-wrap items-center gap-12px',
-            showStats ? 'justify-between' : 'justify-end'
-          ].join(' ')}
-        >
-          {renderStats()}
-          <NSpace size="small" wrap={false}>
+        <div class="w-full flex flex-wrap items-center gap-12px">
+          {showStats ? renderStats() : null}
+          <NSpace size="small" wrap={false} align="center" class="ml-auto">
             {props.config.preset &&
               Object.entries(props.config.preset).map(([key, config]) => {
                 if (config.show !== false) {
@@ -208,9 +147,34 @@ export default defineComponent({
                 return null;
               })}
 
-            {props.config.custom?.map((buttonConfig, index) =>
-              renderCustomButton(buttonConfig, index)
-            )}
+            {props.config.custom?.map((buttonConfig, index) => (
+              <ActionButton
+                key={index}
+                label={buttonConfig.label}
+                icon={buttonConfig.icon}
+                type={buttonConfig.type}
+                secondary={buttonConfig.secondary}
+                disabled={buttonConfig.disabled}
+                loading={buttonConfig.loading}
+                onClick={buttonConfig.onClick}
+              />
+            ))}
+
+            {props.config.dropdowns?.map((dropdown, index) => (
+              <ActionDropdownButton
+                key={`dropdown-${index}`}
+                label={dropdown.label}
+                icon={dropdown.icon}
+                type={dropdown.type}
+                secondary={dropdown.secondary}
+                disabled={resolveDisabled(dropdown.disabled)}
+                loading={dropdown.loading}
+                badge={dropdown.badge}
+                badgeType={dropdown.badgeType}
+                options={dropdown.options}
+                onSelect={dropdown.onSelect}
+              />
+            ))}
 
             {props.columnSetting ? (
               <TableColumnSetting

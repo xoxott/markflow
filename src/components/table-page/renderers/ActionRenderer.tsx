@@ -1,6 +1,38 @@
 import { type PropType, defineComponent } from 'vue';
 import { NButton, NDropdown, NPopconfirm, NSpace } from 'naive-ui';
+import type { DropdownOption } from 'naive-ui';
+import SvgIcon from '@/components/custom/svg-icon';
+import {
+  ACTION_BUTTON_SIZE,
+  ACTION_ICON_CLASS,
+  ACTION_MENU_TRIGGER_ICON,
+  resolveIconifyIcon
+} from '../actions';
 import type { ActionButtonItemConfig, ActionRendererConfig } from '../types';
+
+function isButtonVisible(button: ActionButtonItemConfig, row: any) {
+  return typeof button.show === 'function' ? button.show(row) : button.show !== false;
+}
+
+function isButtonDisabled(button: ActionButtonItemConfig, row: any) {
+  return typeof button.disabled === 'function' ? button.disabled(row) : button.disabled;
+}
+
+function runButtonClick(button: ActionButtonItemConfig, row: any) {
+  if (button.confirm) {
+    window.$dialog?.warning({
+      title: button.confirm.title,
+      content: button.confirm.content || `确定要${button.label}吗？`,
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: () => {
+        button.onClick(row);
+      }
+    });
+    return;
+  }
+  button.onClick(row);
+}
 
 export default defineComponent({
   name: 'ActionRenderer',
@@ -15,31 +47,26 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const renderButton = (button: ActionButtonItemConfig, row: any) => {
-      // Check if button should be shown
-      const show = typeof button.show === 'function' ? button.show(row) : button.show !== false;
-      if (!show) return null;
-
-      // Check if button should be disabled
-      const disabled =
-        typeof button.disabled === 'function' ? button.disabled(row) : button.disabled;
+    const renderInlineButton = (button: ActionButtonItemConfig, row: any) => {
+      const disabled = isButtonDisabled(button, row);
 
       const buttonNode = (
         <NButton
-          size="small"
+          size={ACTION_BUTTON_SIZE}
           type={button.type || 'default'}
           secondary={button.secondary !== false}
           disabled={disabled}
           onClick={() => button.onClick(row)}
         >
           <div class="flex items-center gap-4px">
-            {button.icon && <div class={`${button.icon} text-14px`} />}
+            {button.icon ? (
+              <SvgIcon icon={resolveIconifyIcon(button.icon)} class={ACTION_ICON_CLASS} />
+            ) : null}
             <span>{button.label}</span>
           </div>
         </NButton>
       );
 
-      // Wrap with confirm dialog if needed
       if (button.confirm) {
         return (
           <NPopconfirm onPositiveClick={() => button.onClick(row)}>
@@ -54,74 +81,106 @@ export default defineComponent({
       return buttonNode;
     };
 
-    return () => {
-      const { row, config } = props;
-      const { buttons, maxShow = 3, moreText = '更多' } = config;
+    const buildMenuOptions = (row: any): DropdownOption[] => {
+      const options: DropdownOption[] = [];
 
-      const visibleButtons = buttons.filter(button => {
-        const show = typeof button.show === 'function' ? button.show(row) : button.show !== false;
-        return show;
+      props.config.buttons.forEach((button, index) => {
+        if (!isButtonVisible(button, row)) return;
+
+        if (button.divider && options.length > 0) {
+          options.push({ type: 'divider', key: `divider-${index}` });
+        }
+
+        options.push({
+          label: button.label,
+          key: button.key ?? String(index),
+          disabled: isButtonDisabled(button, row)
+        });
       });
 
-      if (visibleButtons.length === 0) {
-        return null;
-      }
+      return options;
+    };
 
-      // If buttons count is within limit, show all
+    const handleMenuSelect = (key: string, row: any) => {
+      const button = props.config.buttons.find(
+        (item, index) => (item.key ?? String(index)) === key
+      );
+      if (!button || !isButtonVisible(button, row)) return;
+      runButtonClick(button, row);
+    };
+
+    const renderMenuMode = (row: any) => {
+      const options = buildMenuOptions(row);
+      if (options.length === 0) return null;
+
+      return (
+        <NDropdown
+          trigger="click"
+          options={options}
+          onSelect={(key: string) => handleMenuSelect(key, row)}
+        >
+          <NButton size={ACTION_BUTTON_SIZE} secondary aria-label={props.config.moreText ?? '操作'}>
+            <SvgIcon icon={ACTION_MENU_TRIGGER_ICON} class={ACTION_ICON_CLASS} />
+          </NButton>
+        </NDropdown>
+      );
+    };
+
+    const renderInlineMode = (row: any) => {
+      const { maxShow = 2, moreText = '更多' } = props.config;
+
+      const visibleButtons = props.config.buttons.filter(button => isButtonVisible(button, row));
+
+      if (visibleButtons.length === 0) return null;
+
       if (visibleButtons.length <= maxShow) {
         return (
           <NSpace size="small">
             {visibleButtons.map((button, index) => (
-              <div key={index}>{renderButton(button, row)}</div>
+              <div key={index}>{renderInlineButton(button, row)}</div>
             ))}
           </NSpace>
         );
       }
 
-      // Show some buttons + dropdown for more
       const displayButtons = visibleButtons.slice(0, maxShow - 1);
       const moreButtons = visibleButtons.slice(maxShow - 1);
 
-      const dropdownOptions = moreButtons.map((button, index) => ({
+      const dropdownOptions: DropdownOption[] = moreButtons.map((button, index) => ({
         label: button.label,
-        key: index,
-        icon: button.icon ? () => <div class={`${button.icon} text-16px`} /> : undefined,
-        disabled: typeof button.disabled === 'function' ? button.disabled(row) : button.disabled,
+        key: button.key ?? String(index),
+        disabled: isButtonDisabled(button, row),
         props: {
-          onClick: () => {
-            if (button.confirm) {
-              // Handle confirm in dropdown
-              window.$dialog?.warning({
-                title: button.confirm.title,
-                content: button.confirm.content || `确定要${button.label}吗？`,
-                positiveText: '确定',
-                negativeText: '取消',
-                onPositiveClick: () => {
-                  button.onClick(row);
-                }
-              });
-            } else {
-              button.onClick(row);
-            }
-          }
+          onClick: () => runButtonClick(button, row)
         }
       }));
 
       return (
         <NSpace size="small">
           {displayButtons.map((button, index) => (
-            <div key={index}>{renderButton(button, row)}</div>
+            <div key={index}>{renderInlineButton(button, row)}</div>
           ))}
           <NDropdown options={dropdownOptions} trigger="click">
-            <NButton size="small" secondary>
+            <NButton size={ACTION_BUTTON_SIZE} secondary>
               <div class="flex items-center gap-4px">
-                <div class="i-carbon-overflow-menu-horizontal text-14px" />
+                <SvgIcon icon={ACTION_MENU_TRIGGER_ICON} class={ACTION_ICON_CLASS} />
                 <span>{moreText}</span>
               </div>
             </NButton>
           </NDropdown>
         </NSpace>
       );
+    };
+
+    return () => {
+      const { row, config } = props;
+      const mode = config.mode ?? 'inline';
+
+      if (mode === 'menu') {
+        return renderMenuMode(row);
+      }
+
+      return renderInlineMode(row);
     };
   }
 });

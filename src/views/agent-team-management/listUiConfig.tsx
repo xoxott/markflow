@@ -1,4 +1,5 @@
-import { NButton, NSpace, NTag } from 'naive-ui';
+import { NTag } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 
 type Team = Api.AgentManagement.AgentTeam;
@@ -70,42 +71,35 @@ export function createAgentTeamTableColumns(h: AgentTeamTableHandlers): TableCol
         );
       }
     },
-    {
-      title: '操作',
-      key: 'action',
-      width: 320,
-      fixed: 'right',
-      render: (row: Team) => (
-        <NSpace size="small">
-          <NButton size="small" onClick={() => h.onDetail(row)}>
-            详情
-          </NButton>
-          <NButton
-            size="small"
-            type="primary"
-            disabled={row.status === 'running'}
-            onClick={() => h.onStart(row)}
-          >
-            启动编排
-          </NButton>
-          <NButton
-            size="small"
-            type="warning"
-            disabled={row.status !== 'running'}
-            onClick={() => h.onStop(row)}
-          >
-            停止
-          </NButton>
-          <NButton size="small" onClick={() => h.onEdit(row)}>
-            编辑
-          </NButton>
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-            删除
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'menu',
+      buttons: [
+        { key: 'detail', label: '详情', icon: 'carbon:view', onClick: h.onDetail },
+        {
+          key: 'start',
+          label: '启动编排',
+          icon: 'carbon:play',
+          disabled: (row: Team) => row.status === 'running',
+          onClick: h.onStart
+        },
+        {
+          key: 'stop',
+          label: '停止',
+          icon: 'carbon:stop',
+          disabled: (row: Team) => row.status !== 'running',
+          onClick: h.onStop
+        },
+        { key: 'edit', label: '编辑', icon: 'carbon:edit', onClick: h.onEdit },
+        {
+          key: 'delete',
+          label: '删除',
+          icon: 'carbon:trash-can',
+          divider: true,
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const AGENT_TEAM_LIST_SCROLL_X = 1100;
+export const AGENT_TEAM_LIST_SCROLL_X = 852;

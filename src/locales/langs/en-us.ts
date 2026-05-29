@@ -355,6 +355,8 @@ const local: App.I18n.Schema = {
       password: 'Password',
       passwordPlaceholder: 'Please enter password',
       passwordPlaceholderEdit: 'Leave blank to keep current password',
+      confirmPassword: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Please enter password again',
       verificationCode: 'Verification Code',
       avatar: 'Avatar',
       avatarPlaceholder: 'Avatar URL (optional)',

@@ -15,3 +15,5 @@ export * from './types';
 export * from './hooks';
 export * from './renderers';
 export * from './utils/columnChecks';
+export * from './utils/createActionColumn';
+export * from './actions';

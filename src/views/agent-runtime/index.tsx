@@ -1,8 +1,9 @@
 import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
-import { NButton, NSpace, NTabPane, NTabs, NTag, useMessage } from 'naive-ui';
+import { NTabPane, NTabs, NTag, useMessage } from 'naive-ui';
 import { mockAgentRunApi } from '@/service/api/agent-run-mock';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { useRunDrawer } from './components/useRunDrawer';
@@ -171,25 +172,28 @@ export default defineComponent({
         width: 170,
         render: (r: Session) => new Date(r.lastActiveAt).toLocaleString('zh-CN')
       },
-      {
-        title: '操作',
-        key: 'action',
-        width: 240,
-        fixed: 'right',
-        render: (row: Session) => (
-          <NSpace size="small">
-            <NButton size="small" onClick={() => handleViewRuns(row)}>
-              查看 Runs
-            </NButton>
-            <NButton size="small" onClick={() => handleRenameSession(row)}>
-              重命名
-            </NButton>
-            <NButton size="small" type="warning" onClick={() => handleStopSession(row)}>
-              停止
-            </NButton>
-          </NSpace>
-        )
-      }
+      createActionColumn({
+        mode: 'inline',
+        maxShow: 3,
+        buttons: [
+          {
+            label: '查看 Runs',
+            icon: 'carbon:list',
+            onClick: handleViewRuns
+          },
+          {
+            label: '重命名',
+            icon: 'carbon:edit',
+            onClick: handleRenameSession
+          },
+          {
+            label: '停止',
+            type: 'warning',
+            icon: 'carbon:stop',
+            onClick: handleStopSession
+          }
+        ]
+      })
     ];
 
     const runColumns: TableColumnConfig<Run>[] = [
@@ -216,17 +220,16 @@ export default defineComponent({
             ? `${Math.round(r.durationMs / 1000)}s`
             : '-'
       },
-      {
-        title: '操作',
-        key: 'action',
-        width: 120,
-        fixed: 'right',
-        render: (row: Run) => (
-          <NButton size="small" onClick={() => handleViewEvents(row)}>
-            事件流
-          </NButton>
-        )
-      }
+      createActionColumn({
+        mode: 'inline',
+        buttons: [
+          {
+            label: '事件流',
+            icon: 'carbon:flow',
+            onClick: handleViewEvents
+          }
+        ]
+      })
     ];
 
     return () => (

@@ -351,6 +351,8 @@ const local: App.I18n.Schema = {
       password: '密码',
       passwordPlaceholder: '请输入密码',
       passwordPlaceholderEdit: '留空则不修改密码',
+      confirmPassword: '确认密码',
+      confirmPasswordPlaceholder: '请再次输入密码',
       verificationCode: '验证码',
       avatar: '头像',
       avatarPlaceholder: '请输入头像 URL（可选）',

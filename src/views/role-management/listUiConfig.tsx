@@ -1,5 +1,6 @@
-import { NButton, NSpace, NTag } from 'naive-ui';
+import { NSpace, NTag } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -142,31 +143,32 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       render: 'date',
       renderConfig: { format: 'datetime' }
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 280,
-      fixed: 'right',
-      render: (row: Role) => (
-        <NSpace size="small">
-          <NButton size="small" type="info" onClick={() => h.onAssignPermissions(row)}>
-            {$t('page.roleManagement.assignPermissions')}
-          </NButton>
-          <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NButton
-            size="small"
-            type="error"
-            disabled={row.isSystem}
-            onClick={() => h.onDelete(row)}
-          >
-            {$t('common.delete')}
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'inline',
+      maxShow: 3,
+      buttons: [
+        {
+          label: $t('page.roleManagement.assignPermissions'),
+          type: 'info',
+          icon: 'carbon:key',
+          onClick: h.onAssignPermissions
+        },
+        {
+          label: $t('common.edit'),
+          type: 'primary',
+          icon: 'carbon:edit',
+          onClick: h.onEdit
+        },
+        {
+          label: $t('common.delete'),
+          type: 'error',
+          icon: 'carbon:trash-can',
+          disabled: (row: Role) => row.isSystem,
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const ROLE_LIST_SCROLL_X = 2100;
+export const ROLE_LIST_SCROLL_X = 2040;

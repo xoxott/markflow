@@ -1,10 +1,11 @@
-import { NButton, NSpace, NTag, NText } from 'naive-ui';
+import { NTag, NText } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
 type Workflow = Api.Workflow.Workflow;
 
-export const WORKFLOW_LIST_SCROLL_X = 1650;
+export const WORKFLOW_LIST_SCROLL_X = 1362;
 
 export function createWorkflowSearchFields(): SearchFieldConfig[] {
   return [
@@ -116,64 +117,35 @@ export function createWorkflowTableColumns(
       width: 180,
       render: (row: Workflow) => new Date(row.createdAt).toLocaleString('zh-CN')
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 360,
-      fixed: 'right',
-      render: (row: Workflow) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" secondary onClick={() => h.onEdit(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-edit text-14px" />
-              <span>编辑</span>
-            </div>
-          </NButton>
-          <NButton size="small" secondary onClick={() => h.onCopy(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-copy text-14px" />
-              <span>复制</span>
-            </div>
-          </NButton>
-          <NButton size="small" type="info" secondary onClick={() => h.onExecute(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-play-filled-alt text-14px" />
-              <span>执行</span>
-            </div>
-          </NButton>
-          <NButton size="small" secondary onClick={() => h.onVersion(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-version text-14px" />
-              <span>版本</span>
-            </div>
-          </NButton>
-
-          {row.status === 'draft' && (
-            <NButton size="small" type="success" secondary onClick={() => h.onPublish(row)}>
-              <div class="flex items-center gap-4px">
-                <div class="i-carbon-upload text-14px" />
-                <span>发布</span>
-              </div>
-            </NButton>
-          )}
-
-          {row.status === 'published' && (
-            <NButton size="small" type="warning" secondary onClick={() => h.onArchive(row)}>
-              <div class="flex items-center gap-4px">
-                <div class="i-carbon-archive text-14px" />
-                <span>归档</span>
-              </div>
-            </NButton>
-          )}
-
-          <NButton size="small" type="error" secondary onClick={() => h.onDelete(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-trash-can text-14px" />
-              <span>{$t('common.delete')}</span>
-            </div>
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'menu',
+      buttons: [
+        { key: 'edit', label: '编辑', icon: 'carbon:edit', onClick: h.onEdit },
+        { key: 'copy', label: '复制', icon: 'carbon:copy', onClick: h.onCopy },
+        { key: 'execute', label: '执行', icon: 'carbon:play-filled-alt', onClick: h.onExecute },
+        { key: 'version', label: '版本', icon: 'carbon:version', onClick: h.onVersion },
+        {
+          key: 'publish',
+          label: '发布',
+          icon: 'carbon:upload',
+          show: (row: Workflow) => row.status === 'draft',
+          onClick: h.onPublish
+        },
+        {
+          key: 'archive',
+          label: '归档',
+          icon: 'carbon:archive',
+          show: (row: Workflow) => row.status === 'published',
+          onClick: h.onArchive
+        },
+        {
+          key: 'delete',
+          label: $t('common.delete'),
+          icon: 'carbon:trash-can',
+          divider: true,
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }

@@ -8,7 +8,7 @@ import { defineComponent } from 'vue';
 import { useMessage } from 'naive-ui';
 import type { AxiosResponse } from 'axios';
 import type { FlatResponseSuccessData } from '@suga/axios';
-import { TablePage, useTablePage } from '@/components/table-page';
+import { TablePage, createActionColumn, useTablePage } from '@/components/table-page';
 import type {
   ActionBarConfig,
   SearchFieldConfig,
@@ -204,31 +204,25 @@ export default defineComponent({
           format: 'datetime'
         }
       },
-      {
-        key: 'action',
-        title: '操作',
-        width: 180,
-        fixed: 'right',
-        render: 'action',
-        renderConfig: {
-          buttons: [
-            {
-              label: '编辑',
-              icon: 'i-carbon-edit',
-              type: 'primary',
-              secondary: true,
-              onClick: handleEdit
-            },
-            {
-              label: '删除',
-              icon: 'i-carbon-trash-can',
-              type: 'error',
-              secondary: true,
-              onClick: handleDelete
-            }
-          ]
-        }
-      }
+      createActionColumn({
+        mode: 'inline',
+        buttons: [
+          {
+            label: '编辑',
+            icon: 'i-carbon-edit',
+            type: 'primary',
+            secondary: true,
+            onClick: handleEdit
+          },
+          {
+            label: '删除',
+            icon: 'i-carbon-trash-can',
+            type: 'error',
+            secondary: true,
+            onClick: handleDelete
+          }
+        ]
+      })
     ];
 
     return () => (

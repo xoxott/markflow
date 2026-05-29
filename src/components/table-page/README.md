@@ -144,7 +144,15 @@ src/components/table-page/
 ├── hooks/
 │   ├── useTablePage.ts
 │   └── useSearchForm.ts
-├── renderers/                     # 列预设渲染
+├── actions/                       # 操作按钮原子组件
+│   ├── ActionButton.tsx
+│   ├── ActionIconButton.tsx
+│   ├── ActionDropdownButton.tsx
+│   └── constants.ts
+├── utils/
+│   ├── columnChecks.ts
+│   └── createActionColumn.ts      # 行操作列工厂
+├── renderers/                     # 列预设渲染（含 ActionRenderer）
 ├── examples/BasicExample.tsx
 └── README.md                      # 本文档
 ```
@@ -219,6 +227,89 @@ const columns: TableColumnConfig[] = [
 
 // <TablePage {...searchBindings} searchConfig={...} actionConfig={...} columns={...} ... />
 ```
+
+## 操作区规范
+
+顶部工具栏与表格行操作列统一使用 `table-page` 封装，避免各页面手写 `NButton` / `NDropdown` 导致风格不一致。
+
+### 顶部工具栏（ActionBar）
+
+- **优先** `actionConfig`；仅当布局无法用配置表达时才使用 `action` 插槽。
+- 根布局 `w-full`：左侧 `statsRender`（可选），右侧按钮组 `ml-auto`。
+- 图标统一 `SvgIcon` + Iconify（`carbon:*` 或 Uno `i-carbon-*`，经 `resolveIconifyIcon` 转换）。
+- 预设按钮：`preset.add` / `batchDelete` / `refresh` / `export`。
+- 自定义文字按钮：`custom`。
+- 下拉按钮（批量、导出格式等）：`dropdowns`，支持 `badge`、`divider` 选项。
+
+```tsx
+import type { ActionBarConfig } from '@/components/table-page';
+
+const actionConfig: ActionBarConfig = {
+  showStats: true,
+  statsRender: () => <YourStats />,
+  preset: {
+    add: { onClick: handleAdd },
+    refresh: { onClick: refresh }
+  },
+  dropdowns: [
+    {
+      label: '批量操作',
+      icon: 'carbon:list-checked',
+      secondary: true,
+      badge: selectedCount,
+      options: [
+        { label: '启用', key: 'enable' },
+        { key: 'divider', type: 'divider' },
+        { label: '删除', key: 'delete' }
+      ],
+      onSelect: handleBatch
+    }
+  ]
+};
+```
+
+### 行操作列（ActionRenderer + createActionColumn）
+
+- **优先** `createActionColumn` + `render: 'action'`；不要在 `listUiConfig` 内直接写操作按钮 DOM。
+- 列 key 统一为 `action`（常量 `ACTION_COLUMN_KEY`）。
+- 两种模式由 `mode` 配置：
+  - **`inline`**（默认）：主操作外露（`maxShow` 默认 2），溢出收入「更多」；适合 2~4 个操作（角色、权限等）。
+  - **`menu`**：整列图标下拉，列宽 `72px`；适合 5+ 个操作（用户管理等）。
+- 条件显示/禁用：`show` / `disabled` 支持 `(row) => boolean`。
+- 菜单分隔：`divider: true` 在该项前插入分隔线。
+
+```tsx
+import { createActionColumn } from '@/components/table-page';
+
+// inline 模式（编辑 + 删除）
+createActionColumn({
+  mode: 'inline',
+  buttons: [
+    { label: '编辑', icon: 'carbon:edit', type: 'primary', onClick: handleEdit },
+    { label: '删除', icon: 'carbon:trash-can', type: 'error', onClick: handleDelete }
+  ]
+});
+
+// menu 模式（多操作下拉）
+createActionColumn({
+  mode: 'menu',
+  buttons: [
+    { key: 'edit', label: '编辑', onClick: handleEdit },
+    { key: 'delete', label: '删除', divider: true, onClick: handleDelete }
+  ]
+});
+```
+
+### 原子组件（`table-page/actions/`）
+
+| 组件                   | 用途                     |
+| ---------------------- | ------------------------ |
+| `ActionButton`         | 图标 + 文字按钮          |
+| `ActionIconButton`     | 纯图标 + Tooltip         |
+| `ActionDropdownButton` | 下拉触发按钮             |
+| `resolveIconifyIcon`   | Uno / Iconify 图标名统一 |
+
+完整示例见 [`examples/BasicExample.tsx`](./examples/BasicExample.tsx)（inline）与用户管理页（menu + dropdowns）。
 
 ## TablePage API（核心 Props）
 

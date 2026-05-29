@@ -51,12 +51,37 @@ export interface CustomButtonConfig {
   loading?: boolean;
 }
 
+/** 操作栏下拉按钮的单项 */
+export interface ActionBarDropdownOption {
+  label?: string;
+  key: string;
+  disabled?: boolean;
+  type?: 'divider';
+}
+
+/** 操作栏下拉按钮（批量操作、导出格式等） */
+export interface ActionBarDropdownConfig {
+  label: string;
+  icon?: string;
+  type?: 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error';
+  secondary?: boolean;
+  disabled?: boolean | (() => boolean);
+  loading?: boolean;
+  /** 选中数量角标，如批量操作 */
+  badge?: number;
+  badgeType?: 'default' | 'info' | 'success' | 'warning' | 'error';
+  options: ActionBarDropdownOption[];
+  onSelect: (key: string) => void;
+}
+
 /** 表格上方工具区（新增 / 批量删除 / 刷新等）的配置 */
 export interface ActionBarConfig {
   /** 内置按钮集合 */
   preset?: Partial<Record<PresetButtonType, PresetButtonConfig>>;
   /** 追加的自定义按钮 */
   custom?: CustomButtonConfig[];
+  /** 下拉按钮（批量操作、导出等） */
+  dropdowns?: ActionBarDropdownConfig[];
   /** 是否展示统计文案（与按钮同一行：有统计时为两端对齐，无统计时按钮整体靠右），默认 false */
   showStats?: boolean;
   /** 自定义统计区域：入参为总条数与已选条数 */
@@ -138,6 +163,8 @@ export interface BadgeRendererConfig {
 
 /** 行级操作按钮单项 */
 export interface ActionButtonItemConfig {
+  /** 菜单模式选项标识 */
+  key?: string;
   /** 按钮文案 */
   label: string;
   /** 图标类名 */
@@ -152,6 +179,8 @@ export interface ActionButtonItemConfig {
   show?: boolean | ((row: any) => boolean);
   /** 是否禁用：布尔或按行判断 */
   disabled?: boolean | ((row: any) => boolean);
+  /** 菜单模式：在该项前插入分隔线 */
+  divider?: boolean;
   /** 点击前二次确认 */
   confirm?: {
     title: string;
@@ -159,13 +188,18 @@ export interface ActionButtonItemConfig {
   };
 }
 
+/** 行操作列展示模式 */
+export type ActionDisplayMode = 'inline' | 'menu';
+
 /** 行级操作列：多个按钮 + 折叠 */
 export interface ActionRendererConfig {
+  /** inline：主操作外露 + 溢出收入更多；menu：整列图标下拉 */
+  mode?: ActionDisplayMode;
   /** 从左到右的按钮定义 */
   buttons: ActionButtonItemConfig[];
-  /** 超出后收入「更多」 */
+  /** inline 模式：外露按钮上限，默认 2 */
   maxShow?: number;
-  /** 「更多」菜单触发文案 */
+  /** inline 溢出时「更多」菜单触发文案 */
   moreText?: string;
 }
 

@@ -1,5 +1,6 @@
-import { NButton, NSpace, NSwitch } from 'naive-ui';
+import { NSwitch } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -147,23 +148,27 @@ export function createPermissionTableColumns(
       render: 'date',
       renderConfig: { format: 'datetime' }
     },
-    {
-      title: $t('common.operate'),
-      key: 'operate',
-      width: 200,
-      fixed: 'right',
-      render: (row: Permission) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-            {$t('common.delete')}
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn(
+      {
+        mode: 'inline',
+        buttons: [
+          {
+            label: $t('common.edit'),
+            type: 'primary',
+            icon: 'carbon:edit',
+            onClick: h.onEdit
+          },
+          {
+            label: $t('common.delete'),
+            type: 'error',
+            icon: 'carbon:trash-can',
+            onClick: h.onDelete
+          }
+        ]
+      },
+      { key: 'operate' }
+    )
   ];
 }
 
-export const PERMISSION_LIST_SCROLL_X = 1800;
+export const PERMISSION_LIST_SCROLL_X = 1760;

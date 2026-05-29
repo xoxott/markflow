@@ -1,4 +1,5 @@
-import { NButton, NDropdown, NSpace, NTag } from 'naive-ui';
+import { NTag } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 import { AGENT_SOURCE_OPTIONS, AGENT_STATUS_OPTIONS } from './constants';
@@ -99,47 +100,58 @@ export function createAgentTableColumns(h: AgentTableColumnHandlers): TableColum
       render: (row: Agent) =>
         row.updatedAt ? new Date(row.updatedAt).toLocaleString('zh-CN') : '-'
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 260,
-      fixed: 'right',
-      render: (row: Agent) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NButton size="small" onClick={() => h.onCopy(row)}>
-            {$t('page.agentManagement.copy')}
-          </NButton>
-          {row.source !== 'builtin' && row.status === 'draft' && (
-            <NButton size="small" type="success" onClick={() => h.onPublish(row)}>
-              {$t('page.agentManagement.publish')}
-            </NButton>
-          )}
-          {row.source !== 'builtin' && row.status === 'published' && (
-            <NButton size="small" type="warning" onClick={() => h.onDisable(row)}>
-              {$t('page.agentManagement.disable')}
-            </NButton>
-          )}
-          <NDropdown
-            options={[
-              { label: '导出 JSON', key: 'json' },
-              { label: '导出 Markdown', key: 'md' }
-            ]}
-            onSelect={(key: string) => h.onExport(row, key as 'md' | 'json')}
-          >
-            <NButton size="small">{$t('page.agentManagement.export')}</NButton>
-          </NDropdown>
-          {row.source !== 'builtin' && (
-            <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-              {$t('common.delete')}
-            </NButton>
-          )}
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'menu',
+      buttons: [
+        {
+          key: 'edit',
+          label: $t('common.edit'),
+          icon: 'carbon:edit',
+          onClick: h.onEdit
+        },
+        {
+          key: 'copy',
+          label: $t('page.agentManagement.copy'),
+          icon: 'carbon:copy',
+          onClick: h.onCopy
+        },
+        {
+          key: 'publish',
+          label: $t('page.agentManagement.publish'),
+          icon: 'carbon:upload',
+          show: (row: Agent) => row.source !== 'builtin' && row.status === 'draft',
+          onClick: h.onPublish
+        },
+        {
+          key: 'disable',
+          label: $t('page.agentManagement.disable'),
+          icon: 'carbon:pause',
+          show: (row: Agent) => row.source !== 'builtin' && row.status === 'published',
+          onClick: h.onDisable
+        },
+        {
+          key: 'export-json',
+          label: '导出 JSON',
+          icon: 'carbon:document',
+          onClick: (row: Agent) => h.onExport(row, 'json')
+        },
+        {
+          key: 'export-md',
+          label: '导出 Markdown',
+          icon: 'carbon:document-export',
+          onClick: (row: Agent) => h.onExport(row, 'md')
+        },
+        {
+          key: 'delete',
+          label: $t('common.delete'),
+          icon: 'carbon:trash-can',
+          divider: true,
+          show: (row: Agent) => row.source !== 'builtin',
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const AGENT_LIST_SCROLL_X = 1500;
+export const AGENT_LIST_SCROLL_X = 1312;

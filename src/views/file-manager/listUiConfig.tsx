@@ -1,4 +1,5 @@
-import { NButton, NSpace, NTag } from 'naive-ui';
+import { NTag } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -14,7 +15,7 @@ const INDEX_STATUS_MAP: Record<
   failed: { labelKey: 'page.knowledgeBase.indexStatus.failed', type: 'error' }
 };
 
-export const KNOWLEDGE_BASE_LIST_SCROLL_X = 1200;
+export const KNOWLEDGE_BASE_LIST_SCROLL_X = 1000;
 
 export function createKnowledgeBaseSearchFields(): SearchFieldConfig[] {
   return [
@@ -88,27 +89,33 @@ export function createKnowledgeBaseTableColumns(
       width: 170,
       render: row => new Date(row.updatedAt).toLocaleString()
     },
-    {
-      title: $t('common.action'),
-      key: 'actions',
-      width: 280,
-      fixed: 'right',
-      render: row => (
-        <NSpace size={8}>
-          <NButton size="small" type="primary" onClick={() => h.onEnter(row)}>
-            {$t('page.knowledgeBase.enter')}
-          </NButton>
-          <NButton size="small" onClick={() => h.onEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NButton size="small" onClick={() => h.onReindex(row)}>
-            {$t('page.knowledgeBase.reindex')}
-          </NButton>
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
-            {$t('common.delete')}
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'inline',
+      maxShow: 2,
+      buttons: [
+        {
+          label: $t('page.knowledgeBase.enter'),
+          type: 'primary',
+          icon: 'carbon:arrow-right',
+          onClick: h.onEnter
+        },
+        {
+          label: $t('common.edit'),
+          icon: 'carbon:edit',
+          onClick: h.onEdit
+        },
+        {
+          label: $t('page.knowledgeBase.reindex'),
+          icon: 'carbon:renew',
+          onClick: h.onReindex
+        },
+        {
+          label: $t('common.delete'),
+          type: 'error',
+          icon: 'carbon:trash-can',
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }

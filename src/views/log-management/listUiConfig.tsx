@@ -1,4 +1,5 @@
-import { NButton, NSpace, NTag } from 'naive-ui';
+import { NTag } from 'naive-ui';
+import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -179,29 +180,24 @@ export function createLogTableColumns(h: LogTableColumnHandlers): TableColumnCon
       render: 'date',
       renderConfig: { format: 'datetime' }
     },
-    {
-      title: $t('common.operate'),
-      key: 'action',
-      width: 180,
-      fixed: 'right',
-      render: (row: Log) => (
-        <NSpace size="small">
-          <NButton size="small" type="primary" secondary onClick={() => h.onView(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-view text-14px" />
-              <span>{$t('common.view')}</span>
-            </div>
-          </NButton>
-          <NButton size="small" type="error" secondary onClick={() => h.onDelete(row)}>
-            <div class="flex items-center gap-4px">
-              <div class="i-carbon-trash-can text-14px" />
-              <span>{$t('common.delete')}</span>
-            </div>
-          </NButton>
-        </NSpace>
-      )
-    }
+    createActionColumn({
+      mode: 'inline',
+      buttons: [
+        {
+          label: $t('common.view'),
+          type: 'primary',
+          icon: 'carbon:view',
+          onClick: h.onView
+        },
+        {
+          label: $t('common.delete'),
+          type: 'error',
+          icon: 'carbon:trash-can',
+          onClick: h.onDelete
+        }
+      ]
+    })
   ];
 }
 
-export const LOG_LIST_SCROLL_X = 1400;
+export const LOG_LIST_SCROLL_X = 1380;

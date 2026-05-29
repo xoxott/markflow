@@ -86,6 +86,8 @@ declare namespace Api {
       username?: string;
       email?: string;
       password?: string;
+      /** Required when password is provided; must match password */
+      confirmPassword?: string;
       avatar?: string;
     }
 

@@ -20,17 +20,19 @@ import {
   fetchUserStats
 } from '@/service/api/user';
 import TablePage from '@/components/table-page/TablePage';
+import type { ActionBarConfig } from '@/components/table-page/types';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { mergeTablePageColumnChecks } from '@/components/table-page/utils/columnChecks';
 import { $t } from '@/locales';
+import { encryptLoginPassword } from '@/views/_builtin/login/shared/utils';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import type { UserFormData } from './components/dialog';
 import { useBlacklistDialog } from './components/useBlacklistDialog';
 import { useOnlineUsersDialog } from './components/useOnlineUsersDialog';
 import { useUserDialog } from './components/useUserDialog';
+import { useUserDetailDrawer } from './components/useUserDetailDrawer';
 import { useUserRoleDialog } from './components/useUserRoleDialog';
-import UserDetailDrawer from './components/UserDetailDrawer';
-import UserManagementToolbar from './components/UserManagementToolbar';
+import UserStatsInline from './components/UserStatsInline';
 import { USER_LIST_SCROLL_X, createUserSearchFields, createUserTableColumns } from './listUiConfig';
 
 type User = Api.UserManagement.User;
@@ -40,6 +42,7 @@ function createEmptyUserForm(): UserFormData {
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
     verificationCode: '',
     roleIds: [],
     avatar: ''
@@ -55,6 +58,7 @@ export default defineComponent({
     const userRoleDialog = useUserRoleDialog();
     const blacklistDialog = useBlacklistDialog();
     const onlineUsersDialog = useOnlineUsersDialog();
+    const detailDrawer = useUserDetailDrawer();
     const dialog = useDialog(instance?.appContext.app);
 
     const selectedRowKeys = ref<number[]>([]);
@@ -62,8 +66,6 @@ export default defineComponent({
     const userStats = ref<Api.UserManagement.UserStats | null>(null);
     const statsLoading = ref(false);
     const exportLoading = ref(false);
-    const detailDrawerVisible = ref(false);
-    const detailUser = ref<User | null>(null);
     const columnChecks = ref<NaiveUI.TableColumnCheck[]>([]);
 
     const roleOptions = computed<SelectOption[]>(() =>
@@ -153,18 +155,21 @@ export default defineComponent({
       });
     }
 
-    function closeDetailDrawer() {
-      detailDrawerVisible.value = false;
-    }
-
     async function openUserDetail(row: User) {
       const { data: userDetail, error } = await fetchUserDetail(row.id);
       if (error || !userDetail) {
         message.error($t('page.userManagement.getDetailFailed'));
         return;
       }
-      detailUser.value = userDetail;
-      detailDrawerVisible.value = true;
+
+      await detailDrawer.showUserDetail({
+        user: userDetail,
+        onEdit: () => handleEdit(userDetail),
+        onAssignRoles: () => handleAssignRoles(userDetail),
+        onBlacklist: () => handleBlacklist(userDetail),
+        onUnblacklist: () => handleUnblacklist(userDetail),
+        onKick: () => handleKick(userDetail)
+      });
     }
 
     async function handleAdd() {
@@ -176,7 +181,7 @@ export default defineComponent({
           const { error } = await fetchCreateUser({
             username: form.username,
             email: form.email,
-            password: form.password,
+            password: encryptLoginPassword(form.password),
             verificationCode: form.verificationCode,
             roleIds: form.roleIds.length > 0 ? form.roleIds : undefined
           });
@@ -190,8 +195,6 @@ export default defineComponent({
     }
 
     async function handleEdit(row: User) {
-      closeDetailDrawer();
-
       const { data: userDetail } = await fetchUserDetail(row.id);
       if (!userDetail) {
         message.error($t('page.userManagement.getDetailFailed'));
@@ -202,6 +205,7 @@ export default defineComponent({
         username: userDetail.username,
         email: userDetail.email,
         password: '',
+        confirmPassword: '',
         verificationCode: '',
         roleIds: userDetail.roles?.map(r => r.id) ?? [],
         avatar: userDetail.avatar ?? ''
@@ -217,7 +221,9 @@ export default defineComponent({
             email: form.email
           };
           if (form.password) {
-            updateData.password = form.password;
+            const encryptedPassword = encryptLoginPassword(form.password);
+            updateData.password = encryptedPassword;
+            updateData.confirmPassword = encryptedPassword;
           }
           if (form.avatar) {
             updateData.avatar = form.avatar;
@@ -233,8 +239,6 @@ export default defineComponent({
     }
 
     async function handleAssignRoles(row: User) {
-      closeDetailDrawer();
-
       const { data: userDetail } = await fetchUserDetail(row.id);
       if (!userDetail) {
         message.error($t('page.userManagement.getDetailFailed'));
@@ -259,8 +263,6 @@ export default defineComponent({
     }
 
     async function handleBlacklist(row: User) {
-      closeDetailDrawer();
-
       await dialog.confirm({
         title: $t('page.userManagement.blacklist'),
         content: $t('page.userManagement.confirmBlacklist', { username: row.username }),
@@ -277,8 +279,6 @@ export default defineComponent({
     }
 
     async function handleUnblacklist(row: User) {
-      closeDetailDrawer();
-
       await dialog.confirm({
         title: $t('page.userManagement.unblacklist'),
         content: $t('page.userManagement.confirmUnblacklist', { username: row.username }),
@@ -294,8 +294,6 @@ export default defineComponent({
     }
 
     async function handleKick(row: User) {
-      closeDetailDrawer();
-
       await dialog.confirm({
         title: $t('page.userManagement.kickOffline'),
         content: $t('page.userManagement.kickOfflineConfirm', { username: row.username }),
@@ -319,7 +317,7 @@ export default defineComponent({
     }
 
     async function handleDelete(row: User) {
-      closeDetailDrawer();
+      detailDrawer.closeUserDetail();
 
       await dialog.confirmDelete(row.username, async () => {
         const { error } = await fetchDeleteUser(row.id);
@@ -388,6 +386,25 @@ export default defineComponent({
       });
     }
 
+    function handleToolbarBatchSelect(key: string) {
+      switch (key) {
+        case 'enable':
+          handleBatchStatus(true);
+          break;
+        case 'disable':
+          handleBatchStatus(false);
+          break;
+        case 'blacklist':
+          handleBatchBlacklist();
+          break;
+        case 'delete':
+          handleBatchDelete();
+          break;
+        default:
+          break;
+      }
+    }
+
     onMounted(() => {
       loadRoles();
       loadStats();
@@ -416,18 +433,72 @@ export default defineComponent({
       { immediate: true, deep: true }
     );
 
-    const detailDrawerConfig = computed(() =>
-      detailUser.value
-        ? {
-            user: detailUser.value,
-            onEdit: () => handleEdit(detailUser.value!),
-            onAssignRoles: () => handleAssignRoles(detailUser.value!),
-            onBlacklist: () => handleBlacklist(detailUser.value!),
-            onUnblacklist: () => handleUnblacklist(detailUser.value!),
-            onKick: () => handleKick(detailUser.value!)
+    const actionConfig = computed<ActionBarConfig>(() => {
+      const selectedCount = selectedRowKeys.value.length;
+      const hasSelection = selectedCount > 0;
+
+      return {
+        showStats: true,
+        statsRender: () => (
+          <UserStatsInline
+            stats={userStats.value}
+            loading={statsLoading.value}
+            onClickOnline={handleShowOnlineUsers}
+          />
+        ),
+        preset: {
+          add: { onClick: handleAdd },
+          refresh: { onClick: refreshPage }
+        },
+        dropdowns: [
+          {
+            label: $t('page.userManagement.batchOperations'),
+            icon: 'carbon:list-checked',
+            secondary: true,
+            disabled: !hasSelection,
+            badge: hasSelection ? selectedCount : undefined,
+            options: [
+              {
+                label: $t('page.userManagement.batchEnable'),
+                key: 'enable',
+                disabled: !hasSelection
+              },
+              {
+                label: $t('page.userManagement.batchDisable'),
+                key: 'disable',
+                disabled: !hasSelection
+              },
+              {
+                label: $t('page.userManagement.batchBlacklist'),
+                key: 'blacklist',
+                disabled: !hasSelection
+              },
+              { key: 'batch-divider', type: 'divider' },
+              {
+                label: $t('common.batchDelete'),
+                key: 'delete',
+                disabled: !hasSelection
+              }
+            ],
+            onSelect: handleToolbarBatchSelect
+          },
+          {
+            label: $t('common.export'),
+            icon: 'carbon:download',
+            loading: exportLoading.value,
+            options: [
+              { label: $t('page.userManagement.exportCsv'), key: 'csv' },
+              { label: $t('page.userManagement.exportExcel'), key: 'xlsx' }
+            ],
+            onSelect: (key: string) => {
+              if (key === 'csv' || key === 'xlsx') {
+                handleExport(key);
+              }
+            }
           }
-        : null
-    );
+        ]
+      };
+    });
 
     return () => (
       <div class="h-full flex flex-col">
@@ -455,36 +526,7 @@ export default defineComponent({
           searchLabelWidth={96}
           searchCardBordered={false}
           actionCardBordered={false}
-        >
-          {{
-            action: () => (
-              <UserManagementToolbar
-                stats={userStats.value}
-                statsLoading={statsLoading.value}
-                selectedCount={selectedRowKeys.value.length}
-                exportLoading={exportLoading.value}
-                columnChecks={columnChecks.value}
-                onUpdate:columnChecks={next => {
-                  columnChecks.value = next;
-                }}
-                onAdd={handleAdd}
-                onRefresh={refreshPage}
-                onExport={handleExport}
-                onBatchEnable={() => handleBatchStatus(true)}
-                onBatchDisable={() => handleBatchStatus(false)}
-                onBatchBlacklist={handleBatchBlacklist}
-                onBatchDelete={handleBatchDelete}
-                onShowOnlineUsers={handleShowOnlineUsers}
-              />
-            )
-          }}
-        </TablePage>
-        <UserDetailDrawer
-          show={detailDrawerVisible.value}
-          config={detailDrawerConfig.value}
-          onUpdate:show={(val: boolean) => {
-            detailDrawerVisible.value = val;
-          }}
+          actionConfig={actionConfig.value}
         />
       </div>
     );
