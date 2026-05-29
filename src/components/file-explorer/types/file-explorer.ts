@@ -3,7 +3,7 @@
  * @Date: 2025-11-02 16:51:15
  * @LastEditors: yang 212920320@qq.com
  * @LastEditTime: 2025-11-05 23:08:01
- * @FilePath: \markdown-preview-demo\src\components\file-explorer\types\file-explorer.ts
+ * @FilePath: \markflow\src\components\file-explorer\types\file-explorer.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 export type IconSize = 'extra-large' | 'large' | 'medium' | 'small';

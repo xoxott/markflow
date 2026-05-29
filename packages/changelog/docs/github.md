@@ -14,7 +14,7 @@
 function hasTagOnGitHub(tag, repo, githubToken): Promise<boolean>;
 ```
 
-Defined in: [github.ts:25](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L25)
+Defined in: [github.ts:25](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L25)
 
 检查指定 tag 是否已经存在于 GitHub 仓库中
 
@@ -42,7 +42,7 @@ Defined in: [github.ts:25](https://github.com/xoxott/markdown-preview-demo/blob/
 function sendRelease(options, content): Promise<void>;
 ```
 
-Defined in: [github.ts:45](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L45)
+Defined in: [github.ts:45](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L45)
 
 创建或更新 GitHub Release
 
@@ -70,7 +70,7 @@ Defined in: [github.ts:45](https://github.com/xoxott/markdown-preview-demo/blob/
 function isRepoShallow(): Promise<boolean>;
 ```
 
-Defined in: [github.ts:119](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L119)
+Defined in: [github.ts:119](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/github.ts#L119)
 
 判断当前仓库是否为浅克隆（shallow clone）
 

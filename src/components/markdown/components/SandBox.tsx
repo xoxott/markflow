@@ -78,10 +78,12 @@ export const SandBox = defineComponent({
     const logs = ref<string[]>([]);
     const loading = ref(false);
 
+    const baseUrl = import.meta.env.VITE_BASE_URL || '/';
+
     // Vue REPL 配置
     const { importMap: builtinImportMap } = useVueImportMap({
-      runtimeDev: '/markdown-preview-demo/local/vue.runtime.esm-browser.js',
-      runtimeProd: '/markdown-preview-demo/local/vue.runtime.esm-browser.prod.js'
+      runtimeDev: `${baseUrl}local/vue.runtime.esm-browser.js`,
+      runtimeProd: `${baseUrl}local/vue.runtime.esm-browser.prod.js`
     });
 
     // 创建 store

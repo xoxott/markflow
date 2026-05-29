@@ -3,7 +3,7 @@
  * @Date: 2025-11-01 21:48:56
  * @LastEditors: yangtao 212920320@qq.com
  * @LastEditTime: 2025-11-08 14:34:28
- * @FilePath: \markdown-preview-demo\src\views\component\index.tsx
+ * @FilePath: \markflow\src\views\component\index.tsx
  * @Description: 组件示例页面，包含各种组件的使用示例
  *
  * 示例组件已拆分为独立文件，便于维护和扩展

@@ -14,7 +14,7 @@
 function generateMarkdown(params): string;
 ```
 
-Defined in: [markdown.ts:188](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L188)
+Defined in: [markdown.ts:188](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L188)
 
 根据 commits 和配置信息生成完整 Markdown changelog
 
@@ -44,7 +44,7 @@ Markdown 字符串
 function isVersionInMarkdown(newVersion, mdPath): Promise<boolean>;
 ```
 
-Defined in: [markdown.ts:253](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L253)
+Defined in: [markdown.ts:253](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L253)
 
 判断指定版本是否已经存在于 changelog Markdown 文件中
 
@@ -71,7 +71,7 @@ true 已存在，false 不存在
 function writeMarkdown(md, mdPath, regenerate): Promise<void>;
 ```
 
-Defined in: [markdown.ts:280](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L280)
+Defined in: [markdown.ts:280](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/markdown.ts#L280)
 
 写入或更新 changelog Markdown 文件
 

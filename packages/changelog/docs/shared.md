@@ -18,7 +18,7 @@
 function partition<T>(array, f1): [T[], T[]];
 ```
 
-Defined in: [shared.ts:64](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L64)
+Defined in: [shared.ts:64](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L64)
 
 将数组根据过滤函数划分为多个分组
 
@@ -64,7 +64,7 @@ const [small, medium, large] = partition(
 function partition<T>(array, f1, f2): [T[], T[], T[]];
 ```
 
-Defined in: [shared.ts:65](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L65)
+Defined in: [shared.ts:65](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L65)
 
 将数组根据过滤函数划分为多个分组
 
@@ -111,7 +111,7 @@ const [small, medium, large] = partition(
 function partition<T>(array, f1, f2, f3): [T[], T[], T[], T[]];
 ```
 
-Defined in: [shared.ts:66](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L66)
+Defined in: [shared.ts:66](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L66)
 
 将数组根据过滤函数划分为多个分组
 
@@ -159,7 +159,7 @@ const [small, medium, large] = partition(
 function partition<T>(array, f1, f2, f3, f4): [T[], T[], T[], T[], T[]];
 ```
 
-Defined in: [shared.ts:72](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L72)
+Defined in: [shared.ts:72](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L72)
 
 将数组根据过滤函数划分为多个分组
 
@@ -208,7 +208,7 @@ const [small, medium, large] = partition(
 function partition<T>(array, f1, f2, f3, f4, f5): [T[], T[], T[], T[], T[], T[]];
 ```
 
-Defined in: [shared.ts:79](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L79)
+Defined in: [shared.ts:79](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L79)
 
 将数组根据过滤函数划分为多个分组
 
@@ -258,7 +258,7 @@ const [small, medium, large] = partition(
 function partition<T>(array, f1, f2, f3, f4, f5, f6): [T[], T[], T[], T[], T[], T[], T[]];
 ```
 
-Defined in: [shared.ts:87](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L87)
+Defined in: [shared.ts:87](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L87)
 
 将数组根据过滤函数划分为多个分组
 
@@ -313,7 +313,7 @@ const [small, medium, large] = partition(
 function execCommand(cmd, args, options?): Promise<string>;
 ```
 
-Defined in: [shared.ts:17](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L17)
+Defined in: [shared.ts:17](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L17)
 
 执行一个命令行指令并返回标准输出
 
@@ -347,7 +347,7 @@ const branch = await execCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
 function notNullish<T>(v?): v is NonNullable<T>;
 ```
 
-Defined in: [shared.ts:34](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L34)
+Defined in: [shared.ts:34](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L34)
 
 判断值是否非 null 或 undefined
 
@@ -385,7 +385,7 @@ const arr = [1, null, 2, undefined].filter(notNullish); // [1, 2]
 function groupBy<T>(items, key, groups): Record<string, T[]>;
 ```
 
-Defined in: [shared.ts:130](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L130)
+Defined in: [shared.ts:130](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L130)
 
 根据对象属性对数组分组
 
@@ -427,7 +427,7 @@ const grouped = groupBy(arr, 'type');
 function capitalize(str): string;
 ```
 
-Defined in: [shared.ts:150](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L150)
+Defined in: [shared.ts:150](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L150)
 
 将字符串首字母大写
 
@@ -459,7 +459,7 @@ capitalize('hello'); // 'Hello'
 function join(array?, glue?, finalGlue?): string;
 ```
 
-Defined in: [shared.ts:169](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L169)
+Defined in: [shared.ts:169](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L169)
 
 将字符串数组拼接为自然语言形式
 
@@ -495,7 +495,7 @@ join(['a', 'b', 'c']); // 'a, b and c'
 function upperFirst(string?): string;
 ```
 
-Defined in: [shared.ts:190](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L190)
+Defined in: [shared.ts:190](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/shared.ts#L190)
 
 将字符串的第一个字符大写
 

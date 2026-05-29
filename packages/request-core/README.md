@@ -600,4 +600,4 @@ MIT
 ## 🔗 相关链接
 
 - [架构设计文档](./ARCHITECTURE.md) - 详细的架构设计说明
-- [GitHub Repository](https://github.com/xoxott/markdown-preview-demo) - 源代码仓库
+- [GitHub Repository](https://github.com/xoxott/markflow) - 源代码仓库

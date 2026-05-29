@@ -391,7 +391,7 @@ export function createDefaultUser(): User {
     icon: '📋',
     file: createFileItem('config.json', 'json', { size: 512 }),
     getContent: () => `{
-  "name": "markdown-preview-demo",
+  "name": "markflow",
   "version": "1.3.13",
   "dependencies": {
     "vue": "3.5.13",
@@ -409,7 +409,7 @@ export function createDefaultUser(): User {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Markdown Preview Demo</title>
+  <title>MarkFlow</title>
 </head>
 <body>
   <div id="app"></div>

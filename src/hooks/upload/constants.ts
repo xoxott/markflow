@@ -3,7 +3,7 @@
  * @Date: 2025-10-21 14:05:26
  * @LastEditors: yangtao 212920320@qq.com
  * @LastEditTime: 2025-10-31 15:56:01
- * @FilePath: \markdown-preview-demo\src\hooks\upload\constants.ts
+ * @FilePath: \markflow\src\hooks\upload\constants.ts
  * @Description: 上传模块全局常量
  */
 // ==================== 常量定义 ====================

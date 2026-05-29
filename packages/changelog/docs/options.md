@@ -14,7 +14,7 @@
 function createOptions(options?): Promise<ChangelogOption>;
 ```
 
-Defined in: [options.ts:74](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/options.ts#L74)
+Defined in: [options.ts:74](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/options.ts#L74)
 
 创建完整的 Changelog 配置选项，包括 GitHub 仓库信息、Git 标签范围等
 

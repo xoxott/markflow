@@ -3,7 +3,7 @@
  * @Date: 2025-09-14 18:47:49
  * @LastEditors: yang 212920320@qq.com
  * @LastEditTime: 2025-10-19 00:31:01
- * @FilePath: \markdown-preview-demo\src\views\utils\index.vue
+ * @FilePath: \markflow\src\views\utils\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <script setup lang="ts">

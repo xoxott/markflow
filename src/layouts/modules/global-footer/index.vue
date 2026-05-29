@@ -7,7 +7,7 @@ defineOptions({
 <template>
   <DarkModeContainer class="h-full flex-center">
     <a
-      href="https://github.com/xoxott/markdown-preview-demo/blob/main/LICENSE"
+      href="https://github.com/xoxott/markflow/blob/main/LICENSE"
       target="_blank"
       rel="noopener noreferrer"
     >

@@ -21,7 +21,7 @@ function getChangelogMarkdown(
 }>;
 ```
 
-Defined in: [index.ts:17](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L17)
+Defined in: [index.ts:17](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L17)
 
 根据两个 Git 标签（或提交区间）生成对应的 changelog Markdown 文本
 
@@ -56,7 +56,7 @@ Defined in: [index.ts:17](https://github.com/xoxott/markdown-preview-demo/blob/0
 function getTotalChangelogMarkdown(options?, showProgress?): Promise<string>;
 ```
 
-Defined in: [index.ts:44](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L44)
+Defined in: [index.ts:44](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L44)
 
 根据所有 Git 标签区间，生成完整的 changelog Markdown 文本
 
@@ -83,7 +83,7 @@ Defined in: [index.ts:44](https://github.com/xoxott/markdown-preview-demo/blob/0
 function generateChangelog(options?): Promise<void>;
 ```
 
-Defined in: [index.ts:93](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L93)
+Defined in: [index.ts:93](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L93)
 
 根据两个 Git 标签区间，生成 changelog 文件（如 `CHANGELOG.md`）
 
@@ -107,7 +107,7 @@ Defined in: [index.ts:93](https://github.com/xoxott/markdown-preview-demo/blob/0
 function generateTotalChangelog(options?, showProgress?): Promise<void>;
 ```
 
-Defined in: [index.ts:116](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L116)
+Defined in: [index.ts:116](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/index.ts#L116)
 
 根据所有 Git 标签区间，生成完整的 changelog 文件（覆盖写入）
 

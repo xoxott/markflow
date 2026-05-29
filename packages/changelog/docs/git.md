@@ -14,7 +14,7 @@
 function getTotalGitTags(): Promise<string[]>;
 ```
 
-Defined in: [git.ts:14](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L14)
+Defined in: [git.ts:14](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L14)
 
 获取所有符合语义化版本的 git 标签，并进行排序
 
@@ -34,7 +34,7 @@ Defined in: [git.ts:14](https://github.com/xoxott/markdown-preview-demo/blob/0f5
 function getTagDateMap(): Promise<Map<string, string>>;
 ```
 
-Defined in: [git.ts:29](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L29)
+Defined in: [git.ts:29](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L29)
 
 获取每个 git tag 对应的日期映射表
 
@@ -54,7 +54,7 @@ Map<标签名, 日期字符串(YYYY-MM-DD)>
 function getFromToTags(tags): object[];
 ```
 
-Defined in: [git.ts:64](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L64)
+Defined in: [git.ts:64](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L64)
 
 生成版本之间的 from-to 区间，用于生成 CHANGELOG 对比范围
 
@@ -80,7 +80,7 @@ Defined in: [git.ts:64](https://github.com/xoxott/markdown-preview-demo/blob/0f5
 function getCurrentGitBranch(): Promise<string>;
 ```
 
-Defined in: [git.ts:110](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L110)
+Defined in: [git.ts:110](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L110)
 
 获取当前 Git 指针位置：若有 tag 返回 tag，否则返回分支名
 
@@ -100,7 +100,7 @@ Defined in: [git.ts:110](https://github.com/xoxott/markdown-preview-demo/blob/0f
 function getGitHubRepo(): Promise<string>;
 ```
 
-Defined in: [git.ts:123](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L123)
+Defined in: [git.ts:123](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L123)
 
 获取 GitHub 仓库名称 (格式: owner/repo)
 
@@ -124,7 +124,7 @@ Defined in: [git.ts:123](https://github.com/xoxott/markdown-preview-demo/blob/0f
 function isPrerelease(version): boolean;
 ```
 
-Defined in: [git.ts:138](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L138)
+Defined in: [git.ts:138](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L138)
 
 判断是否为预发布版本
 
@@ -150,7 +150,7 @@ Defined in: [git.ts:138](https://github.com/xoxott/markdown-preview-demo/blob/0f
 function getFirstGitCommit(): Promise<string>;
 ```
 
-Defined in: [git.ts:149](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L149)
+Defined in: [git.ts:149](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L149)
 
 获取第一个 git 提交记录（commit hash）
 
@@ -170,7 +170,7 @@ Defined in: [git.ts:149](https://github.com/xoxott/markdown-preview-demo/blob/0f
 function getGitCommits(from?, to?): Promise<GitCommit[]>;
 ```
 
-Defined in: [git.ts:263](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L263)
+Defined in: [git.ts:263](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L263)
 
 获取解析后的 git 提交记录
 
@@ -204,7 +204,7 @@ function getGitCommitsAndResolvedAuthors(
 }>;
 ```
 
-Defined in: [git.ts:345](https://github.com/xoxott/markdown-preview-demo/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L345)
+Defined in: [git.ts:345](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/git.ts#L345)
 
 获取解析后的提交及贡献者信息
 

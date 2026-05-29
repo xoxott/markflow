@@ -1,6 +1,6 @@
 # Flow API 迁移指南
 
-本文说明从旧版 Flow 包结构迁移到当前 **public / internal** 边界的方式。面向升级 `markdown-preview-demo` 内嵌 Flow 或 fork 本库的维护者。
+本文说明从旧版 Flow 包结构迁移到当前 **public / internal** 边界的方式。面向升级 `markflow` 内嵌 Flow 或 fork 本库的维护者。
 
 ## 导入边界
 
