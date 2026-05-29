@@ -10,6 +10,21 @@ declare namespace Api {
    * backend api module: "role-management"
    */
   namespace RoleManagement {
+    /** Permission ref on role detail (ai-server RolePermissionOutput) */
+    interface RolePermissionRef {
+      id: number;
+      code: string;
+      name: string;
+    }
+
+    /** Parent role ref on role detail (ai-server RoleParentOutput) */
+    interface RoleParentRef {
+      id: number;
+      code: string;
+      name: string;
+      level: number;
+    }
+
     /** Role information */
     interface Role {
       id: number;
@@ -22,15 +37,18 @@ declare namespace Api {
       isActive: boolean;
       createdAt: string;
       updatedAt: string;
+      permissions?: RolePermissionRef[];
+      parentRole?: RoleParentRef;
     }
 
     /** Role list query parameters */
     interface RoleListParams extends Common.PaginationParams {
       /** Search keyword (name or code) */
       search?: string;
-      /** Filter by status: 1 启用 / 0 停用（Select 用数字，请求时转为 boolean） */
-      isActive?: number;
-      isSystem?: boolean;
+      /** Filter by status（query: true | false） */
+      isActive?: Common.QueryBoolean;
+      /** Filter by system role（query: true | false） */
+      isSystem?: Common.QueryBoolean;
     }
 
     /** Create role request (ai-server CreateRoleInput) */

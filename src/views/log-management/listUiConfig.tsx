@@ -176,7 +176,8 @@ export function createLogTableColumns(h: LogTableColumnHandlers): TableColumnCon
       title: $t('page.logManagement.createdAt'),
       key: 'createdAt',
       width: 180,
-      render: (row: Log) => (row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-')
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('common.operate'),

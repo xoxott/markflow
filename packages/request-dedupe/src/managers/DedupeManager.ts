@@ -90,6 +90,22 @@ export class DedupeManager {
     return promise;
   }
 
+  /** 按请求键前缀清除去重条目（含已完成但仍处于时间窗口内的 Promise） */
+  clearKeysByPrefix(keyPrefix: string): void {
+    if (!keyPrefix) {
+      return;
+    }
+
+    for (const [key, request] of this.pendingRequests.entries()) {
+      if (key.startsWith(keyPrefix)) {
+        if (request.timeoutId) {
+          clearTimeout(request.timeoutId);
+        }
+        this.pendingRequests.delete(key);
+      }
+    }
+  }
+
   /** 清除所有待处理的请求 */
   clear(): void {
     // 清理所有定时器

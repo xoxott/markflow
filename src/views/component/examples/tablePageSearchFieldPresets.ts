@@ -1,10 +1,8 @@
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { resolveFieldInitialValue } from '@/components/declarative-form';
 import type { SearchFieldConfig } from '@/components/table-page/types';
 
-const yesNoOptions = [
-  { label: '是', value: 1 },
-  { label: '否', value: 0 }
-];
+const yesNoOptions = createQueryBooleanSelectOptions('是', '否');
 
 /** 少量字段：单行展示，无需折叠 */
 export const fewSearchFields: SearchFieldConfig[] = [
@@ -22,10 +20,7 @@ export const fewSearchFields: SearchFieldConfig[] = [
     label: '状态',
     placeholder: '请选择状态',
     width: '130px',
-    options: [
-      { label: '启用', value: 1 },
-      { label: '停用', value: 0 }
-    ]
+    options: createQueryBooleanSelectOptions('启用', '停用')
   }
 ];
 

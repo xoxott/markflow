@@ -1,6 +1,8 @@
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
+import type { CustomAxiosRequestConfig } from '@suga/axios';
 import { type RequestStep, composeSteps, createRequestContext } from '@suga/request-core';
 import { axiosRequestConfigToNormalized } from './normalizeAxiosConfig';
+import { extractPipelineMetaFromAxiosConfig } from './extractPipelineMeta';
 import { PIPELINE_AXIOS_RESPONSE_META } from './pipelineAxiosMeta';
 
 /**
@@ -11,12 +13,14 @@ import { PIPELINE_AXIOS_RESPONSE_META } from './pipelineAxiosMeta';
  */
 export async function runPipelineAxiosRequest<ResponseData = unknown>(
   steps: RequestStep[],
-  axiosConfig: AxiosRequestConfig
+  axiosConfig: CustomAxiosRequestConfig
 ): Promise<AxiosResponse<ResponseData>> {
   const normalized = axiosRequestConfigToNormalized(axiosConfig);
-  const ctx = createRequestContext<ResponseData>(normalized, undefined, {
-    signal: axiosConfig.signal
-  });
+  const ctx = createRequestContext<ResponseData>(
+    normalized,
+    undefined,
+    extractPipelineMetaFromAxiosConfig(axiosConfig)
+  );
 
   await composeSteps(steps)(ctx);
 

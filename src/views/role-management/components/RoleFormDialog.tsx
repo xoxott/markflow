@@ -1,6 +1,17 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, reactive, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NInputNumber, NSpace } from 'naive-ui';
+import type { FormRules } from 'naive-ui';
+import {
+  NButton,
+  NForm,
+  NFormItem,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NSpace,
+  NTag,
+  NTreeSelect
+} from 'naive-ui';
 import { REG_ROLE_CODE } from '@/constants/reg';
 import { useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
@@ -32,21 +43,23 @@ export default defineComponent({
       { deep: true, immediate: true }
     );
 
-    const formRules = {
+    const codeDisabled = computed(() => props.config.isEdit && Boolean(props.config.isSystem));
+
+    const formRules: FormRules = {
       name: [
-        { required: true, message: $t('page.roleManagement.nameRequired' as any), trigger: 'blur' },
+        { required: true, message: $t('page.roleManagement.nameRequired'), trigger: 'blur' },
         {
           min: 2,
           max: 100,
-          message: $t('page.roleManagement.nameLengthInvalid' as any),
+          message: $t('page.roleManagement.nameLengthInvalid'),
           trigger: 'blur'
         }
       ],
       code: [
-        { required: true, message: $t('page.roleManagement.codeRequired' as any), trigger: 'blur' },
+        { required: true, message: $t('page.roleManagement.codeRequired'), trigger: 'blur' },
         {
           pattern: REG_ROLE_CODE,
-          message: $t('page.roleManagement.codeInvalid' as any),
+          message: $t('page.roleManagement.codeInvalid'),
           trigger: 'blur'
         }
       ],
@@ -55,7 +68,7 @@ export default defineComponent({
           type: 'number',
           min: 0,
           max: 999,
-          message: $t('page.roleManagement.levelInvalid' as any),
+          message: $t('page.roleManagement.levelInvalid'),
           trigger: 'blur'
         }
       ]
@@ -70,7 +83,7 @@ export default defineComponent({
       ...props.config,
       onClose: handleClose,
       title: props.config.title ?? (props.config.isEdit ? $t('common.edit') : $t('common.add')),
-      width: props.config.width ?? 600,
+      width: props.config.width ?? 720,
       height: props.config.height ?? 'auto',
       draggable: props.config.draggable ?? true,
       resizable: props.config.resizable ?? false
@@ -84,7 +97,9 @@ export default defineComponent({
         ...formModel,
         code: formModel.code.trim().toLowerCase(),
         name: formModel.name.trim(),
-        level: formModel.level ?? DEFAULT_ROLE_LEVEL
+        level: formModel.level ?? DEFAULT_ROLE_LEVEL,
+        permissionIds: [...formModel.permissionIds],
+        parentRoleId: formModel.parentRoleId
       });
       handleClose();
     };
@@ -114,33 +129,62 @@ export default defineComponent({
               labelPlacement="left"
               labelWidth="100px"
             >
-              <NFormItem label={$t('page.roleManagement.name' as any)} path="name">
+              {props.config.isEdit && props.config.isSystem ? (
+                <NFormItem label={$t('page.roleManagement.isSystem')}>
+                  <NTag type="info" size="small">
+                    {$t('page.roleManagement.systemRole')}
+                  </NTag>
+                </NFormItem>
+              ) : null}
+              <NFormItem label={$t('page.roleManagement.name')} path="name">
                 <NInput
                   v-model:value={formModel.name}
-                  placeholder={$t('page.roleManagement.namePlaceholder' as any)}
+                  placeholder={$t('page.roleManagement.namePlaceholder')}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.roleManagement.code' as any)} path="code">
+              <NFormItem label={$t('page.roleManagement.code')} path="code">
                 <NInput
                   v-model:value={formModel.code}
-                  placeholder={$t('page.roleManagement.codePlaceholder' as any)}
-                  disabled={props.config.isEdit}
+                  placeholder={$t('page.roleManagement.codePlaceholder')}
+                  disabled={codeDisabled.value}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.roleManagement.level' as any)} path="level">
+              <NFormItem label={$t('page.roleManagement.level')} path="level">
                 <NInputNumber
                   v-model:value={formModel.level}
                   min={0}
                   max={999}
-                  placeholder={$t('page.roleManagement.levelPlaceholder' as any)}
+                  placeholder={$t('page.roleManagement.levelPlaceholder')}
                   style={{ width: '100%' }}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.roleManagement.description' as any)} path="description">
+              <NFormItem label={$t('page.roleManagement.parentRole')} path="parentRoleId">
+                <NSelect
+                  v-model:value={formModel.parentRoleId}
+                  clearable
+                  placeholder={$t('page.roleManagement.parentRolePlaceholder')}
+                  options={props.config.parentRoleOptions}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.roleManagement.permissions')} path="permissionIds">
+                <NTreeSelect
+                  v-model:value={formModel.permissionIds}
+                  multiple
+                  checkable
+                  cascade
+                  filterable
+                  clearable
+                  maxTagCount="responsive"
+                  placeholder={$t('page.roleManagement.permissionsPlaceholder')}
+                  options={props.config.permissionTreeOptions}
+                  style={{ width: '100%' }}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.roleManagement.description')} path="description">
                 <NInput
                   v-model:value={formModel.description}
                   type="textarea"
-                  placeholder={$t('page.roleManagement.descriptionPlaceholder' as any)}
+                  placeholder={$t('page.roleManagement.descriptionPlaceholder')}
                   rows={3}
                 />
               </NFormItem>

@@ -149,6 +149,26 @@ export class RequestCacheManager {
     }
   }
 
+  /** 按 URL 路径前缀删除 GET 缓存（键格式：`GET_${urlPath}_...`） 用于写操作成功后失效列表/详情缓存。 */
+  deleteGetKeysByUrlPrefix(urlPath: string): void {
+    if (!urlPath) {
+      return;
+    }
+
+    const prefix = `GET_${urlPath}`;
+    const keysToDelete: string[] = [];
+
+    for (const key of this.memoryCache.keys()) {
+      if (key.startsWith(prefix)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    for (const key of keysToDelete) {
+      this.deleteByKey(key);
+    }
+  }
+
   /** 清空所有缓存 */
   clear(): void {
     this.memoryCache.clear();

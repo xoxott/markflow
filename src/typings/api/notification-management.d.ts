@@ -32,8 +32,8 @@ declare namespace Api {
     interface NotificationListParams extends Common.PaginationParams {
       /** Search keyword (title or content) */
       search?: string;
-      /** Filter by status：1 已发送 / 0 未发送 */
-      isSent?: number;
+      /** Filter by status（query: true | false） */
+      isSent?: Common.QueryBoolean;
       /** Filter by type */
       type?: string;
       /** Filter by target user ID */

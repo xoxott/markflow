@@ -1,5 +1,6 @@
 import { computed, defineComponent, onMounted, ref } from 'vue';
 import { NSelect } from 'naive-ui';
+import { QUERY_BOOLEAN_TRUE } from '@/constants/queryBoolean';
 import { fetchRoleList } from '@/service/api/role';
 import { $t } from '@/locales';
 
@@ -20,7 +21,7 @@ export default defineComponent({
 
     onMounted(async () => {
       try {
-        const result = await fetchRoleList({ page: 1, limit: 100, isActive: 1 });
+        const result = await fetchRoleList({ page: 1, limit: 100, isActive: QUERY_BOOLEAN_TRUE });
         const roles = result.data?.lists ?? [];
         if (roles.length) {
           options.value = roles.map((role: Api.RoleManagement.Role) => ({

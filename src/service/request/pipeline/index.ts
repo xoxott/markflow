@@ -9,7 +9,12 @@ export { PIPELINE_AXIOS_RESPONSE_META } from './pipelineAxiosMeta';
 export { PipelineTransportStep } from './PipelineTransportStep';
 export { axiosRequestConfigToNormalized } from './normalizeAxiosConfig';
 export { runPipelineAxiosRequest } from './runPipelineAxiosRequest';
-export { buildDefaultPipelineSteps, buildPipelineSteps } from './buildPipelineSteps';
+export {
+  buildDefaultPipelineSteps,
+  buildPipelineSteps,
+  createPipelineResources
+} from './buildPipelineSteps';
+export type { PipelineResources } from './buildPipelineSteps';
 export type { PipelineProfile, PipelineProfileResolved } from './pipelineProfile';
 export { resolvePipelineProfile } from './pipelineProfile';
 export { createPipelineClient, ensurePipelineLogger } from './createPipelineClient';

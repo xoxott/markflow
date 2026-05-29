@@ -1,4 +1,5 @@
 import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -49,10 +50,10 @@ export function createVersionLogSearchFields(): SearchFieldConfig[] {
       label: $t('page.versionLogManagement.status'),
       placeholder: $t('page.versionLogManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.versionLogManagement.published'), value: 1 },
-        { label: $t('page.versionLogManagement.unpublished'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.versionLogManagement.published'),
+        $t('page.versionLogManagement.unpublished')
+      )
     }
   ];
 }

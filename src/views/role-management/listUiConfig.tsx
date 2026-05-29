@@ -1,4 +1,5 @@
 import { NButton, NSpace, NTag } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -21,10 +22,21 @@ export function createRoleSearchFields(): SearchFieldConfig[] {
       label: $t('page.roleManagement.status'),
       placeholder: $t('page.roleManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.roleManagement.active'), value: 1 },
-        { label: $t('page.roleManagement.inactive'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.roleManagement.active'),
+        $t('page.roleManagement.inactive')
+      )
+    },
+    {
+      type: 'select',
+      field: 'isSystem',
+      label: $t('page.roleManagement.isSystem'),
+      placeholder: $t('page.roleManagement.isSystemPlaceholder'),
+      width: '120px',
+      options: createQueryBooleanSelectOptions(
+        $t('page.roleManagement.systemRole'),
+        $t('page.roleManagement.customRole')
+      )
     }
   ];
 }
@@ -32,6 +44,30 @@ export function createRoleSearchFields(): SearchFieldConfig[] {
 export interface RoleTableColumnHandlers {
   onEdit: (row: Role) => void;
   onDelete: (row: Role) => void;
+  onAssignPermissions: (row: Role) => void;
+}
+
+function renderPermissionsCell(row: Role) {
+  const permissions = row.permissions ?? [];
+  if (permissions.length === 0) {
+    return '-';
+  }
+  const visible = permissions.slice(0, 2);
+  const rest = permissions.length - visible.length;
+  return (
+    <NSpace size="small" wrap={false}>
+      {visible.map(p => (
+        <NTag key={p.id} size="small">
+          {p.name}
+        </NTag>
+      ))}
+      {rest > 0 ? (
+        <NTag size="small" type="info">
+          +{rest}
+        </NTag>
+      ) : null}
+    </NSpace>
+  );
 }
 
 /** 表格列：key / 宽度 / 固定列等为静态配置；操作列注入页面内事件 */
@@ -53,9 +89,33 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       width: 90
     },
     {
+      title: $t('page.roleManagement.parentRole'),
+      key: 'parentRole',
+      width: 140,
+      render: (row: Role) => row.parentRole?.name ?? '-'
+    },
+    {
+      title: $t('page.roleManagement.permissions'),
+      key: 'permissions',
+      width: 220,
+      render: (row: Role) => renderPermissionsCell(row)
+    },
+    {
+      title: $t('page.roleManagement.isSystem'),
+      key: 'isSystem',
+      width: 100,
+      render: (row: Role) => (
+        <NTag type={row.isSystem ? 'info' : 'default'} size="small">
+          {row.isSystem
+            ? $t('page.roleManagement.systemRole')
+            : $t('page.roleManagement.customRole')}
+        </NTag>
+      )
+    },
+    {
       title: $t('page.roleManagement.description'),
       key: 'description',
-      width: 200,
+      width: 180,
       render: (row: Role) => row.description || '-'
     },
     {
@@ -72,21 +132,26 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       title: $t('page.roleManagement.createdAt'),
       key: 'createdAt',
       width: 180,
-      render: (row: Role) => (row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-')
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('page.roleManagement.updatedAt'),
       key: 'updatedAt',
       width: 180,
-      render: (row: Role) => (row.updatedAt ? new Date(row.updatedAt).toLocaleString('zh-CN') : '-')
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('common.operate'),
       key: 'action',
-      width: 200,
+      width: 280,
       fixed: 'right',
       render: (row: Role) => (
         <NSpace size="small">
+          <NButton size="small" type="info" onClick={() => h.onAssignPermissions(row)}>
+            {$t('page.roleManagement.assignPermissions')}
+          </NButton>
           <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
             {$t('common.edit')}
           </NButton>
@@ -104,4 +169,4 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
   ];
 }
 
-export const ROLE_LIST_SCROLL_X = 1800;
+export const ROLE_LIST_SCROLL_X = 2100;

@@ -1,4 +1,5 @@
 import { NButton, NSpace, NSwitch } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -76,10 +77,10 @@ export function createPermissionSearchFields(): SearchFieldConfig[] {
       label: $t('page.permissionManagement.status'),
       placeholder: $t('page.permissionManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.permissionManagement.active'), value: 1 },
-        { label: $t('page.permissionManagement.inactive'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.permissionManagement.active'),
+        $t('page.permissionManagement.inactive')
+      )
     }
   ];
 }
@@ -136,19 +137,15 @@ export function createPermissionTableColumns(
       title: $t('page.permissionManagement.createdAt'),
       key: 'createdAt',
       width: 180,
-      render: (row: Permission) => {
-        if (!row.createdAt) return '-';
-        return new Date(row.createdAt).toLocaleString('zh-CN');
-      }
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('page.permissionManagement.updatedAt'),
       key: 'updatedAt',
       width: 180,
-      render: (row: Permission) => {
-        if (!row.updatedAt) return '-';
-        return new Date(row.updatedAt).toLocaleString('zh-CN');
-      }
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('common.operate'),

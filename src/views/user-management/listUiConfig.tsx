@@ -1,4 +1,6 @@
 import { NBadge, NButton, NPopover, NSpace, NSwitch, NTag, NText } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { formatApiDateTime } from '@/utils/datetime';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -21,10 +23,10 @@ export function createUserSearchFields(roles: Api.UserManagement.Role[]): Search
       label: $t('page.userManagement.status'),
       placeholder: $t('page.userManagement.statusPlaceholder'),
       width: '130px',
-      options: [
-        { label: $t('page.userManagement.active'), value: 1 },
-        { label: $t('page.userManagement.inactive'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.userManagement.active'),
+        $t('page.userManagement.inactive')
+      )
     },
     {
       type: 'select',
@@ -32,10 +34,10 @@ export function createUserSearchFields(roles: Api.UserManagement.Role[]): Search
       label: $t('page.userManagement.onlineStatus'),
       placeholder: $t('page.userManagement.onlineStatusPlaceholder'),
       width: '130px',
-      options: [
-        { label: $t('page.userManagement.online'), value: 1 },
-        { label: $t('page.userManagement.offline'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.userManagement.online'),
+        $t('page.userManagement.offline')
+      )
     },
     {
       type: 'select',
@@ -43,10 +45,10 @@ export function createUserSearchFields(roles: Api.UserManagement.Role[]): Search
       label: $t('page.userManagement.blacklistStatus'),
       placeholder: $t('page.userManagement.blacklistStatusPlaceholder'),
       width: '130px',
-      options: [
-        { label: $t('page.userManagement.blacklisted'), value: 1 },
-        { label: $t('page.userManagement.notBlacklisted'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.userManagement.blacklisted'),
+        $t('page.userManagement.notBlacklisted')
+      )
     },
     {
       type: 'select',
@@ -196,7 +198,7 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
                     {row.blacklistedAt && (
                       <div>
                         <NText depth={3} class="text-12px">
-                          {new Date(row.blacklistedAt).toLocaleString('zh-CN')}
+                          {formatApiDateTime(row.blacklistedAt)}
                         </NText>
                       </div>
                     )}
@@ -217,40 +219,15 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       title: $t('page.userManagement.lastLoginAt'),
       key: 'lastLoginAt',
       width: 160,
-      render: (row: User) => {
-        if (!row.lastLoginAt) return <NText depth={3}>从未登录</NText>;
-        const date = new Date(row.lastLoginAt);
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-        if (days === 0) {
-          return (
-            <NText type="success">
-              {date.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-            </NText>
-          );
-        }
-        if (days < 7) {
-          return <NText>{days}天前</NText>;
-        }
-        return <NText depth={3}>{date.toLocaleDateString('zh-CN')}</NText>;
-      }
+      render: 'date',
+      renderConfig: { format: 'smart', emptyText: '从未登录' }
     },
     {
       title: $t('page.userManagement.createdAt'),
       key: 'createdAt',
       width: 160,
-      render: (row: User) => {
-        if (!row.createdAt) return '-';
-        return new Date(row.createdAt).toLocaleString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
+      render: 'date',
+      renderConfig: { format: 'datetime' }
     },
     {
       title: $t('common.operate'),

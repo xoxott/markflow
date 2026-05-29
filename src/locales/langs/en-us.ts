@@ -392,7 +392,19 @@ const local: App.I18n.Schema = {
       toggleStatusSuccess: 'Status updated successfully',
       confirmBatchDelete: 'Are you sure you want to delete {count} selected roles?',
       selectRolesToDelete: 'Please select roles to delete',
-      getDetailFailed: 'Failed to get role details'
+      getDetailFailed: 'Failed to get role details',
+      permissions: 'Permissions',
+      permissionsPlaceholder: 'Select permissions (optional)',
+      parentRole: 'Parent Role',
+      parentRolePlaceholder: 'Select parent role (optional)',
+      noParentRole: 'No parent role',
+      isSystem: 'System Role',
+      isSystemPlaceholder: 'System role filter',
+      systemRole: 'System',
+      customRole: 'Custom',
+      assignPermissions: 'Assign Permissions',
+      assignPermissionsSuccess: 'Permissions assigned successfully',
+      permissionCount: '{count} permission(s)'
     },
     permissionManagement: {
       title: 'Permission Management',

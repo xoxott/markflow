@@ -6,14 +6,10 @@ import { request } from '../request';
  * @param params Query parameters
  */
 export function fetchRoleList(params: Api.RoleManagement.RoleListParams) {
-  const { isActive, ...rest } = params;
   return request<Api.RoleManagement.RoleListResponse>({
     url: '/api/admin/roles',
     method: 'get',
-    params: {
-      ...rest,
-      ...(isActive === 0 || isActive === 1 ? { isActive: isActive === 1 } : {})
-    }
+    params
   });
 }
 
@@ -65,5 +61,25 @@ export function fetchDeleteRole(id: number) {
   return request<null>({
     url: `/api/admin/roles/${id}`,
     method: 'delete'
+  });
+}
+
+/** 父角色下拉等：复用列表接口，固定第一页并拉取足够条数 */
+export function fetchRoleOptions(
+  params: Partial<Pick<Api.RoleManagement.RoleListParams, 'limit' | 'isActive'>> = {}
+) {
+  const { limit = 100, isActive } = params;
+  return fetchRoleList({ page: 1, limit, ...(isActive !== undefined ? { isActive } : {}) });
+}
+
+/** 为角色分配权限（覆盖式，ai-server POST /admin/roles/:id/permissions） */
+export function fetchAssignRolePermissions(
+  roleId: number,
+  data: Api.PermissionManagement.AssignPermissionsRequest
+) {
+  return request<Api.RoleManagement.RoleDetailResponse>({
+    url: `/api/admin/roles/${roleId}/permissions`,
+    method: 'post',
+    data
   });
 }

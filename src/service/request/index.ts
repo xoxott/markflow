@@ -15,7 +15,7 @@ import { SERVICE_DEFAULT_HEADERS } from './requestDefaults';
 import { buildServiceHeaders } from './auth';
 import {
   AxiosTransport,
-  buildPipelineSteps,
+  createPipelineResources,
   ensurePipelineLogger,
   runPipelineAxiosRequest
 } from './pipeline';
@@ -71,7 +71,8 @@ const mainTransport = new AxiosTransport({
   responseCaptureByCorrelationId: mainRequestResponseCapture
 });
 
-const mainPipelineSteps = buildPipelineSteps(mainTransport, MAIN_PIPELINE_PROFILE);
+const mainPipelineResources = createPipelineResources(mainTransport, MAIN_PIPELINE_PROFILE);
+const mainPipelineSteps = mainPipelineResources.steps;
 
 export const request = createFlatRequestFromStack<App.Service.Response, RequestInstanceState>(
   mainRequestStack,
@@ -96,6 +97,7 @@ export {
   AxiosTransport,
   buildDefaultPipelineSteps,
   buildPipelineSteps,
+  createPipelineResources,
   createPipelineClient,
   ensurePipelineLogger,
   PipelineTransportStep,

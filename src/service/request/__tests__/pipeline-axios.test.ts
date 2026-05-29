@@ -218,19 +218,57 @@ describe('standard 主站管道集成', () => {
     expect(adapter).toHaveBeenCalledTimes(2);
   });
 
-  it('meta.cache=false 可关闭单次 GET 缓存', async () => {
+  it('axios config cache=false 可关闭单次 GET 缓存', async () => {
     const { transport, adapter } = createCapturingTransport();
     const steps = buildPipelineSteps(transport, 'standard');
     const config = getConfig();
 
     await runPipelineAxiosRequest(steps, config);
+    await runPipelineAxiosRequest(steps, { ...config, cache: false });
 
-    const ctx = createRequestContext(axiosRequestConfigToNormalized(config), undefined, {
-      cache: false,
-      signal: undefined
-    });
-    await composeSteps(steps)(ctx);
     expect(adapter).toHaveBeenCalledTimes(2);
+  });
+
+  it('POST 成功后同 URL 前缀的 GET 会重新请求网络', async () => {
+    const { transport, adapter } = createCapturingTransport();
+    const steps = buildPipelineSteps(transport, 'standard');
+    const listConfig = { url: '/api/admin/roles', method: 'get' as const, params: { page: 1 } };
+
+    await runPipelineAxiosRequest(steps, listConfig);
+    expect(adapter).toHaveBeenCalledTimes(1);
+
+    await runPipelineAxiosRequest(steps, listConfig);
+    expect(adapter).toHaveBeenCalledTimes(1);
+
+    await runPipelineAxiosRequest(steps, {
+      url: '/api/admin/roles',
+      method: 'post',
+      data: { code: 'new_role', name: 'New' }
+    });
+
+    await runPipelineAxiosRequest(steps, listConfig);
+    expect(adapter).toHaveBeenCalledTimes(3);
+  });
+
+  it('PATCH 详情成功后同时失效列表与详情 GET 缓存', async () => {
+    const { transport, adapter } = createCapturingTransport();
+    const steps = buildPipelineSteps(transport, 'standard');
+    const listConfig = { url: '/api/admin/roles', method: 'get' as const };
+    const detailConfig = { url: '/api/admin/roles/12', method: 'get' as const };
+
+    await runPipelineAxiosRequest(steps, listConfig);
+    await runPipelineAxiosRequest(steps, detailConfig);
+    expect(adapter).toHaveBeenCalledTimes(2);
+
+    await runPipelineAxiosRequest(steps, {
+      url: '/api/admin/roles/12',
+      method: 'patch',
+      data: { name: 'Updated' }
+    });
+
+    await runPipelineAxiosRequest(steps, listConfig);
+    await runPipelineAxiosRequest(steps, detailConfig);
+    expect(adapter).toHaveBeenCalledTimes(5);
   });
 });
 

@@ -110,6 +110,9 @@ declare namespace Api {
       limit: number;
     }
 
+    /** Query 可选布尔筛选（?field=true|false，与 ai-server OptionalQueryBoolean 一致） */
+    type QueryBoolean = 'true' | 'false';
+
     /**
      * enable status
      *

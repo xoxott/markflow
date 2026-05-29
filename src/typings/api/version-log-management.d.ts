@@ -32,8 +32,8 @@ declare namespace Api {
       search?: string;
       /** Filter by type */
       type?: string;
-      /** Filter by status：1 已发布 / 0 未发布 */
-      isPublished?: number;
+      /** Filter by status（query: true | false） */
+      isPublished?: Common.QueryBoolean;
       /** Filter by start date */
       startDate?: string;
       /** Filter by end date */

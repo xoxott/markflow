@@ -610,6 +610,18 @@ declare namespace App {
           confirmBatchDelete: string;
           selectRolesToDelete: string;
           getDetailFailed: string;
+          permissions: string;
+          permissionsPlaceholder: string;
+          parentRole: string;
+          parentRolePlaceholder: string;
+          noParentRole: string;
+          isSystem: string;
+          isSystemPlaceholder: string;
+          systemRole: string;
+          customRole: string;
+          assignPermissions: string;
+          assignPermissionsSuccess: string;
+          permissionCount: string;
         };
         permissionManagement: {
           title: string;

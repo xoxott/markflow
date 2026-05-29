@@ -1,5 +1,6 @@
 import { type PropType, computed, defineComponent } from 'vue';
 import { NButton, NCard, NSpace, NTag } from 'naive-ui';
+import { formatApiDateTime } from '@/utils/datetime';
 import BaseDialog from '@/components/base-dialog';
 import { $t } from '@/locales';
 import { getLogStatusTagType } from '../listUiConfig';
@@ -51,11 +52,11 @@ export default defineComponent({
                     </div>
                     <div>
                       <strong>{$t('page.logManagement.createdAt')}:</strong>{' '}
-                      {log.createdAt ? new Date(log.createdAt).toLocaleString('zh-CN') : '-'}
+                      {formatApiDateTime(log.createdAt)}
                     </div>
                     <div>
                       <strong>{$t('page.logManagement.updatedAt')}:</strong>{' '}
-                      {log.updatedAt ? new Date(log.updatedAt).toLocaleString('zh-CN') : '-'}
+                      {formatApiDateTime(log.updatedAt)}
                     </div>
                   </NSpace>
                 </NCard>

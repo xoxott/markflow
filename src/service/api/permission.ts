@@ -13,14 +13,6 @@ export function fetchPermissionList(params: Api.PermissionManagement.PermissionL
   });
 }
 
-/** Get permission tree (for tree selector) */
-export function fetchPermissionTree() {
-  return request<Api.PermissionManagement.PermissionTreeResponse>({
-    url: '/api/admin/permissions/tree',
-    method: 'get'
-  });
-}
-
 /**
  * Get permission detail
  *
@@ -104,19 +96,5 @@ export function fetchTogglePermissionStatus(id: number, isActive: boolean) {
   });
 }
 
-/**
- * Assign permissions to role
- *
- * @param roleId Role ID
- * @param data Permission IDs
- */
-export function fetchAssignPermissionsToRole(
-  roleId: number,
-  data: Api.PermissionManagement.AssignPermissionsRequest
-) {
-  return request<Api.PermissionManagement.AssignPermissionsResponse>({
-    url: `/api/admin/roles/${roleId}/permissions`,
-    method: 'post',
-    data
-  });
-}
+/** @deprecated 使用 `@/service/api/role` 的 `fetchAssignRolePermissions` */
+export { fetchAssignRolePermissions as fetchAssignPermissionsToRole } from './role';

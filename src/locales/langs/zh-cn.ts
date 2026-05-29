@@ -387,7 +387,19 @@ const local: App.I18n.Schema = {
       toggleStatusSuccess: '状态更新成功',
       confirmBatchDelete: '确认删除选中的 {count} 个角色吗？',
       selectRolesToDelete: '请选择要删除的角色',
-      getDetailFailed: '获取角色详情失败'
+      getDetailFailed: '获取角色详情失败',
+      permissions: '权限',
+      permissionsPlaceholder: '请选择权限（可选）',
+      parentRole: '父角色',
+      parentRolePlaceholder: '请选择父角色（可选）',
+      noParentRole: '无父角色',
+      isSystem: '系统角色',
+      isSystemPlaceholder: '是否系统角色',
+      systemRole: '系统',
+      customRole: '自定义',
+      assignPermissions: '分配权限',
+      assignPermissionsSuccess: '权限分配成功',
+      permissionCount: '{count} 项权限'
     },
     permissionManagement: {
       title: '权限管理',

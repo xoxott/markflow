@@ -1,4 +1,5 @@
 import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -33,10 +34,10 @@ export function createNotificationSearchFields(): SearchFieldConfig[] {
       label: $t('page.notificationManagement.status'),
       placeholder: $t('page.notificationManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.notificationManagement.sent'), value: 1 },
-        { label: $t('page.notificationManagement.unsent'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.notificationManagement.sent'),
+        $t('page.notificationManagement.unsent')
+      )
     }
   ];
 }

@@ -23,25 +23,12 @@ declare namespace Api {
       updatedAt: string;
     }
 
-    /** Permission tree node (for tree display) */
-    interface PermissionTreeNode {
-      id: number;
-      name: string;
-      code: string;
-      resource: string;
-      action: string;
-      parentId: number | null;
-      description: string | null;
-      isActive: boolean;
-      children?: PermissionTreeNode[];
-    }
-
     /** Permission list query parameters */
     interface PermissionListParams extends Common.PaginationParams {
       /** Search keyword (name or code) */
       search?: string;
-      /** Filter by status：1 启用 / 0 停用，不传表示不限 */
-      isActive?: number;
+      /** Filter by status（query: true | false，不传表示不限） */
+      isActive?: Common.QueryBoolean;
       /** Filter by resource */
       resource?: string;
       /** Filter by action */
@@ -90,14 +77,6 @@ declare namespace Api {
 
     /** Permission list response */
     type PermissionListResponse = ListData<Permission>;
-
-    /** Permission tree response */
-    interface PermissionTreeResponse {
-      data: PermissionTreeNode[];
-      statusCode: number;
-      message: string;
-      timestamp: string;
-    }
 
     /** Permission detail response */
     type PermissionDetailResponse = Permission;

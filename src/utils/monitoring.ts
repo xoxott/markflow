@@ -1,5 +1,7 @@
 /** 监控相关的工具函数 */
 
+import { formatApiDateTime } from './datetime';
+
 /** 格式化字节数为可读格式 */
 export function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
@@ -50,22 +52,9 @@ export function formatCpuTime(microseconds: number): string {
   return `${(microseconds / 1000000).toFixed(2)}s`;
 }
 
-/** 格式化时间戳 */
+/** 格式化时间戳（API UTC → 本地） */
 export function formatTimestamp(timestamp: string | number | Date): string {
-  const date =
-    typeof timestamp === 'string' || typeof timestamp === 'number'
-      ? new Date(timestamp)
-      : timestamp;
-
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  });
+  return formatApiDateTime(timestamp, { format: 'datetime' });
 }
 
 /** 计算内存使用百分比 */

@@ -1,4 +1,5 @@
 import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -33,10 +34,10 @@ export function createAnnouncementSearchFields(): SearchFieldConfig[] {
       label: $t('page.announcementManagement.status'),
       placeholder: $t('page.announcementManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.announcementManagement.published'), value: 1 },
-        { label: $t('page.announcementManagement.unpublished'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.announcementManagement.published'),
+        $t('page.announcementManagement.unpublished')
+      )
     }
   ];
 }

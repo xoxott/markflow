@@ -1,4 +1,5 @@
 import { NButton, NSpace, NSwitch, NTag } from 'naive-ui';
+import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -44,10 +45,10 @@ export function createAlertSearchFields(): SearchFieldConfig[] {
       label: $t('page.alertManagement.enabled'),
       placeholder: $t('page.alertManagement.enabledStatusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.alertManagement.enabled'), value: 1 },
-        { label: $t('page.alertManagement.disabled'), value: 0 }
-      ]
+      options: createQueryBooleanSelectOptions(
+        $t('page.alertManagement.enabled'),
+        $t('page.alertManagement.disabled')
+      )
     }
   ];
 }

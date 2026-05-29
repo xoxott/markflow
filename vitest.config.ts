@@ -52,6 +52,11 @@ export default defineConfig({
         }
       },
       {
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url))
+          }
+        },
         test: {
           include: ['src/service/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
           environment: 'node',

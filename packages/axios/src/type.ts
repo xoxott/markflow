@@ -77,6 +77,12 @@ export type CustomAxiosRequestConfig<R extends ResponseType = 'json'> = Omit<
   'responseType'
 > & {
   responseType?: R;
+  /** 管道 GET 缓存开关（由 runPipelineAxiosRequest 写入 ctx.meta，不发给服务端） */
+  cache?: boolean | object;
+  /** 管道请求去重开关 */
+  dedupe?: boolean | object;
+  /** GET 缓存过期时间（毫秒） */
+  cacheExpireTime?: number;
 };
 
 export interface RequestInstanceCommon<T> {

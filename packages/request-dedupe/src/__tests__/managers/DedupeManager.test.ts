@@ -221,6 +221,21 @@ describe('DedupeManager', () => {
     });
   });
 
+  describe('clearKeysByPrefix', () => {
+    it('应清除匹配前缀的去重条目', async () => {
+      const promise1 = manager.getOrCreateRequestByKey('GET_/api/items_{}', async () => 'a');
+      const promise2 = manager.getOrCreateRequestByKey('GET_/api/other_{}', async () => 'b');
+
+      expect(manager.getPendingCount()).toBe(2);
+
+      manager.clearKeysByPrefix('GET_/api/items');
+
+      expect(manager.getPendingCount()).toBe(1);
+
+      await Promise.all([promise1, promise2]);
+    });
+  });
+
   describe('setDedupeWindow', () => {
     it('应该更新去重时间窗口', async () => {
       manager.setDedupeWindow(2000);

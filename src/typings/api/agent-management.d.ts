@@ -149,7 +149,7 @@ declare namespace Api {
     interface ModelProfileListParams extends Common.PaginationParams {
       search?: string;
       provider?: ModelProvider;
-      enabled?: number;
+      enabled?: Common.QueryBoolean;
     }
 
     interface CreateModelProfileRequest {

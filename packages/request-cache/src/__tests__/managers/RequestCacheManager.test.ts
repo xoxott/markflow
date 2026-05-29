@@ -321,6 +321,20 @@ describe('RequestCacheManager', () => {
     });
   });
 
+  describe('deleteGetKeysByUrlPrefix', () => {
+    it('应删除匹配 URL 前缀的 GET 键', () => {
+      cacheManager.setByKey('GET_/api/items_{}', { list: 1 }, 5000);
+      cacheManager.setByKey('GET_/api/items/5_{}', { id: 5 }, 5000);
+      cacheManager.setByKey('GET_/api/other_{}', { list: 2 }, 5000);
+
+      cacheManager.deleteGetKeysByUrlPrefix('/api/items');
+
+      expect(cacheManager.getByKey('GET_/api/items_{}')).toBeNull();
+      expect(cacheManager.getByKey('GET_/api/items/5_{}')).toBeNull();
+      expect(cacheManager.getByKey('GET_/api/other_{}')).toEqual({ list: 2 });
+    });
+  });
+
   describe('setCustomStrategy', () => {
     it('应该设置自定义策略', () => {
       const manager = new RequestCacheManager({

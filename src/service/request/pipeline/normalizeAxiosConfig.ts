@@ -27,9 +27,15 @@ export function axiosRequestConfigToNormalized(
   const method = (config.method || 'get').toString().toUpperCase();
   const url = String(config.url ?? '');
   const headers = flattenHeaders(config.headers);
+  const {
+    cache: _cache,
+    dedupe: _dedupe,
+    cacheExpireTime: _cacheExpireTime,
+    ...rest
+  } = config as Record<string, unknown>;
 
   return {
-    ...(config as unknown as NormalizedRequestConfig),
+    ...(rest as unknown as NormalizedRequestConfig),
     url,
     method,
     headers: headers ?? (config.headers as NormalizedRequestConfig['headers']),
