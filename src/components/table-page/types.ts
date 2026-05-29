@@ -282,8 +282,10 @@ export interface TablePageProps {
   size?: 'small' | 'medium' | 'large';
   /** 单元格边框 */
   bordered?: boolean;
-  /** 表格 body 最大高度 */
+  /** 表格 body 最大高度；设置后不再自动启用 flexHeight */
   maxHeight?: string | number;
+  /** 根据容器剩余高度自动表体滚动，默认 true */
+  autoHeight?: boolean;
   /** 根容器额外 class */
   class?: string;
   /** 是否渲染搜索外层 NCard */
@@ -392,7 +394,10 @@ export interface DataTableProps<T = any> {
   striped?: boolean;
   size?: 'small' | 'medium' | 'large';
   bordered?: boolean;
+  /** 表格 body 最大高度；设置后不再自动启用 flexHeight */
   maxHeight?: string | number;
+  /** 根据容器剩余高度自动表体滚动，默认 true */
+  autoHeight?: boolean;
   /** 透传 NDataTable，合并策略同 TablePage.tableProps */
   tableProps?: Partial<NaiveDataTableProps>;
 }

@@ -195,7 +195,12 @@ export default defineComponent({
     },
     maxHeight: {
       type: [String, Number] as PropType<string | number>,
-      default: '100%'
+      default: undefined
+    },
+    /** 根据剩余空间自动启用表体滚动（透传 DataTable.autoHeight） */
+    autoHeight: {
+      type: Boolean,
+      default: true
     },
     /** 透传 NDataTable（remote、flexHeight、rowProps 等） */
     tableProps: {
@@ -341,7 +346,7 @@ export default defineComponent({
     };
 
     const rootClass = computed(() =>
-      `h-full flex flex-col overflow-hidden ${props.gapClass} ${props.padded ? 'p-16px' : ''} ${props.class}`.trim()
+      `h-full min-h-0 flex flex-col overflow-hidden ${props.gapClass} ${props.padded ? 'p-16px' : ''} ${props.class}`.trim()
     );
 
     const renderSearchArea = () => {
@@ -430,29 +435,41 @@ export default defineComponent({
         {renderSearchArea()}
         {renderActionArea()}
         <NCard
-          class="flex-1 overflow-hidden"
+          class="min-h-0 flex flex-col flex-1 overflow-hidden"
           bordered={false}
-          contentStyle={{ height: '100%', padding: 0 }}
+          contentStyle={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1 1 0',
+            minHeight: 0,
+            height: '100%',
+            padding: 0
+          }}
         >
-          {slots.tablePrepend?.()}
-          <DataTable
-            columns={displayColumns.value}
-            data={props.data}
-            loading={props.loading}
-            pagination={props.pagination}
-            selectedKeys={props.selectedKeys}
-            rowKey={props.rowKey}
-            onUpdateSelectedKeys={props.onUpdateSelectedKeys}
-            scrollX={props.scrollX}
-            showIndex={props.showIndex}
-            showSelection={props.showSelection}
-            striped={props.striped}
-            size={props.size}
-            bordered={props.bordered}
-            maxHeight={props.maxHeight}
-            tableProps={props.tableProps}
-          />
-          {slots.tableAppend?.()}
+          <div class="h-full min-h-0 flex flex-col">
+            {slots.tablePrepend ? <div class="flex-shrink-0">{slots.tablePrepend()}</div> : null}
+            <div class="min-h-0 flex-1">
+              <DataTable
+              columns={displayColumns.value}
+              data={props.data}
+              loading={props.loading}
+              pagination={props.pagination}
+              selectedKeys={props.selectedKeys}
+              rowKey={props.rowKey}
+              onUpdateSelectedKeys={props.onUpdateSelectedKeys}
+              scrollX={props.scrollX}
+              showIndex={props.showIndex}
+              showSelection={props.showSelection}
+              striped={props.striped}
+              size={props.size}
+              bordered={props.bordered}
+              maxHeight={props.maxHeight}
+              autoHeight={props.autoHeight}
+              tableProps={props.tableProps}
+              />
+            </div>
+            {slots.tableAppend ? <div class="flex-shrink-0">{slots.tableAppend()}</div> : null}
+          </div>
         </NCard>
       </div>
     );

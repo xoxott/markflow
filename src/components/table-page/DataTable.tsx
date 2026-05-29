@@ -3,6 +3,7 @@ import { NDataTable } from 'naive-ui';
 import type { DataTableProps as NaiveDataTableProps, PaginationProps } from 'naive-ui';
 import { $t } from '@/locales';
 import type { PresetRendererType, TableColumnConfig } from './types';
+import { useDataTableHeight } from './hooks/useDataTableHeight';
 import {
   ActionRenderer,
   AvatarRenderer,
@@ -77,7 +78,15 @@ export default defineComponent({
     },
     maxHeight: {
       type: [String, Number] as PropType<string | number>,
-      default: '100%'
+      default: undefined
+    },
+    /**
+     * 为 true 时根据容器高度启用 NDataTable `flexHeight`（表体滚动、分页器固定底部）。
+     * 显式传入 `maxHeight` 或在 `tableProps` 中设置 `flexHeight` 时不会自动覆盖。
+     */
+    autoHeight: {
+      type: Boolean,
+      default: true
     },
     /** 与 TablePage.tableProps 一致：浅合并进 NDataTable */
     tableProps: {
@@ -86,6 +95,17 @@ export default defineComponent({
     }
   },
   setup(props) {
+    const hasExplicitMaxHeight = computed(() => props.maxHeight !== undefined);
+    const hasExplicitFlexHeight = computed(
+      () => props.tableProps !== undefined && 'flexHeight' in props.tableProps
+    );
+
+    const autoFlexEnabled = computed(
+      () => props.autoHeight && !hasExplicitMaxHeight.value && !hasExplicitFlexHeight.value
+    );
+
+    const { containerRef, flexHeight } = useDataTableHeight(autoFlexEnabled);
+
     /** naive-ui 2.41+ 的 NDataTable 仅接受函数型 rowKey；将字符串字段名规范为 (row) => row[field]。 */
     const naiveRowKey = computed((): ((row: Record<string, unknown>) => string | number) => {
       const rk = props.rowKey;
@@ -185,8 +205,10 @@ export default defineComponent({
     });
 
     /** 合并顺序：外部 tableProps 先展开，再用内置受控字段覆盖，避免 checkedRowKeys 被意外冲掉 */
-    const mergedTableProps = computed(
-      (): Partial<NaiveDataTableProps> => ({
+    const mergedTableProps = computed((): Partial<NaiveDataTableProps> => {
+      const useFlexHeight = autoFlexEnabled.value && flexHeight.value;
+
+      return {
         ...(props.tableProps ?? {}),
         columns: processedColumns.value,
         data: props.data,
@@ -194,21 +216,28 @@ export default defineComponent({
         pagination: props.pagination,
         rowKey: naiveRowKey.value,
         scrollX: props.scrollX,
-        maxHeight: props.maxHeight,
         striped: props.striped,
         size: props.size,
         bordered: props.bordered,
+        ...(useFlexHeight
+          ? { flexHeight: true }
+          : hasExplicitMaxHeight.value
+            ? { maxHeight: props.maxHeight }
+            : {}),
         ...(props.showSelection
           ? {
               checkedRowKeys: props.selectedKeys,
               onUpdateCheckedRowKeys: props.onUpdateSelectedKeys ?? (() => {})
             }
           : {})
-      })
-    );
+      };
+    });
 
     return () => (
-      <div class="h-full [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table\_\_pagination]:px-16px">
+      <div
+        ref={containerRef}
+        class="h-full min-h-0 flex flex-col [&_.n-data-table]:h-full [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table\_\_pagination]:px-16px"
+      >
         <NDataTable {...mergedTableProps.value} />
       </div>
     );
