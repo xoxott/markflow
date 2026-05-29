@@ -5,14 +5,8 @@ export interface UserFormData {
   username: string;
   email: string;
   password: string;
-  roleIds: number[];
-  isActive: boolean;
-}
-
-/** 角色选项 */
-export interface RoleOption {
-  label: string;
-  value: number;
+  /** 创建用户时必填（ai-server CreateUserInput） */
+  verificationCode: string;
 }
 
 /** 用户表单对话框配置 */
@@ -21,10 +15,8 @@ export interface UserFormDialogConfig extends BaseDialogProps {
   isEdit: boolean;
   /** 表单数据 */
   formData: UserFormData;
-  /** 角色选项列表 */
-  roleOptions: RoleOption[];
-  /** 确认回调 */
-  onConfirm: (data: UserFormData) => void | Promise<void>;
+  /** 确认回调；返回 true 表示成功并关闭对话框 */
+  onConfirm: (data: UserFormData) => boolean | undefined | Promise<boolean | undefined>;
   /** 取消回调 */
   onCancel?: () => void;
 }

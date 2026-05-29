@@ -1,11 +1,10 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { NButton, NDynamicTags, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
-import type { KnowledgeBaseDialogOptions, KnowledgeBaseFormData } from './dialog';
-import { createEmptyKnowledgeBaseForm } from './dialog';
+import type { KnowledgeBaseDialogOptions } from './dialog';
 
 export default defineComponent({
   name: 'KnowledgeBaseFormDialog',
@@ -19,18 +18,14 @@ export default defineComponent({
   emits: ['update:show'],
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
-    const formModel = reactive<KnowledgeBaseFormData>(createEmptyKnowledgeBaseForm());
-
-    watch(
-      () => props.config.formData,
-      data => {
-        formModel.name = data.name ?? '';
-        formModel.description = data.description ?? '';
-        formModel.tags = [...(data.tags ?? [])];
-        formModel.embeddingModel = data.embeddingModel ?? 'text-embedding-3-small';
-      },
-      { deep: true, immediate: true }
-    );
+    const formModel = useSyncedFormModel(() => props.config.formData, {
+      sync(model, data) {
+        model.name = data.name ?? '';
+        model.description = data.description ?? '';
+        model.tags = [...(data.tags ?? [])];
+        model.embeddingModel = data.embeddingModel ?? 'text-embedding-3-small';
+      }
+    });
 
     const handleClose = () => {
       props.config.onCancel?.();

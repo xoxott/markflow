@@ -1,7 +1,7 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { NButton, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { PermissionFormDialogConfig } from './dialog';
@@ -36,17 +36,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    // 表单数据（使用 reactive 使其可响应）
-    const formModel = reactive({ ...props.config.formData });
-
-    // 监听 config.formData 变化，同步到 formModel
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-      },
-      { deep: true, immediate: true }
-    );
+    const formModel = useSyncedFormModel(() => props.config.formData);
 
     // 表单验证规则
     const formRules = {

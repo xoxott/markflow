@@ -1,5 +1,12 @@
-import { ref, toValue } from 'vue';
-import type { ComputedRef, Ref } from 'vue';
+import {
+  type ComputedRef,
+  type MaybeRefOrGetter,
+  type Ref,
+  reactive,
+  ref,
+  toValue,
+  watch
+} from 'vue';
 import type { FormInst } from 'naive-ui';
 import { REG_CODE_SIX, REG_EMAIL, REG_PHONE, REG_PWD, REG_USER_NAME } from '@/constants/reg';
 import { $t } from '@/locales';
@@ -115,4 +122,38 @@ export function useNaiveForm() {
     restoreValidation,
     resetFields
   };
+}
+
+export interface UseSyncedFormModelOptions<T extends object> {
+  /** 自定义字段同步；默认使用 Object.assign */
+  sync?: (model: T, source: T) => void;
+  /** sync 完成后调用，用于同步派生状态（如日期时间戳 ref） */
+  afterSync?: (model: T, source: T) => void;
+}
+
+/**
+ * 将外部表单数据源同步到可写的 reactive model。
+ *
+ * 适用于弹窗表单：`config.formData` 变化时自动合并到本地 `formModel`。
+ */
+export function useSyncedFormModel<T extends object>(
+  source: MaybeRefOrGetter<T>,
+  options?: UseSyncedFormModelOptions<T>
+) {
+  const formModel = reactive({ ...toValue(source) }) as T;
+
+  watch(
+    () => toValue(source),
+    newData => {
+      if (options?.sync) {
+        options.sync(formModel, newData);
+      } else {
+        Object.assign(formModel, newData);
+      }
+      options?.afterSync?.(formModel, newData);
+    },
+    { deep: true, immediate: true }
+  );
+
+  return formModel;
 }

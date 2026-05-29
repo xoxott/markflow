@@ -1,5 +1,5 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
+import { computed, defineComponent, watch } from 'vue';
 import type { FormRules } from 'naive-ui';
 import {
   NButton,
@@ -13,7 +13,7 @@ import {
   NTreeSelect
 } from 'naive-ui';
 import { REG_ROLE_CODE } from '@/constants/reg';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { RoleFormDialogConfig } from './dialog';
@@ -33,15 +33,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    const formModel = reactive({ ...props.config.formData });
-
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-      },
-      { deep: true, immediate: true }
-    );
+    const formModel = useSyncedFormModel(() => props.config.formData);
 
     const codeDisabled = computed(() => props.config.isEdit && Boolean(props.config.isSystem));
 

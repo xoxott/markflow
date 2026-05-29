@@ -1,10 +1,10 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
+import { computed, defineComponent, watch } from 'vue';
 import { NButton, NSpace } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
-import { type WorkflowMetaForm, createEmptyWorkflowMetaForm } from '../shared/workflow-meta';
+import type { WorkflowMetaForm } from '../shared/workflow-meta';
 import WorkflowMetaFields from '../shared/WorkflowMetaFields';
 import type { WorkflowDialogOptions } from './dialog';
 
@@ -21,17 +21,16 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    const formModel = reactive<WorkflowMetaForm>(createEmptyWorkflowMetaForm());
-
-    watch(
-      () => props.config.formData,
-      newData => {
-        formModel.name = newData.name ?? '';
-        formModel.description = newData.description ?? '';
-        formModel.tags = [...(newData.tags ?? [])];
-        formModel.status = newData.status ?? 'draft';
-      },
-      { deep: true, immediate: true }
+    const formModel = useSyncedFormModel<WorkflowMetaForm>(
+      () => props.config.formData as WorkflowMetaForm,
+      {
+        sync(model, data) {
+          model.name = data.name ?? '';
+          model.description = data.description ?? '';
+          model.tags = [...(data.tags ?? [])];
+          model.status = data.status ?? 'draft';
+        }
+      }
     );
 
     const handleClose = () => {

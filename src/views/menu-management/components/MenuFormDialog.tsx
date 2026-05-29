@@ -1,5 +1,5 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
+import { computed, defineComponent, watch } from 'vue';
 import {
   NButton,
   NForm,
@@ -12,7 +12,7 @@ import {
   NSpace,
   NSwitch
 } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import { getMenuTypeOptions } from '../constants';
@@ -33,15 +33,7 @@ export default defineComponent({
   emits: ['update:show'],
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
-    const formModel = reactive({ ...props.config.formData });
-
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-      },
-      { deep: true, immediate: true }
-    );
+    const formModel = useSyncedFormModel(() => props.config.formData);
 
     watch(
       () => formModel.type,

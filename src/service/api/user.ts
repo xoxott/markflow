@@ -47,7 +47,7 @@ export function fetchCreateUser(data: Api.UserManagement.CreateUserRequest) {
 export function fetchUpdateUser(id: number, data: Api.UserManagement.UpdateUserRequest) {
   return request<Api.UserManagement.UpdateUserResponse>({
     url: `/api/admin/users/${id}`,
-    method: 'put',
+    method: 'patch',
     data
   });
 }
@@ -71,23 +71,22 @@ export function fetchDeleteUser(id: number) {
  */
 export function fetchBatchDeleteUsers(data: Api.UserManagement.BatchDeleteUsersRequest) {
   return request<Api.UserManagement.BatchDeleteUsersResponse>({
-    url: '/api/admin/users/batch',
-    method: 'delete',
+    url: '/api/admin/users/batch/delete',
+    method: 'post',
     data
   });
 }
 
 /**
- * Toggle user status (enable/disable)
+ * Batch update user status (enable/disable)
  *
- * @param id User ID
- * @param isActive Status
+ * @param data User IDs and target status
  */
-export function fetchToggleUserStatus(id: number, isActive: boolean) {
-  return request<Api.UserManagement.ToggleUserStatusResponse>({
-    url: `/api/admin/users/${id}/status`,
-    method: 'patch',
-    data: { isActive }
+export function fetchBatchUpdateUserStatus(data: Api.UserManagement.BatchUpdateStatusRequest) {
+  return request<Api.UserManagement.BatchUpdateStatusResponse>({
+    url: '/api/admin/users/batch/status',
+    method: 'post',
+    data
   });
 }
 

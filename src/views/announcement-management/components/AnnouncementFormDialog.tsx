@@ -1,5 +1,5 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 import {
   NButton,
   NDatePicker,
@@ -11,7 +11,7 @@ import {
   NSpace,
   NSwitch
 } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { AnnouncementFormDialogConfig } from './dialog';
@@ -29,29 +29,17 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    // 表单数据（使用 reactive 使其可响应）
-    const formModel = reactive({ ...props.config.formData });
+    const publishedAtTimestamp = ref<number | null>(null);
+    const expiresAtTimestamp = ref<number | null>(null);
 
-    // 日期时间选择器的值（时间戳）
-    const publishedAtTimestamp = ref<number | null>(
-      formModel.publishedAt ? new Date(formModel.publishedAt).getTime() : null
-    );
-    const expiresAtTimestamp = ref<number | null>(
-      formModel.expiresAt ? new Date(formModel.expiresAt).getTime() : null
-    );
-
-    // 监听 config.formData 变化，同步到 formModel
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-        publishedAtTimestamp.value = newData.publishedAt
-          ? new Date(newData.publishedAt).getTime()
+    const formModel = useSyncedFormModel(() => props.config.formData, {
+      afterSync(_, source) {
+        publishedAtTimestamp.value = source.publishedAt
+          ? new Date(source.publishedAt).getTime()
           : null;
-        expiresAtTimestamp.value = newData.expiresAt ? new Date(newData.expiresAt).getTime() : null;
-      },
-      { deep: true, immediate: true }
-    );
+        expiresAtTimestamp.value = source.expiresAt ? new Date(source.expiresAt).getTime() : null;
+      }
+    });
 
     // 公告类型选项
     const typeOptions = [

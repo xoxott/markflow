@@ -1,7 +1,7 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 import { NButton, NDatePicker, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { VersionLogFormDialogConfig } from './dialog';
@@ -19,31 +19,19 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    // 表单数据（使用 reactive 使其可响应）
-    const formModel = reactive({ ...props.config.formData });
+    const releaseDateTimestamp = ref<number | null>(null);
+    const publishedAtTimestamp = ref<number | null>(null);
 
-    // 日期时间选择器的值（时间戳）
-    const releaseDateTimestamp = ref<number | null>(
-      formModel.releaseDate ? new Date(formModel.releaseDate).getTime() : null
-    );
-    const publishedAtTimestamp = ref<number | null>(
-      formModel.publishedAt ? new Date(formModel.publishedAt).getTime() : null
-    );
-
-    // 监听 config.formData 变化，同步到 formModel
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-        releaseDateTimestamp.value = newData.releaseDate
-          ? new Date(newData.releaseDate).getTime()
+    const formModel = useSyncedFormModel(() => props.config.formData, {
+      afterSync(_, source) {
+        releaseDateTimestamp.value = source.releaseDate
+          ? new Date(source.releaseDate).getTime()
           : null;
-        publishedAtTimestamp.value = newData.publishedAt
-          ? new Date(newData.publishedAt).getTime()
+        publishedAtTimestamp.value = source.publishedAt
+          ? new Date(source.publishedAt).getTime()
           : null;
-      },
-      { deep: true, immediate: true }
-    );
+      }
+    });
 
     // 版本类型选项
     const typeOptions = [

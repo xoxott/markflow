@@ -1,7 +1,8 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, reactive, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
-import { useNaiveForm } from '@/hooks/common/form';
+import { computed, defineComponent, watch } from 'vue';
+import { NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
+import { useVerificationCode } from '@/hooks/business/verification-code';
+import { useFormRules, useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { UserFormDialogConfig } from './dialog';
@@ -18,29 +19,19 @@ export default defineComponent({
   emits: ['update:show'],
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
+    const { formRules } = useFormRules();
+    const { isCounting, loading, label, sendCode, reset } = useVerificationCode({
+      purpose: 'register'
+    });
 
-    // 表单数据（使用 reactive 使其可响应）
-    const formModel = reactive({ ...props.config.formData });
+    const formModel = useSyncedFormModel(() => props.config.formData);
 
-    // 监听 config.formData 变化，同步到 formModel
-    watch(
-      () => props.config.formData,
-      newData => {
-        Object.assign(formModel, newData);
-      },
-      { deep: true, immediate: true }
-    );
-
-    // 表单验证规则
-    const formRules = {
-      username: [{ required: true, message: $t('form.userName.required'), trigger: 'blur' }],
-      email: [
-        { required: true, message: $t('form.email.required'), trigger: 'blur' },
-        { type: 'email' as const, message: $t('form.email.invalid'), trigger: 'blur' }
-      ],
+    const formRulesConfig = computed(() => ({
+      username: formRules.userName,
+      email: formRules.email,
       password: [
         {
-          validator: (_rule: any, value: string) => {
+          validator: (_rule: unknown, value: string) => {
             if (!props.config.isEdit && !value) {
               return new Error($t('form.pwd.required'));
             }
@@ -52,19 +43,11 @@ export default defineComponent({
           trigger: 'blur'
         }
       ],
-      roleIds: [
-        {
-          required: true,
-          type: 'array' as const,
-          min: 1,
-          message: $t('page.userManagement.roleRequired' as any),
-          trigger: 'change'
-        }
-      ]
-    };
+      verificationCode: props.config.isEdit ? [] : formRules.code
+    }));
 
-    // 关闭弹窗
     const handleClose = () => {
+      reset();
       props.config.onClose?.();
       emit('update:show', false);
     };
@@ -79,27 +62,32 @@ export default defineComponent({
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
 
-      await props.config.onConfirm({ ...formModel });
+      const succeeded = await props.config.onConfirm({ ...formModel });
+      if (succeeded !== true) return;
+
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
+    const handleSendCode = () => {
+      sendCode(formModel.email);
+    };
+
     watch(
       () => props.show,
       show => {
         if (show) {
           formRef.value?.restoreValidation();
+        } else {
+          reset();
         }
       }
     );
@@ -111,7 +99,7 @@ export default defineComponent({
             <NForm
               ref={formRef}
               model={formModel}
-              rules={formRules}
+              rules={formRulesConfig.value}
               labelPlacement="left"
               labelWidth="80px"
             >
@@ -124,6 +112,26 @@ export default defineComponent({
               <NFormItem label={$t('page.userManagement.email')} path="email">
                 <NInput v-model:value={formModel.email} placeholder={$t('form.email.required')} />
               </NFormItem>
+              {!props.config.isEdit && (
+                <NFormItem label="验证码" path="verificationCode">
+                  <div class="w-full flex items-center gap-8px">
+                    <NInput
+                      v-model:value={formModel.verificationCode}
+                      maxlength={6}
+                      placeholder={$t('page.login.common.codePlaceholder')}
+                      class="flex-1"
+                    />
+                    <NButton
+                      secondary
+                      disabled={isCounting.value}
+                      loading={loading.value}
+                      onClick={handleSendCode}
+                    >
+                      {label.value}
+                    </NButton>
+                  </div>
+                </NFormItem>
+              )}
               <NFormItem label="密码" path="password">
                 <NInput
                   v-model:value={formModel.password}
@@ -135,22 +143,6 @@ export default defineComponent({
                   }
                   showPasswordOn="click"
                 />
-              </NFormItem>
-              <NFormItem label={$t('page.userManagement.role')} path="roleIds">
-                <NSelect
-                  v-model:value={formModel.roleIds}
-                  multiple
-                  placeholder={$t('page.userManagement.rolePlaceholder' as any)}
-                  options={props.config.roleOptions as any}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.userManagement.status')} path="isActive">
-                <NSwitch v-model:value={formModel.isActive} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isActive
-                    ? $t('page.userManagement.active')
-                    : $t('page.userManagement.inactive')}
-                </span>
               </NFormItem>
             </NForm>
           ),

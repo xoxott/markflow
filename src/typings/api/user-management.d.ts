@@ -49,33 +49,32 @@ declare namespace Api {
       roleCode?: string;
     }
 
-    /** Create user request */
+    /** Create user request (ai-server CreateUserInput) */
     interface CreateUserRequest {
       username: string;
       email: string;
       password: string;
-      roleIds: number[];
-      isActive?: boolean;
+      verificationCode: string;
     }
 
-    /** Update user request */
+    /** Update user request (ai-server UpdateUserInput) */
     interface UpdateUserRequest {
       username?: string;
       email?: string;
       password?: string;
-      roleIds?: number[];
-      isActive?: boolean;
+      avatar?: string;
     }
 
-    /** Batch delete users request */
+    /** Batch delete users request (ai-server BatchDeleteInput) */
     interface BatchDeleteUsersRequest {
-      ids: number[];
+      userIds: number[];
     }
 
-    /** Toggle user status request */
-    interface ToggleUserStatusRequest {
-      id: number;
+    /** Batch update user status request (ai-server BatchUpdateStatusInput) */
+    interface BatchUpdateStatusRequest {
+      userIds: number[];
       isActive: boolean;
+      reason?: string;
     }
 
     /** User list response (after transformBackendResponse) */
@@ -84,33 +83,21 @@ declare namespace Api {
     /** User detail response */
     type UserDetailResponse = User;
 
-    /** Create user response */
-    interface CreateUserResponse {
-      message: string;
-      user: User;
-    }
-
-    /** Update user response */
-    interface UpdateUserResponse {
-      message: string;
-      user: User;
-    }
+    /** Create / update user response (ai-server returns UserOutput) */
+    type CreateUserResponse = User;
+    type UpdateUserResponse = User;
 
     /** Delete user response */
-    interface DeleteUserResponse {
-      message: string;
-    }
+    type DeleteUserResponse = null;
 
     /** Batch delete users response */
     interface BatchDeleteUsersResponse {
-      message: string;
-      deletedCount: number;
+      deleted: number;
     }
 
-    /** Toggle user status response */
-    interface ToggleUserStatusResponse {
-      message: string;
-      user: User;
+    /** Batch update user status response */
+    interface BatchUpdateStatusResponse {
+      updated: number;
     }
 
     /** Role list response (after transformBackendResponse) */

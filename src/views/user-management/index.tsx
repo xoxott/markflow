@@ -3,9 +3,9 @@ import { useMessage } from 'naive-ui';
 import {
   fetchAdminRoleOptions,
   fetchBatchDeleteUsers,
+  fetchBatchUpdateUserStatus,
   fetchCreateUser,
   fetchDeleteUser,
-  fetchToggleUserStatus,
   fetchUpdateUser,
   fetchUserDetail,
   fetchUserList
@@ -31,15 +31,6 @@ export default defineComponent({
     const selectedRowKeys = ref<number[]>([]);
 
     const roles = ref<Api.UserManagement.Role[]>([]);
-    const roleOptions = computed(() => {
-      if (!Array.isArray(roles.value)) {
-        return [];
-      }
-      return roles.value.map((role: Api.UserManagement.Role) => ({
-        label: role.name,
-        value: role.id
-      }));
-    });
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -56,41 +47,33 @@ export default defineComponent({
       });
 
     async function handleAdd() {
-      if (!Array.isArray(roles.value) || roles.value.length === 0) {
-        await loadRoles();
-      }
-
       const formData: UserFormData = {
         username: '',
         email: '',
         password: '',
-        roleIds: [],
-        isActive: true
+        verificationCode: ''
       };
 
       await userDialog.showUserForm({
         isEdit: false,
         formData,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: UserFormData) => {
-          await fetchCreateUser({
+          const { error } = await fetchCreateUser({
             username: form.username,
             email: form.email,
             password: form.password,
-            roleIds: form.roleIds,
-            isActive: form.isActive
+            verificationCode: form.verificationCode
           });
+          if (error) return;
+
           message.success($t('common.addSuccess'));
           getData();
+          return true;
         }
       });
     }
 
     async function handleEdit(row: User) {
-      if (!Array.isArray(roles.value) || roles.value.length === 0) {
-        await loadRoles();
-      }
-
       const { data: userDetail } = await fetchUserDetail(row.id);
       if (!userDetail) {
         message.error($t('page.userManagement.getDetailFailed'));
@@ -101,44 +84,43 @@ export default defineComponent({
         username: userDetail.username,
         email: userDetail.email,
         password: '',
-        roleIds: userDetail.roles.map((role: Api.UserManagement.Role) => role.id),
-        isActive: userDetail.isActive
+        verificationCode: ''
       };
 
       await userDialog.showUserForm({
         isEdit: true,
         formData,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: UserFormData) => {
           const updateData: Api.UserManagement.UpdateUserRequest = {
             username: form.username,
-            email: form.email,
-            roleIds: form.roleIds,
-            isActive: form.isActive
+            email: form.email
           };
           if (form.password) {
             updateData.password = form.password;
           }
-          await fetchUpdateUser(row.id, updateData);
+          const { error } = await fetchUpdateUser(row.id, updateData);
+          if (error) return;
+
           message.success($t('common.updateSuccess'));
           getData();
+          return true;
         }
       });
     }
 
     async function handleToggleStatus(userId: number, isActive: boolean) {
-      try {
-        await fetchToggleUserStatus(userId, isActive);
-        message.success($t('page.userManagement.toggleStatusSuccess'));
-        getData();
-      } catch {
-        getData();
-      }
+      const { error } = await fetchBatchUpdateUserStatus({ userIds: [userId], isActive });
+      if (error) return;
+
+      message.success($t('page.userManagement.toggleStatusSuccess'));
+      getData();
     }
 
     async function handleDelete(row: User) {
       await dialog.confirmDelete(row.username, async () => {
-        await fetchDeleteUser(row.id);
+        const { error } = await fetchDeleteUser(row.id);
+        if (error) return;
+
         message.success($t('common.deleteSuccess'));
         getData();
       });
@@ -152,7 +134,9 @@ export default defineComponent({
       await dialog.confirmDelete(
         $t('page.userManagement.confirmBatchDelete', { count: selectedRowKeys.value.length }),
         async () => {
-          await fetchBatchDeleteUsers({ ids: selectedRowKeys.value });
+          const { error } = await fetchBatchDeleteUsers({ userIds: selectedRowKeys.value });
+          if (error) return;
+
           message.success($t('page.userManagement.batchDeleteSuccess'));
           selectedRowKeys.value = [];
           getData();
