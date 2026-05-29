@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { NButton, NSpace, useMessage } from 'naive-ui';
-import { mockKnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import { knowledgeBaseApi } from '@/service/api/knowledge-base';
 import FileExplorer from '@/components/file-explorer/FileExplorer';
 import { $t } from '@/locales';
 import FileManagerDrawers from '../components/FileManagerDrawers';
@@ -34,16 +34,16 @@ export default defineComponent({
     };
 
     const handleReindexKb = async () => {
-      await mockKnowledgeBaseApi.fetchReindexKnowledgeBase(kbId);
+      await knowledgeBaseApi.fetchReindexKnowledgeBase(kbId);
       message.success($t('page.knowledgeBase.reindexStarted'));
       await page.loadKnowledgeBaseDetail();
       await page.loadSidebarNavigation();
     };
 
     const handleReindexDocument = async (doc: Api.KnowledgeBase.Document) => {
-      await mockKnowledgeBaseApi.fetchReindexDocument(kbId, doc.path);
+      await knowledgeBaseApi.fetchReindexDocument(kbId, doc.path);
       message.success($t('page.knowledgeBase.reindexDocumentStarted'));
-      const detail = await mockKnowledgeBaseApi.fetchDocumentDetail(kbId, doc.path);
+      const detail = await knowledgeBaseApi.fetchDocumentDetail(kbId, doc.path);
       page.selectedDocument.value = detail.data;
     };
 

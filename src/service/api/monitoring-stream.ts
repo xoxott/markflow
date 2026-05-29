@@ -7,10 +7,7 @@ export type MonitoringEventType = Api.Monitoring.StreamEventType;
 export type MonitoringEventData = Api.Monitoring.StreamEventData;
 
 /** Monitoring stream connection IDs */
-export const MONITORING_STREAM_CONNECTION_IDS: Record<
-  Exclude<MonitoringEventType, 'environment'>,
-  string
-> = {
+export const MONITORING_STREAM_CONNECTION_IDS: Record<MonitoringEventType, string> = {
   health: 'monitoring-health',
   liveness: 'monitoring-liveness',
   readiness: 'monitoring-readiness',
@@ -25,8 +22,7 @@ const STREAM_PATHS: Record<MonitoringEventType, string> = {
   readiness: '/api/admin/health/readiness/stream',
   metrics: '/api/admin/monitoring/metrics/summary/stream',
   system: '/api/admin/system/info/stream',
-  performance: '/api/admin/system/performance/stream',
-  environment: '/api/admin/system/environment/stream'
+  performance: '/api/admin/system/performance/stream'
 };
 
 export function getMonitoringStreamPath(eventType: MonitoringEventType): string {

@@ -1,6 +1,6 @@
 import { computed, defineComponent, onMounted, ref, watch } from 'vue';
 import { NButton, NCard, NEmpty, NList, NListItem, NSkeleton, NSpace, NTag, NText } from 'naive-ui';
-import { mockKnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import { knowledgeBaseApi } from '@/service/api/knowledge-base';
 import { $t } from '@/locales';
 
 const DOC_STATUS_MAP: Record<
@@ -40,7 +40,7 @@ export default defineComponent({
 
       loading.value = true;
       try {
-        const result = await mockKnowledgeBaseApi.fetchDocumentChunks(props.document.id);
+        const result = await knowledgeBaseApi.fetchDocumentChunks(props.document.id);
         chunks.value = result.data;
       } finally {
         loading.value = false;
@@ -59,7 +59,7 @@ export default defineComponent({
       if (props.document?.status === 'processing') {
         const timer = window.setInterval(async () => {
           if (!props.document) return;
-          const detail = await mockKnowledgeBaseApi.fetchDocumentDetail(
+          const detail = await knowledgeBaseApi.fetchDocumentDetail(
             props.knowledgeBaseId,
             props.document.path
           );

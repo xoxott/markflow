@@ -1,4 +1,5 @@
 import type { RequestOption } from '@suga/axios';
+import { isBackendSuccessCode } from './errorCodes';
 
 /** 刷新专用实例：无 Authorization，失败静默 */
 export function createRefreshTokenRequestOptions(): Partial<RequestOption<App.Service.Response>> {
@@ -7,8 +8,7 @@ export function createRefreshTokenRequestOptions(): Partial<RequestOption<App.Se
       return config;
     },
     isBackendSuccess(response) {
-      const code = response.data.code;
-      return code === 200 || code === 201;
+      return isBackendSuccessCode(response.data.code);
     },
     async onBackendFail() {
       return null;

@@ -1,7 +1,7 @@
 import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { mockKnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import { knowledgeBaseApi } from '@/service/api/knowledge-base';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
@@ -20,7 +20,7 @@ const {
   fetchUpdateKnowledgeBase,
   fetchDeleteKnowledgeBase,
   fetchReindexKnowledgeBase
-} = mockKnowledgeBaseApi;
+} = knowledgeBaseApi;
 
 type KnowledgeBase = Api.KnowledgeBase.KnowledgeBase;
 

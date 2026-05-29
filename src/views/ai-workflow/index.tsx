@@ -1,12 +1,19 @@
 import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
+import {
+  fetchArchiveWorkflow,
+  fetchCreateWorkflow,
+  fetchDeleteWorkflow,
+  fetchExecuteWorkflow,
+  fetchPublishWorkflow,
+  fetchWorkflowList
+} from '@/service/api/workflow';
 import { mockWorkflowApi } from '@/service/api/workflow-mock';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
-// 暂时使用 Mock 数据，后续替换为真实 API
 import type { WorkflowFormData } from './components/dialogs/dialog';
 import { useWorkflowDialog } from './components';
 import {
@@ -15,17 +22,8 @@ import {
   createWorkflowTableColumns
 } from './listUiConfig';
 
-const {
-  fetchWorkflowList,
-  fetchCreateWorkflow,
-  fetchDeleteWorkflow,
-  fetchBatchDeleteWorkflows,
-  fetchCopyWorkflow,
-  fetchPublishWorkflow,
-  fetchArchiveWorkflow,
-  fetchExecuteWorkflow,
-  fetchRestoreWorkflowVersion
-} = mockWorkflowApi;
+const { fetchBatchDeleteWorkflows, fetchCopyWorkflow, fetchRestoreWorkflowVersion } =
+  mockWorkflowApi;
 
 type Workflow = Api.Workflow.Workflow;
 

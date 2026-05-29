@@ -1,7 +1,7 @@
 import { onMounted, ref, shallowRef } from 'vue';
 import type { TreeOption } from 'naive-ui';
 import { useMessage } from 'naive-ui';
-import { mockKnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import { knowledgeBaseApi } from '@/service/api/knowledge-base';
 import { KnowledgeBaseFileDataSource } from '@/components/file-explorer/datasources';
 import { useFileExplorerLogic } from '@/components/file-explorer/composables/useFileExplorerLogic';
 import { useFilePreview } from '@/components/file-explorer/composables/useFilePreview';
@@ -29,13 +29,13 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
 
   const dataSource = new KnowledgeBaseFileDataSource({
     knowledgeBaseId,
-    api: mockKnowledgeBaseApi,
+    api: knowledgeBaseApi,
     getListQuery: () => listQuery.value
   });
 
   /* eslint-disable @typescript-eslint/no-use-before-define -- logic and handlers reference each other */
   const loadSidebarNavigation = async () => {
-    const result = await mockKnowledgeBaseApi.fetchSidebarNavigation(knowledgeBaseId);
+    const result = await knowledgeBaseApi.fetchSidebarNavigation(knowledgeBaseId);
     quickAccessItems.value = mapSidebarItems(result.data.quickAccess);
     fileTypeItems.value = mapSidebarItems(result.data.fileTypes);
     folderTree.value = mapFolderTree(result.data.folderTree);
@@ -48,9 +48,9 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
   };
 
   const handleSidebarNavigate = async (key: string) => {
-    if (mockKnowledgeBaseApi.isVirtualSidebarPath(key)) {
-      const quickAccess = mockKnowledgeBaseApi.parseQuickAccess(key);
-      const fileType = mockKnowledgeBaseApi.parseFileType(key);
+    if (knowledgeBaseApi.isVirtualSidebarPath(key)) {
+      const quickAccess = knowledgeBaseApi.parseQuickAccess(key);
+      const fileType = knowledgeBaseApi.parseFileType(key);
       await applyListQuery(
         {
           path: '/',
@@ -75,7 +75,7 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
         content = await file.text();
       }
 
-      await mockKnowledgeBaseApi.fetchUploadDocument({
+      await knowledgeBaseApi.fetchUploadDocument({
         knowledgeBaseId,
         path: currentPath,
         fileName: file.name,
@@ -125,7 +125,7 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
 
     if (file.type === 'file') {
       try {
-        const detail = await mockKnowledgeBaseApi.fetchDocumentDetail(knowledgeBaseId, file.path);
+        const detail = await knowledgeBaseApi.fetchDocumentDetail(knowledgeBaseId, file.path);
         selectedDocument.value = detail.data;
       } catch {
         selectedDocument.value = null;
@@ -159,7 +159,7 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
   };
 
   const loadKnowledgeBaseDetail = async () => {
-    const result = await mockKnowledgeBaseApi.fetchKnowledgeBaseDetail(knowledgeBaseId);
+    const result = await knowledgeBaseApi.fetchKnowledgeBaseDetail(knowledgeBaseId);
     knowledgeBase.value = result.data;
   };
 
@@ -169,7 +169,7 @@ export function useKnowledgeBaseDocumentsPage(knowledgeBaseId: string) {
       return;
     }
     try {
-      const detail = await mockKnowledgeBaseApi.fetchDocumentDetail(knowledgeBaseId, file.path);
+      const detail = await knowledgeBaseApi.fetchDocumentDetail(knowledgeBaseId, file.path);
       selectedDocument.value = detail.data;
     } catch {
       selectedDocument.value = null;

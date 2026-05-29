@@ -12,7 +12,7 @@ import {
   NSpace,
   NTag
 } from 'naive-ui';
-import { mockKnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import { knowledgeBaseApi } from '@/service/api/knowledge-base';
 import { $t } from '@/locales';
 
 export default defineComponent({
@@ -33,7 +33,7 @@ export default defineComponent({
       if (!query.value.trim()) return;
       loading.value = true;
       try {
-        const result = await mockKnowledgeBaseApi.fetchSearch({
+        const result = await knowledgeBaseApi.fetchSearch({
           knowledgeBaseId: props.knowledgeBaseId,
           query: query.value.trim(),
           topK: topK.value,

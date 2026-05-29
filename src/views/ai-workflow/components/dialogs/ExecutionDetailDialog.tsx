@@ -1,11 +1,9 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, onMounted, ref } from 'vue';
 import { NButton, NDescriptions, NDescriptionsItem, NSpace, NSpin, NTag } from 'naive-ui';
-import { mockWorkflowApi } from '@/service/api/workflow-mock';
+import { fetchExecutionDetail } from '@/service/api/workflow';
 import BaseDialog from '@/components/base-dialog';
 import type { ExecutionDetailDialogOptions } from './dialog';
-
-const { fetchExecutionDetail } = mockWorkflowApi;
 
 const statusTypeMap: Record<
   Api.Workflow.ExecutionStatus,

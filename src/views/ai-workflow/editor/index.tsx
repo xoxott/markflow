@@ -9,7 +9,7 @@ import {
 } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { mockWorkflowApi } from '@/service/api/workflow-mock';
+import { fetchUpdateWorkflow, fetchWorkflowDetail } from '@/service/api/workflow';
 import { readExposedBool } from '@/components/flow/internal';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import {
@@ -23,8 +23,6 @@ import WorkflowEditorWorkspace from '../components/editor/WorkflowEditorWorkspac
 import { useWorkflowEditor } from '../components/hooks/useWorkflowEditor';
 import { useWorkflowMeta } from '../components/hooks/useWorkflowMeta';
 import { definitionToFlowState } from '../components/adapters/flow-adapter';
-
-const { fetchWorkflowDetail, fetchUpdateWorkflow } = mockWorkflowApi;
 
 export default defineComponent({
   name: 'WorkflowEditor',

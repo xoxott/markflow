@@ -141,11 +141,13 @@ declare namespace Env {
      */
     readonly VITE_STATIC_DEMO?: CommonType.YesOrNo;
     /**
-     * Local dev auth bypass (default on in DEV unless set to N)
+     * Local dev auth bypass (opt-in: only when Y)
      *
-     * Set to N when testing real login against a local API
+     * Set to Y to skip login without ai-server
      */
     readonly VITE_DEV_BYPASS_AUTH?: CommonType.YesOrNo;
+    /** Use menu-mock for dynamic route bootstrap when Y */
+    readonly VITE_USE_MENU_MOCK?: CommonType.YesOrNo;
     /** The launch editor */
     readonly VITE_DEVTOOLS_LAUNCH_EDITOR?: import('vite-plugin-vue-devtools').VitePluginVueDevToolsOptions['launchEditor'];
   }

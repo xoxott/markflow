@@ -8,14 +8,14 @@ declare namespace Api {
    */
   namespace Monitoring {
     /** Monitoring SSE stream event types */
+    /** SSE stream event types (environment uses GET /api/admin/system/environment) */
     type StreamEventType =
       | 'health'
       | 'liveness'
       | 'readiness'
       | 'metrics'
       | 'system'
-      | 'performance'
-      | 'environment';
+      | 'performance';
 
     /** Monitoring SSE event payloads by stream type */
     interface StreamEventData {
@@ -25,7 +25,6 @@ declare namespace Api {
       metrics: MetricsSummary;
       system: Api.System.SystemInfo;
       performance: Api.System.PerformanceMetrics;
-      environment: Api.System.EnvironmentInfo;
     }
 
     /** Metrics summary */

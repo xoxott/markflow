@@ -5,22 +5,31 @@ import { useAuthStore } from '@/store/modules/auth';
 import { isStaticDemo } from '@/utils/env/static-demo';
 import { $t } from '@/locales';
 import { getAuthorization } from '../auth';
-import { handleExpiredRequest, showErrorMsg } from '../shared';
+import { handleExpiredRequest } from '../shared';
 import type { RequestInstanceState } from '../type';
 import {
-  AUTH_ERROR_CODES,
+  SESSION_AUTH_ERROR_CODES,
   extractErrorCode,
   getExpiredTokenCodes,
   getLogoutCodes,
-  getModalLogoutCodes
+  getModalLogoutCodes,
+  isBackendSuccessCode
 } from './errorCodes';
+import { parseApiErrorPayload, showGlobalRequestError } from './errorHandler';
 import { createRetryConfig } from './retry';
 
 type MainFlatRequest = FlatRequestInstance<RequestInstanceState, App.Service.Response>;
 
-const authErrorCodeSet = new Set<string>(AUTH_ERROR_CODES);
+const sessionAuthErrorCodeSet = new Set<string>(SESSION_AUTH_ERROR_CODES);
 
-/** 主业务 Axios 策略（拦截器）：与步骤链组合时仍挂在同一 `instance` 上。 `getRequest` 在首次请求执行时已可用，用于读写 `request.state`。 */
+/**
+ * 主业务 Axios 策略（全局请求封装）
+ *
+ * - isBackendSuccess：业务 code 判断
+ * - onBackendFail：仅处理认证副作用（刷新 / 登出 / 模态框），不弹 toast
+ * - onError：统一全局错误提示（含业务失败 BACKEND_ERROR 与网络错误）
+ * - transformBackendResponse：解包 data 字段
+ */
 export function createMainRequestPolicies(
   getRequest: () => MainFlatRequest
 ): Partial<RequestOption<App.Service.Response>> {
@@ -32,7 +41,7 @@ export function createMainRequestPolicies(
     },
     isBackendSuccess(response) {
       const code = response.data.code;
-      const isSuccess = code === 200 || code === 201;
+      const isSuccess = isBackendSuccessCode(code);
       console.log('[Request] isBackendSuccess check:', {
         code,
         isSuccess,
@@ -44,15 +53,15 @@ export function createMainRequestPolicies(
     async onBackendFail(response, instance) {
       const request = getRequest();
       const authStore = useAuthStore();
-      const errorData = response.data as unknown as Api.ErrorResponse;
+      const errorData = parseApiErrorPayload(response) ?? (response.data as Api.ErrorResponse);
       const errorCode = extractErrorCode(errorData);
       const expiredTokenCodes = getExpiredTokenCodes();
       const logoutCodes = getLogoutCodes();
       const modalLogoutCodes = getModalLogoutCodes();
+      const hasSession = Boolean(getAuthorization());
 
-      console.log('[Request] onBackendFail triggered:', {
+      console.log('[Request] onBackendFail (auth only):', {
         errorCode,
-        expiredTokenCodes,
         url: response.config.url,
         status: response.status,
         message: errorData.message
@@ -63,7 +72,7 @@ export function createMainRequestPolicies(
         handleLogout();
         window.removeEventListener('beforeunload', handleLogout);
         request.state.errMsgStack = request.state.errMsgStack.filter(
-          msg => msg !== response.data.message
+          msg => msg !== errorData.message
         );
       };
 
@@ -79,24 +88,27 @@ export function createMainRequestPolicies(
       }
 
       const shouldLogout =
+        hasSession &&
+        !isStaticDemo() &&
         !expiredTokenCodes.includes(errorCode) &&
-        (authErrorCodeSet.has(errorCode) || logoutCodes.includes(errorCode));
+        (sessionAuthErrorCodeSet.has(errorCode) || logoutCodes.includes(errorCode));
 
-      if (shouldLogout && !isStaticDemo()) {
+      if (shouldLogout) {
         handleLogout();
         return null;
       }
 
       if (
+        hasSession &&
         modalLogoutCodes.includes(errorCode) &&
-        !request.state.errMsgStack?.includes(response.data.message)
+        !request.state.errMsgStack?.includes(errorData.message)
       ) {
-        request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.message];
+        request.state.errMsgStack = [...(request.state.errMsgStack || []), errorData.message];
         window.addEventListener('beforeunload', handleLogout);
 
         window.$dialog?.error({
           title: $t('common.error'),
-          content: response.data.message,
+          content: errorData.message,
           positiveText: $t('common.confirm'),
           maskClosable: false,
           closeOnEsc: false,
@@ -107,6 +119,7 @@ export function createMainRequestPolicies(
         return null;
       }
 
+      // 业务错误的全局 toast 统一在 onError 中处理，避免重复弹窗
       return null;
     },
     transformBackendResponse(response) {
@@ -114,30 +127,8 @@ export function createMainRequestPolicies(
     },
     onError(error: AxiosError<App.Service.Response>) {
       const request = getRequest();
-      let message = error.message;
-      let errorCode: string | null = null;
-
-      if (error.response?.data) {
-        const errorData = error.response.data as unknown as Api.ErrorResponse;
-        if (errorData && 'code' in errorData && 'message' in errorData) {
-          message = errorData.message || message;
-          errorCode = extractErrorCode(errorData);
-        }
-      }
-
-      const expiredTokenCodes = getExpiredTokenCodes();
-      const modalLogoutCodes = getModalLogoutCodes();
-
-      const shouldSuppressError =
-        (errorCode && expiredTokenCodes.includes(errorCode)) ||
-        (errorCode && authErrorCodeSet.has(errorCode)) ||
-        (errorCode && modalLogoutCodes.includes(errorCode));
-
-      if (shouldSuppressError) {
-        return;
-      }
-
-      showErrorMsg(request.state, message);
+      const hasSession = Boolean(getAuthorization());
+      showGlobalRequestError(request.state, error, hasSession);
     }
   };
 }

@@ -1,7 +1,8 @@
 import { request } from '../request';
 import { mockMenuApi } from './menu-mock';
 
-const useMenuMock = () => import.meta.env.VITE_AUTH_ROUTE_MODE === 'dynamic';
+/** 动态路由 Mock（ai-server 暂无菜单路由 API 时使用） */
+const useMenuMock = () => import.meta.env.VITE_USE_MENU_MOCK === 'Y';
 
 /** get constant routes */
 export function fetchGetConstantRoutes() {

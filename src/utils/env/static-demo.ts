@@ -3,15 +3,12 @@ import { localStg } from '@/utils/storage';
 
 export const STATIC_DEMO_TOKEN = 'static-demo-token';
 
-/** 本地 dev 无后端时默认绕过登录；设 VITE_DEV_BYPASS_AUTH=N 可关闭。 */
+/** 仅当显式开启时绕过登录（本地无后端演示）。默认关闭，走真实认证。 */
 export function isDevBypassAuth(): boolean {
-  if (!import.meta.env.DEV) {
-    return false;
-  }
-  return import.meta.env.VITE_DEV_BYPASS_AUTH !== 'N';
+  return import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'Y';
 }
 
-/** GitHub Pages / 静态托管 / 本地无 API 演示模式 */
+/** GitHub Pages / 静态托管 / 显式 VITE_STATIC_DEMO 演示模式 */
 export function isStaticDemo(): boolean {
   if (import.meta.env.VITE_STATIC_DEMO === 'Y') {
     return true;

@@ -1,4 +1,4 @@
-import type { KnowledgeBaseApi } from '@/service/api/knowledge-base-mock';
+import type { KnowledgeBaseApi } from '@/service/api/knowledge-base';
 import type { FileItem } from '../types/file-explorer';
 import type { IFileDataSource, PaginationParams, PaginationResult } from './types';
 

@@ -33,7 +33,6 @@ export interface UseMonitoringSSEReturn {
   onMetrics: (listener: MonitoringEventListener<'metrics'>) => () => void;
   onSystem: (listener: MonitoringEventListener<'system'>) => () => void;
   onPerformance: (listener: MonitoringEventListener<'performance'>) => () => void;
-  onEnvironment: (listener: MonitoringEventListener<'environment'>) => () => void;
   onAll: (listener: (eventType: MonitoringEventType, data: unknown) => void) => () => void;
 }
 
@@ -44,7 +43,7 @@ const MONITORING_EVENT_TYPES = [
   'metrics',
   'system',
   'performance'
-] as const satisfies readonly Exclude<MonitoringEventType, 'environment'>[];
+] as const satisfies readonly MonitoringEventType[];
 
 const connectionDefs = MONITORING_EVENT_TYPES.map(eventType => ({
   id: MONITORING_STREAM_CONNECTION_IDS[eventType],
@@ -62,7 +61,7 @@ export function useMonitoringSSE(options: UseMonitoringSSEOptions = {}): UseMoni
     shouldSkipConnect: isStaticDemo
   });
 
-  const subscribeEvent = <T extends Exclude<MonitoringEventType, 'environment'>>(
+  const subscribeEvent = <T extends MonitoringEventType>(
     eventType: T,
     listener: MonitoringEventListener<T>
   ): (() => void) => {
@@ -110,8 +109,6 @@ export function useMonitoringSSE(options: UseMonitoringSSEOptions = {}): UseMoni
   const onPerformance = (listener: MonitoringEventListener<'performance'>) =>
     subscribeEvent('performance', listener);
 
-  const onEnvironment = (_listener: MonitoringEventListener<'environment'>) => () => {};
-
   const onAll = (listener: (eventType: MonitoringEventType, data: unknown) => void) => {
     const unsubscribes = MONITORING_EVENT_TYPES.map(eventType =>
       subscribeEvent(eventType, data => {
@@ -137,7 +134,6 @@ export function useMonitoringSSE(options: UseMonitoringSSEOptions = {}): UseMoni
     onMetrics,
     onSystem,
     onPerformance,
-    onEnvironment,
     onAll
   };
 }
