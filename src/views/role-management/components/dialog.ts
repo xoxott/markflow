@@ -5,7 +5,8 @@ export interface RoleFormData {
   name: string;
   code: string;
   description: string;
-  isActive: boolean;
+  /** 角色级别，数字越小权限越大；与 ai-server 默认 999 一致 */
+  level: number;
 }
 
 /** 角色表单对话框配置 */

@@ -1,4 +1,4 @@
-import { NButton, NSpace, NSwitch } from 'naive-ui';
+import { NButton, NSpace, NTag } from 'naive-ui';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
 
@@ -32,7 +32,6 @@ export function createRoleSearchFields(): SearchFieldConfig[] {
 export interface RoleTableColumnHandlers {
   onEdit: (row: Role) => void;
   onDelete: (row: Role) => void;
-  onToggleStatus: (roleId: number, isActive: boolean) => void;
 }
 
 /** 表格列：key / 宽度 / 固定列等为静态配置；操作列注入页面内事件 */
@@ -49,6 +48,11 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       width: 150
     },
     {
+      title: $t('page.roleManagement.level'),
+      key: 'level',
+      width: 90
+    },
+    {
       title: $t('page.roleManagement.description'),
       key: 'description',
       width: 200,
@@ -59,7 +63,9 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       key: 'isActive',
       width: 100,
       render: (row: Role) => (
-        <NSwitch value={row.isActive} onUpdateValue={(v: boolean) => h.onToggleStatus(row.id, v)} />
+        <NTag type={row.isActive ? 'success' : 'default'} size="small">
+          {row.isActive ? $t('page.roleManagement.active') : $t('page.roleManagement.inactive')}
+        </NTag>
       )
     },
     {
@@ -84,7 +90,12 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
           <NButton size="small" type="primary" onClick={() => h.onEdit(row)}>
             {$t('common.edit')}
           </NButton>
-          <NButton size="small" type="error" onClick={() => h.onDelete(row)}>
+          <NButton
+            size="small"
+            type="error"
+            disabled={row.isSystem}
+            onClick={() => h.onDelete(row)}
+          >
             {$t('common.delete')}
           </NButton>
         </NSpace>

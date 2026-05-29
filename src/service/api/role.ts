@@ -6,10 +6,14 @@ import { request } from '../request';
  * @param params Query parameters
  */
 export function fetchRoleList(params: Api.RoleManagement.RoleListParams) {
+  const { isActive, ...rest } = params;
   return request<Api.RoleManagement.RoleListResponse>({
     url: '/api/admin/roles',
     method: 'get',
-    params
+    params: {
+      ...rest,
+      ...(isActive === 0 || isActive === 1 ? { isActive: isActive === 1 } : {})
+    }
   });
 }
 
@@ -47,7 +51,7 @@ export function fetchCreateRole(data: Api.RoleManagement.CreateRoleRequest) {
 export function fetchUpdateRole(id: number, data: Api.RoleManagement.UpdateRoleRequest) {
   return request<Api.RoleManagement.UpdateRoleResponse>({
     url: `/api/admin/roles/${id}`,
-    method: 'put',
+    method: 'patch',
     data
   });
 }
@@ -58,35 +62,8 @@ export function fetchUpdateRole(id: number, data: Api.RoleManagement.UpdateRoleR
  * @param id Role ID
  */
 export function fetchDeleteRole(id: number) {
-  return request<Api.RoleManagement.DeleteRoleResponse>({
+  return request<null>({
     url: `/api/admin/roles/${id}`,
     method: 'delete'
-  });
-}
-
-/**
- * Batch delete roles
- *
- * @param data Role IDs
- */
-export function fetchBatchDeleteRoles(data: Api.RoleManagement.BatchDeleteRolesRequest) {
-  return request<Api.RoleManagement.BatchDeleteRolesResponse>({
-    url: '/api/admin/roles/batch',
-    method: 'delete',
-    data
-  });
-}
-
-/**
- * Toggle role status (enable/disable)
- *
- * @param id Role ID
- * @param isActive Status
- */
-export function fetchToggleRoleStatus(id: number, isActive: boolean) {
-  return request<Api.RoleManagement.ToggleRoleStatusResponse>({
-    url: `/api/admin/roles/${id}/status`,
-    method: 'patch',
-    data: { isActive }
   });
 }

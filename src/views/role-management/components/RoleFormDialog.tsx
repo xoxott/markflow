@@ -1,10 +1,13 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, reactive, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSpace, NSwitch } from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NInputNumber, NSpace } from 'naive-ui';
+import { REG_ROLE_CODE } from '@/constants/reg';
 import { useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import type { RoleFormDialogConfig } from './dialog';
+
+const DEFAULT_ROLE_LEVEL = 999;
 
 export default defineComponent({
   name: 'RoleFormDialog',
@@ -19,10 +22,8 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    // 表单数据（使用 reactive 使其可响应）
     const formModel = reactive({ ...props.config.formData });
 
-    // 监听 config.formData 变化，同步到 formModel
     watch(
       () => props.config.formData,
       newData => {
@@ -31,22 +32,35 @@ export default defineComponent({
       { deep: true, immediate: true }
     );
 
-    // 表单验证规则
     const formRules = {
       name: [
-        { required: true, message: $t('page.roleManagement.nameRequired' as any), trigger: 'blur' }
+        { required: true, message: $t('page.roleManagement.nameRequired' as any), trigger: 'blur' },
+        {
+          min: 2,
+          max: 100,
+          message: $t('page.roleManagement.nameLengthInvalid' as any),
+          trigger: 'blur'
+        }
       ],
       code: [
         { required: true, message: $t('page.roleManagement.codeRequired' as any), trigger: 'blur' },
         {
-          pattern: /^[A-Z_][A-Z0-9_]*$/,
+          pattern: REG_ROLE_CODE,
           message: $t('page.roleManagement.codeInvalid' as any),
+          trigger: 'blur'
+        }
+      ],
+      level: [
+        {
+          type: 'number',
+          min: 0,
+          max: 999,
+          message: $t('page.roleManagement.levelInvalid' as any),
           trigger: 'blur'
         }
       ]
     };
 
-    // 关闭弹窗
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -62,22 +76,24 @@ export default defineComponent({
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
 
-      await props.config.onConfirm({ ...formModel });
+      await props.config.onConfirm({
+        ...formModel,
+        code: formModel.code.trim().toLowerCase(),
+        name: formModel.name.trim(),
+        level: formModel.level ?? DEFAULT_ROLE_LEVEL
+      });
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -111,6 +127,15 @@ export default defineComponent({
                   disabled={props.config.isEdit}
                 />
               </NFormItem>
+              <NFormItem label={$t('page.roleManagement.level' as any)} path="level">
+                <NInputNumber
+                  v-model:value={formModel.level}
+                  min={0}
+                  max={999}
+                  placeholder={$t('page.roleManagement.levelPlaceholder' as any)}
+                  style={{ width: '100%' }}
+                />
+              </NFormItem>
               <NFormItem label={$t('page.roleManagement.description' as any)} path="description">
                 <NInput
                   v-model:value={formModel.description}
@@ -118,14 +143,6 @@ export default defineComponent({
                   placeholder={$t('page.roleManagement.descriptionPlaceholder' as any)}
                   rows={3}
                 />
-              </NFormItem>
-              <NFormItem label={$t('page.roleManagement.status' as any)} path="isActive">
-                <NSwitch v-model:value={formModel.isActive} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isActive
-                    ? $t('page.roleManagement.active' as any)
-                    : $t('page.roleManagement.inactive' as any)}
-                </span>
               </NFormItem>
             </NForm>
           ),

@@ -584,6 +584,7 @@ declare namespace App {
           title: string;
           name: string;
           code: string;
+          level: string;
           description: string;
           status: string;
           createdAt: string;
@@ -594,8 +595,11 @@ declare namespace App {
           statusPlaceholder: string;
           namePlaceholder: string;
           codePlaceholder: string;
+          levelPlaceholder: string;
+          levelInvalid: string;
           descriptionPlaceholder: string;
           nameRequired: string;
+          nameLengthInvalid: string;
           codeRequired: string;
           codeInvalid: string;
           createSuccess: string;

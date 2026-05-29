@@ -20,6 +20,9 @@ export const REG_CODE_SIX = /^\d{6}$/;
 /** Four digit code reg */
 export const REG_CODE_FOUR = /^\d{4}$/;
 
+/** Role code reg */
+export const REG_ROLE_CODE = /^[a-z][a-z0-9_]{1,48}$/;
+
 /** Url reg */
 export const REG_URL =
   /(((^https?:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+(?::\d+)?|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)$/;

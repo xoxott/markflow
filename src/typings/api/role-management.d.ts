@@ -16,6 +16,9 @@ declare namespace Api {
       name: string;
       code: string;
       description: string | null;
+      /** 角色级别，数字越小权限越大 */
+      level: number;
+      isSystem: boolean;
       isActive: boolean;
       createdAt: string;
       updatedAt: string;
@@ -25,70 +28,39 @@ declare namespace Api {
     interface RoleListParams extends Common.PaginationParams {
       /** Search keyword (name or code) */
       search?: string;
-      /** Filter by status：1 启用 / 0 停用，不传表示不限 */
+      /** Filter by status: 1 启用 / 0 停用（Select 用数字，请求时转为 boolean） */
       isActive?: number;
+      isSystem?: boolean;
     }
 
-    /** Create role request */
+    /** Create role request (ai-server CreateRoleInput) */
     interface CreateRoleRequest {
       name: string;
       code: string;
       description?: string;
-      isActive?: boolean;
+      /** Default 999 on server when omitted */
+      level?: number;
+      isSystem?: boolean;
+      permissionIds?: number[];
+      parentRoleId?: number;
     }
 
-    /** Update role request */
+    /** Update role request (ai-server UpdateRoleInput) */
     interface UpdateRoleRequest {
       name?: string;
       code?: string;
       description?: string;
-      isActive?: boolean;
-    }
-
-    /** Batch delete roles request */
-    interface BatchDeleteRolesRequest {
-      ids: number[];
-    }
-
-    /** Toggle role status request */
-    interface ToggleRoleStatusRequest {
-      id: number;
-      isActive: boolean;
+      level?: number;
+      permissionIds?: number[];
+      parentRoleId?: number | null;
     }
 
     /** Role list response */
     type RoleListResponse = ListData<Role>;
 
-    /** Role detail response */
+    /** Create / update / detail response (ai-server returns RoleOutput) */
     type RoleDetailResponse = Role;
-
-    /** Create role response */
-    interface CreateRoleResponse {
-      message: string;
-      role: Role;
-    }
-
-    /** Update role response */
-    interface UpdateRoleResponse {
-      message: string;
-      role: Role;
-    }
-
-    /** Delete role response */
-    interface DeleteRoleResponse {
-      message: string;
-    }
-
-    /** Batch delete roles response */
-    interface BatchDeleteRolesResponse {
-      message: string;
-      deletedCount: number;
-    }
-
-    /** Toggle role status response */
-    interface ToggleRoleStatusResponse {
-      message: string;
-      role: Role;
-    }
+    type CreateRoleResponse = Role;
+    type UpdateRoleResponse = Role;
   }
 }

@@ -1,12 +1,10 @@
-import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
+import { computed, defineComponent, getCurrentInstance } from 'vue';
 import { useMessage } from 'naive-ui';
 import {
-  fetchBatchDeleteRoles,
   fetchCreateRole,
   fetchDeleteRole,
   fetchRoleDetail,
   fetchRoleList,
-  fetchToggleRoleStatus,
   fetchUpdateRole
 } from '@/service/api/role';
 import TablePage from '@/components/table-page/TablePage';
@@ -19,6 +17,8 @@ import { ROLE_LIST_SCROLL_X, createRoleSearchFields, createRoleTableColumns } fr
 
 type Role = Api.RoleManagement.Role;
 
+const DEFAULT_ROLE_LEVEL = 999;
+
 export default defineComponent({
   name: 'RoleManagement',
   setup() {
@@ -26,8 +26,6 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const roleDialog = useRoleDialog();
     const dialog = useDialog(instance?.appContext.app);
-
-    const selectedRowKeys = ref<number[]>([]);
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -45,7 +43,7 @@ export default defineComponent({
         name: '',
         code: '',
         description: '',
-        isActive: true
+        level: DEFAULT_ROLE_LEVEL
       };
 
       await roleDialog.showRoleForm({
@@ -56,7 +54,7 @@ export default defineComponent({
             name: form.name,
             code: form.code,
             description: form.description || undefined,
-            isActive: form.isActive
+            level: form.level
           });
           message.success($t('common.addSuccess'));
           getData();
@@ -75,33 +73,22 @@ export default defineComponent({
         name: roleDetail.name,
         code: roleDetail.code,
         description: roleDetail.description || '',
-        isActive: roleDetail.isActive
+        level: roleDetail.level ?? DEFAULT_ROLE_LEVEL
       };
 
       await roleDialog.showRoleForm({
         isEdit: true,
         formData,
         onConfirm: async (form: RoleFormData) => {
-          const updateData: Api.RoleManagement.UpdateRoleRequest = {
+          await fetchUpdateRole(row.id, {
             name: form.name,
             description: form.description || undefined,
-            isActive: form.isActive
-          };
-          await fetchUpdateRole(row.id, updateData);
+            level: form.level
+          });
           message.success($t('common.updateSuccess'));
           getData();
         }
       });
-    }
-
-    async function handleToggleStatus(roleId: number, isActive: boolean) {
-      try {
-        await fetchToggleRoleStatus(roleId, isActive);
-        message.success($t('page.roleManagement.toggleStatusSuccess'));
-        getData();
-      } catch {
-        getData();
-      }
     }
 
     async function handleDelete(row: Role) {
@@ -112,31 +99,12 @@ export default defineComponent({
       });
     }
 
-    async function handleBatchDelete() {
-      if (selectedRowKeys.value.length === 0) {
-        message.warning($t('page.roleManagement.selectRolesToDelete'));
-        return;
-      }
-      await dialog.confirmDelete(
-        $t('page.roleManagement.confirmBatchDelete', {
-          count: selectedRowKeys.value.length
-        }),
-        async () => {
-          await fetchBatchDeleteRoles({ ids: selectedRowKeys.value });
-          message.success($t('page.roleManagement.batchDeleteSuccess'));
-          selectedRowKeys.value = [];
-          getData();
-        }
-      );
-    }
-
     const searchConfig = computed(() => createRoleSearchFields());
 
     const tableColumns = computed(() =>
       createRoleTableColumns({
         onEdit: handleEdit,
-        onDelete: handleDelete,
-        onToggleStatus: handleToggleStatus
+        onDelete: handleDelete
       })
     );
 
@@ -151,7 +119,6 @@ export default defineComponent({
         actionConfig={{
           preset: {
             add: { onClick: handleAdd },
-            batchDelete: { onClick: handleBatchDelete },
             refresh: { onClick: getData }
           }
         }}
@@ -159,10 +126,6 @@ export default defineComponent({
         data={data.value}
         loading={loading.value}
         pagination={pagination}
-        selectedKeys={selectedRowKeys.value}
-        onUpdateSelectedKeys={keys => {
-          selectedRowKeys.value = keys as number[];
-        }}
         rowKey="id"
         scrollX={ROLE_LIST_SCROLL_X}
         searchCardBordered={false}
