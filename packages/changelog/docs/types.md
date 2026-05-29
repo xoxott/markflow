@@ -20,8 +20,8 @@ Git 提交的作者信息
 
 #### Properties
 
-| Property                   | Type     | Description    | Defined in                                                                                                                                     |
-| -------------------------- | -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Property                   | Type     | Description    | Defined in                                                                                                                        |
+| -------------------------- | -------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="name"></a> `name`   | `string` | 作者的姓名     | [types.ts:4](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L4) |
 | <a id="email"></a> `email` | `string` | 作者的邮箱地址 | [types.ts:6](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L6) |
 
@@ -41,8 +41,8 @@ Defined in: [types.ts:10](https://github.com/xoxott/markflow/blob/0f58489d99b5c5
 
 #### Properties
 
-| Property                           | Type                                            | Description         | Defined in                                                                                                                                       |
-| ---------------------------------- | ----------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Property                           | Type                                            | Description         | Defined in                                                                                                                          |
+| ---------------------------------- | ----------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="message"></a> `message`     | `string`                                        | 提交标题（subject） | [types.ts:12](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L12) |
 | <a id="body"></a> `body`           | `string`                                        | 提交正文（body）    | [types.ts:14](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L14) |
 | <a id="shorthash"></a> `shortHash` | `string`                                        | 提交的短哈希值      | [types.ts:16](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L16) |
@@ -60,8 +60,8 @@ Defined in: [types.ts:22](https://github.com/xoxott/markflow/blob/0f58489d99b5c5
 
 #### Properties
 
-| Property                   | Type                                      | Description                           | Defined in                                                                                                                                       |
-| -------------------------- | ----------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Property                   | Type                                      | Description                           | Defined in                                                                                                                          |
+| -------------------------- | ----------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="type"></a> `type`   | `"hash"` \| `"issue"` \| `"pull-request"` | 引用的类型                            | [types.ts:24](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L24) |
 | <a id="value"></a> `value` | `string`                                  | 引用的值（哈希、Issue 编号、PR 编号） | [types.ts:26](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L26) |
 
@@ -81,8 +81,8 @@ Defined in: [types.ts:30](https://github.com/xoxott/markflow/blob/0f58489d99b5c5
 
 #### Properties
 
-| Property                       | Type       | Description                  | Inherited from                                                              | Defined in                                                                                                                                       |
-| ------------------------------ | ---------- | ---------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Property                       | Type       | Description                  | Inherited from                                                              | Defined in                                                                                                                          |
+| ------------------------------ | ---------- | ---------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="name-1"></a> `name`     | `string`   | 作者的姓名                   | [`GitCommitAuthor`](#/types.md#gitcommitauthor).[`name`](#/types.md#name)   | [types.ts:4](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L4)   |
 | <a id="email-1"></a> `email`   | `string`   | 作者的邮箱地址               | [`GitCommitAuthor`](#/types.md#gitcommitauthor).[`email`](#/types.md#email) | [types.ts:6](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L6)   |
 | <a id="commits"></a> `commits` | `string`[] | 该作者相关的提交哈希列表     | -                                                                           | [types.ts:32](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L32) |
@@ -104,8 +104,8 @@ Defined in: [types.ts:38](https://github.com/xoxott/markflow/blob/0f58489d99b5c5
 
 #### Properties
 
-| Property                                       | Type                                              | Description                                      | Inherited from                                                                | Defined in                                                                                                                                       |
-| ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Property                                       | Type                                              | Description                                      | Inherited from                                                                | Defined in                                                                                                                          |
+| ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="message-1"></a> `message`               | `string`                                          | 提交标题（subject）                              | [`RawGitCommit`](#/types.md#rawgitcommit).[`message`](#/types.md#message)     | [types.ts:12](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L12) |
 | <a id="body-1"></a> `body`                     | `string`                                          | 提交正文（body）                                 | [`RawGitCommit`](#/types.md#rawgitcommit).[`body`](#/types.md#body)           | [types.ts:14](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L14) |
 | <a id="shorthash-1"></a> `shortHash`           | `string`                                          | 提交的短哈希值                                   | [`RawGitCommit`](#/types.md#rawgitcommit).[`shortHash`](#/types.md#shorthash) | [types.ts:16](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L16) |
@@ -130,8 +130,8 @@ GitHub 仓库配置
 
 #### Properties
 
-| Property                   | Type     | Description                  | Defined in                                                                                                                                       |
-| -------------------------- | -------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Property                   | Type     | Description                  | Defined in                                                                                                                          |
+| -------------------------- | -------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="repo"></a> `repo`   | `string` | 仓库名称（格式：owner/repo） | [types.ts:58](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L58) |
 | <a id="token"></a> `token` | `string` | GitHub API 访问的 Token      | [types.ts:60](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L60) |
 
@@ -147,8 +147,8 @@ Defined in: [types.ts:64](https://github.com/xoxott/markflow/blob/0f58489d99b5c5
 
 #### Properties
 
-| Property                              | Type                                      | Description                                                                                                      | Defined in                                                                                                                                         |
-| ------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Property                              | Type                                      | Description                                                                                                      | Defined in                                                                                                                            |
+| ------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | <a id="cwd"></a> `cwd`                | `string`                                  | 项目的工作目录 **Default** `process.cwd()`                                                                       | [types.ts:70](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L70)   |
 | <a id="types"></a> `types`            | `Record`\<`string`, `string`\>            | 提交类型与对应标题的映射                                                                                         | [types.ts:73](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L73)   |
 | <a id="github"></a> `github`          | [`GithubConfig`](#/types.md#githubconfig) | GitHub 相关配置                                                                                                  | [types.ts:76](https://github.com/xoxott/markflow/blob/0f58489d99b5c546a4ac6af800263848a3a5dc3e/packages/changelog/src/types.ts#L76)   |
