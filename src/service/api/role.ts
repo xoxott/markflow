@@ -64,14 +64,6 @@ export function fetchDeleteRole(id: number) {
   });
 }
 
-/** 父角色下拉等：复用列表接口，固定第一页并拉取足够条数 */
-export function fetchRoleOptions(
-  params: Partial<Pick<Api.RoleManagement.RoleListParams, 'limit' | 'isActive'>> = {}
-) {
-  const { limit = 100, isActive } = params;
-  return fetchRoleList({ page: 1, limit, ...(isActive !== undefined ? { isActive } : {}) });
-}
-
 /** 为角色分配权限（覆盖式，ai-server POST /admin/roles/:id/permissions） */
 export function fetchAssignRolePermissions(
   roleId: number,

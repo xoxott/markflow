@@ -1,7 +1,8 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import { NButton, NForm, NFormItem, NSpace, NTreeSelect } from 'naive-ui';
+import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
 import { $t } from '@/locales';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
 import type { RolePermissionDialogConfig } from './dialog';
 
@@ -59,17 +60,15 @@ export default defineComponent({
           default: () => (
             <NForm labelPlacement="left" labelWidth="80px">
               <NFormItem label={$t('page.roleManagement.permissions')}>
-                <NTreeSelect
-                  v-model:value={permissionIds.value}
+                <AdminRemoteSelect
+                  resource="permissions"
+                  value={permissionIds.value}
                   multiple
-                  checkable
-                  cascade
-                  filterable
-                  clearable
-                  maxTagCount="responsive"
                   placeholder={$t('page.roleManagement.permissionsPlaceholder')}
-                  options={props.config.permissionTreeOptions}
                   style={{ width: '100%' }}
+                  onUpdate:value={value => {
+                    permissionIds.value = (value as number[]) ?? [];
+                  }}
                 />
               </NFormItem>
             </NForm>

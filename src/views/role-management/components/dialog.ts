@@ -1,4 +1,3 @@
-import type { SelectOption, TreeOption } from 'naive-ui';
 import type { BaseDialogProps } from '@/components/base-dialog/dialog';
 
 /** 角色表单数据 */
@@ -12,9 +11,6 @@ export interface RoleFormData {
   parentRoleId: number | null;
 }
 
-/** 父角色 / 下拉选项（与 NSelect options 一致） */
-export type RoleSelectOption = SelectOption;
-
 /** 角色表单对话框配置 */
 export interface RoleFormDialogConfig extends BaseDialogProps {
   /** 是否为编辑模式 */
@@ -25,10 +21,6 @@ export interface RoleFormDialogConfig extends BaseDialogProps {
   isSystem?: boolean;
   /** 表单数据 */
   formData: RoleFormData;
-  /** 权限树选项 */
-  permissionTreeOptions: TreeOption[];
-  /** 父角色选项 */
-  parentRoleOptions: RoleSelectOption[];
   /** 确认回调 */
   onConfirm: (data: RoleFormData) => void | Promise<void>;
   /** 取消回调 */
@@ -40,7 +32,6 @@ export interface RolePermissionDialogConfig extends BaseDialogProps {
   roleId: number;
   roleName: string;
   permissionIds: number[];
-  permissionTreeOptions: TreeOption[];
   onConfirm: (permissionIds: number[]) => void | Promise<void>;
   onCancel?: () => void;
 }

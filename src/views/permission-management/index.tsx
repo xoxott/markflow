@@ -9,6 +9,7 @@ import {
   fetchTogglePermissionStatus,
   fetchUpdatePermission
 } from '@/service/api/permission';
+import { useAdminOptionStore } from '@/store/modules/admin-option';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -30,6 +31,7 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const permissionDialog = usePermissionDialog();
     const dialog = useDialog(instance?.appContext.app);
+    const adminOptionStore = useAdminOptionStore();
 
     const selectedRowKeys = ref<number[]>([]);
 
@@ -71,6 +73,7 @@ export default defineComponent({
             isActive: form.isActive
           });
           message.success($t('common.addSuccess'));
+          adminOptionStore.invalidateResource('permissions');
           getData();
         }
       });
@@ -105,6 +108,7 @@ export default defineComponent({
           };
           await fetchUpdatePermission(row.id, updateData);
           message.success($t('common.updateSuccess'));
+          adminOptionStore.invalidateResource('permissions');
           getData();
         }
       });
@@ -114,6 +118,7 @@ export default defineComponent({
       try {
         await fetchTogglePermissionStatus(permissionId, isActive);
         message.success($t('page.permissionManagement.toggleStatusSuccess'));
+        adminOptionStore.invalidateResource('permissions');
         getData();
       } catch {
         getData();
@@ -124,6 +129,7 @@ export default defineComponent({
       await dialog.confirmDelete(row.name, async () => {
         await fetchDeletePermission(row.id);
         message.success($t('common.deleteSuccess'));
+        adminOptionStore.invalidateResource('permissions');
         getData();
       });
     }
@@ -140,6 +146,7 @@ export default defineComponent({
         async () => {
           await fetchBatchDeletePermissions({ ids: selectedRowKeys.value });
           message.success($t('page.permissionManagement.batchDeleteSuccess'));
+          adminOptionStore.invalidateResource('permissions');
           selectedRowKeys.value = [];
           getData();
         }

@@ -1,6 +1,7 @@
 import { NTag } from 'naive-ui';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import { $t } from '@/locales';
 
 type Log = Api.LogManagement.Log;
@@ -43,9 +44,7 @@ export function serializeLogListFilters(
   };
 }
 
-export function createLogSearchFields(
-  userOptions: Array<{ label: string; value: number }>
-): SearchFieldConfig[] {
+export function createLogSearchFields(): SearchFieldConfig[] {
   return [
     {
       type: 'input',
@@ -56,14 +55,18 @@ export function createLogSearchFields(
       width: '220px'
     },
     {
-      type: 'select',
+      type: 'custom',
       field: 'userId',
       label: $t('page.logManagement.userId'),
-      placeholder: $t('page.logManagement.userPlaceholder'),
-      width: '200px',
-      clearable: true,
-      options: userOptions,
-      componentProps: { filterable: true }
+      render: (model, updateModel) => (
+        <AdminRemoteSelect
+          resource="users"
+          value={(model.userId as number | null) ?? null}
+          placeholder={$t('page.logManagement.userPlaceholder')}
+          clearable
+          onUpdate:value={value => updateModel('userId', value)}
+        />
+      )
     },
     {
       type: 'input',

@@ -19,10 +19,6 @@ export interface NotificationFormDialogConfig extends BaseDialogProps {
   isEdit: boolean;
   /** 表单数据 */
   formData: NotificationFormData;
-  /** 用户选项列表 */
-  userOptions?: Array<{ label: string; value: number }>;
-  /** 角色选项列表 */
-  roleOptions?: Array<{ label: string; value: string }>;
   /** 确认回调 */
   onConfirm: (data: NotificationFormData) => void | Promise<void>;
   /** 取消回调 */

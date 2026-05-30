@@ -44,6 +44,11 @@ export default defineConfig({
         }
       },
       {
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url))
+          }
+        },
         test: {
           include: ['src/hooks/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
           environment: 'happy-dom',

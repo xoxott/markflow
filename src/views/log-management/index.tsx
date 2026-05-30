@@ -1,4 +1,4 @@
-import { computed, defineComponent, getCurrentInstance, onMounted, ref } from 'vue';
+import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
 import { useMessage } from 'naive-ui';
 import {
   fetchBatchDeleteLogs,
@@ -7,7 +7,6 @@ import {
   fetchLogDetail,
   fetchLogList
 } from '@/service/api/log';
-import { fetchUserList } from '@/service/api/user';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -38,23 +37,6 @@ export default defineComponent({
     const logDialog = useLogDialog(instance?.appContext.app);
 
     const selectedRowKeys = ref<number[]>([]);
-
-    const users = ref<Api.UserManagement.User[]>([]);
-    const userOptions = computed(() =>
-      users.value.map(user => ({
-        label: `${user.username} (${user.email})`,
-        value: user.id
-      }))
-    );
-
-    async function loadUsers() {
-      try {
-        const { data } = await fetchUserList({ page: 1, limit: 1000 });
-        users.value = data?.lists ?? [];
-      } catch {
-        users.value = [];
-      }
-    }
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -119,11 +101,7 @@ export default defineComponent({
       });
     }
 
-    onMounted(() => {
-      loadUsers();
-    });
-
-    const searchConfig = computed(() => createLogSearchFields(userOptions.value));
+    const searchConfig = computed(() => createLogSearchFields());
 
     const tableColumns = computed(() =>
       createLogTableColumns({

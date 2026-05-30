@@ -12,6 +12,7 @@ import {
 } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
 import type { AlertFormDialogConfig } from './dialog';
 
@@ -158,28 +159,31 @@ export default defineComponent({
                 />
               </NFormItem>
               <NFormItem label={$t('page.alertManagement.targetUsers' as any)} path="targetUserIds">
-                <NSelect
-                  v-model:value={formModel.targetUserIds}
-                  placeholder={$t('page.alertManagement.targetUsersPlaceholder' as any)}
+                <AdminRemoteSelect
+                  resource="users"
+                  value={formModel.targetUserIds}
                   multiple
-                  clearable
-                  filterable
-                  options={props.config.userOptions || []}
+                  placeholder={$t('page.alertManagement.targetUsersPlaceholder' as any)}
                   style={{ width: '100%' }}
+                  onUpdate:value={value => {
+                    formModel.targetUserIds = (value as number[]) ?? [];
+                  }}
                 />
               </NFormItem>
               <NFormItem
                 label={$t('page.alertManagement.targetRoles' as any)}
                 path="targetRoleCodes"
               >
-                <NSelect
-                  v-model:value={formModel.targetRoleCodes}
-                  placeholder={$t('page.alertManagement.targetRolesPlaceholder' as any)}
+                <AdminRemoteSelect
+                  resource="roles"
+                  valueKey="code"
+                  value={formModel.targetRoleCodes}
                   multiple
-                  clearable
-                  filterable
-                  options={props.config.roleOptions || []}
+                  placeholder={$t('page.alertManagement.targetRolesPlaceholder' as any)}
                   style={{ width: '100%' }}
+                  onUpdate:value={value => {
+                    formModel.targetRoleCodes = (value as string[]) ?? [];
+                  }}
                 />
               </NFormItem>
               <NFormItem label={$t('page.alertManagement.status' as any)} path="isEnabled">

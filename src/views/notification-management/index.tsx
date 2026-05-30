@@ -9,8 +9,6 @@ import {
   fetchToggleNotificationStatus,
   fetchUpdateNotification
 } from '@/service/api/notification';
-import { fetchUserList } from '@/service/api/user';
-import { fetchRoleList } from '@/service/api/role';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -35,40 +33,6 @@ export default defineComponent({
 
     const selectedRowKeys = ref<number[]>([]);
 
-    const users = ref<Api.UserManagement.User[]>([]);
-    const roles = ref<Api.RoleManagement.Role[]>([]);
-
-    const userOptions = computed(() => {
-      return users.value.map(user => ({
-        label: `${user.username} (${user.email})`,
-        value: user.id
-      }));
-    });
-
-    const roleOptions = computed(() => {
-      return roles.value.map(role => ({
-        label: role.name,
-        value: role.code
-      }));
-    });
-
-    async function loadUsersAndRoles() {
-      try {
-        const [usersRes, rolesRes] = await Promise.all([
-          fetchUserList({ page: 1, limit: 1000 }),
-          fetchRoleList({ page: 1, limit: 1000 })
-        ]);
-        if (usersRes.data?.lists) {
-          users.value = usersRes.data.lists;
-        }
-        if (rolesRes.data?.lists) {
-          roles.value = rolesRes.data.lists;
-        }
-      } catch {
-        /* 全局 request 已提示；此处仅避免未处理 rejection */
-      }
-    }
-
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
         apiFn: fetchNotificationList,
@@ -85,10 +49,6 @@ export default defineComponent({
       });
 
     async function handleAdd() {
-      if (users.value.length === 0 || roles.value.length === 0) {
-        await loadUsersAndRoles();
-      }
-
       const formData: NotificationFormData = {
         title: '',
         content: '',
@@ -104,8 +64,6 @@ export default defineComponent({
       await notificationDialog.showNotificationForm({
         isEdit: false,
         formData,
-        userOptions: userOptions.value,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: NotificationFormData) => {
           await fetchCreateNotification({
             title: form.title,
@@ -131,8 +89,6 @@ export default defineComponent({
         return;
       }
 
-      await ensureUsersAndRolesLoaded();
-
       const formData: NotificationFormData = {
         title: notificationDetail.title,
         content: notificationDetail.content,
@@ -148,8 +104,6 @@ export default defineComponent({
       await notificationDialog.showNotificationForm({
         isEdit: true,
         formData,
-        userOptions: userOptions.value,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: NotificationFormData) => {
           const updateData: Api.NotificationManagement.UpdateNotificationRequest = {
             title: form.title,
@@ -203,14 +157,6 @@ export default defineComponent({
           getData();
         }
       );
-    }
-
-    let usersAndRolesLoaded = false;
-    async function ensureUsersAndRolesLoaded() {
-      if (!usersAndRolesLoaded && (users.value.length === 0 || roles.value.length === 0)) {
-        await loadUsersAndRoles();
-        usersAndRolesLoaded = true;
-      }
     }
 
     const searchConfig = computed(() => createNotificationSearchFields());

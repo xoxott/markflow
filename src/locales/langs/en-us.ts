@@ -54,6 +54,8 @@ const local: App.I18n.Schema = {
     updateSuccess: 'Update Success',
     userCenter: 'User Center',
     view: 'View',
+    adminRemoteSelectMoreResults: '{count} more results — refine your search',
+    adminRemoteSelectLoadFailed: 'Failed to load options. Please try again.',
     yesOrNo: {
       yes: 'Yes',
       no: 'No'

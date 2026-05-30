@@ -1,4 +1,3 @@
-import type { SelectOption } from 'naive-ui';
 import type { BaseDialogProps } from '@/components/base-dialog/dialog';
 
 /** 用户表单数据 */
@@ -22,8 +21,6 @@ export interface UserFormDialogConfig extends BaseDialogProps {
   isEdit: boolean;
   /** 表单数据 */
   formData: UserFormData;
-  /** 角色下拉选项 */
-  roleOptions: SelectOption[];
   /** 确认回调；返回 true 表示成功并关闭对话框 */
   onConfirm: (data: UserFormData) => boolean | undefined | Promise<boolean | undefined>;
   /** 取消回调 */
@@ -35,7 +32,6 @@ export interface UserRoleDialogConfig extends BaseDialogProps {
   userId: number;
   username: string;
   roleIds: number[];
-  roleOptions: SelectOption[];
   /** 返回 true 表示成功并关闭 */
   onConfirm: (roleIds: number[]) => boolean | undefined | Promise<boolean | undefined>;
   onCancel?: () => void;

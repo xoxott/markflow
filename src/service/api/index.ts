@@ -4,6 +4,7 @@ export * from './health';
 export * from './system';
 export * from './monitoring';
 export * from './monitoring-stream';
+export * from './admin-reference';
 export * from './user';
 export * from './announcement';
 export * from './role';

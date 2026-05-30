@@ -11,8 +11,6 @@ import {
   fetchToggleAlertStatus,
   fetchUpdateAlert
 } from '@/service/api/alert';
-import { fetchUserList } from '@/service/api/user';
-import { fetchRoleList } from '@/service/api/role';
 import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
@@ -37,40 +35,6 @@ export default defineComponent({
 
     const selectedRowKeys = ref<number[]>([]);
 
-    const users = ref<Api.UserManagement.User[]>([]);
-    const roles = ref<Api.RoleManagement.Role[]>([]);
-
-    const userOptions = computed(() => {
-      return users.value.map(user => ({
-        label: `${user.username} (${user.email})`,
-        value: user.id
-      }));
-    });
-
-    const roleOptions = computed(() => {
-      return roles.value.map(role => ({
-        label: role.name,
-        value: role.code
-      }));
-    });
-
-    async function loadUsersAndRoles() {
-      try {
-        const [usersRes, rolesRes] = await Promise.all([
-          fetchUserList({ page: 1, limit: 1000 }),
-          fetchRoleList({ page: 1, limit: 1000 })
-        ]);
-        if (usersRes.data?.lists) {
-          users.value = usersRes.data.lists;
-        }
-        if (rolesRes.data?.lists) {
-          roles.value = rolesRes.data.lists;
-        }
-      } catch {
-        /* 全局 request 已提示；此处仅避免未处理 rejection */
-      }
-    }
-
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
         apiFn: fetchAlertList,
@@ -87,8 +51,6 @@ export default defineComponent({
       });
 
     async function handleAdd() {
-      await ensureUsersAndRolesLoaded();
-
       const formData: AlertFormData = {
         name: '',
         description: '',
@@ -104,8 +66,6 @@ export default defineComponent({
       await alertDialog.showAlertForm({
         isEdit: false,
         formData,
-        userOptions: userOptions.value,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: AlertFormData) => {
           await fetchCreateAlert({
             name: form.name,
@@ -131,8 +91,6 @@ export default defineComponent({
         return;
       }
 
-      await ensureUsersAndRolesLoaded();
-
       const formData: AlertFormData = {
         name: alertDetail.name,
         description: alertDetail.description || '',
@@ -148,8 +106,6 @@ export default defineComponent({
       await alertDialog.showAlertForm({
         isEdit: true,
         formData,
-        userOptions: userOptions.value,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: AlertFormData) => {
           const updateData: Api.AlertManagement.UpdateAlertRequest = {
             name: form.name,
@@ -215,14 +171,6 @@ export default defineComponent({
           getData();
         }
       );
-    }
-
-    let usersAndRolesLoaded = false;
-    async function ensureUsersAndRolesLoaded() {
-      if (!usersAndRolesLoaded && (users.value.length === 0 || roles.value.length === 0)) {
-        await loadUsersAndRoles();
-        usersAndRolesLoaded = true;
-      }
     }
 
     const searchConfig = computed(() => createAlertSearchFields());

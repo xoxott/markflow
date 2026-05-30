@@ -3,6 +3,7 @@ import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import { $t } from '@/locales';
 import { isUserManageable } from './utils/userManageability';
 
@@ -15,8 +16,8 @@ const SORT_BY_OPTIONS = [
   { label: () => $t('page.userManagement.username'), value: 'username' }
 ];
 
-/** 静态筛选项 + 角色下拉（选项由接口数据在页面侧传入） */
-export function createUserSearchFields(roles: Api.UserManagement.Role[]): SearchFieldConfig[] {
+/** 静态筛选项 + 角色远程下拉 */
+export function createUserSearchFields(): SearchFieldConfig[] {
   return [
     {
       type: 'input',
@@ -60,15 +61,19 @@ export function createUserSearchFields(roles: Api.UserManagement.Role[]): Search
       )
     },
     {
-      type: 'select',
+      type: 'custom',
       field: 'roleCode',
       label: $t('page.userManagement.role'),
-      placeholder: $t('page.userManagement.rolePlaceholder'),
-      width: '130px',
-      options: roles.map(role => ({
-        label: role.name,
-        value: role.code
-      }))
+      render: (model, updateModel) => (
+        <AdminRemoteSelect
+          resource="roles"
+          valueKey="code"
+          value={(model.roleCode as string | null) ?? null}
+          placeholder={$t('page.userManagement.rolePlaceholder')}
+          clearable
+          onUpdate:value={value => updateModel('roleCode', value)}
+        />
+      )
     },
     {
       type: 'select',
@@ -262,14 +267,14 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       key: 'lastLoginAt',
       width: 160,
       render: 'date',
-      renderConfig: { format: 'smart', emptyText: $t('page.userManagement.neverLoggedIn') }
+      renderConfig: { format: 'datetime', emptyText: $t('page.userManagement.neverLoggedIn') }
     },
     {
       title: $t('page.userManagement.lastActivityAt'),
       key: 'lastActivityAt',
       width: 160,
       render: 'date',
-      renderConfig: { format: 'smart', emptyText: $t('page.userManagement.neverActive') }
+      renderConfig: { format: 'relative', emptyText: $t('page.userManagement.neverActive') }
     },
     {
       title: $t('page.userManagement.createdAt'),

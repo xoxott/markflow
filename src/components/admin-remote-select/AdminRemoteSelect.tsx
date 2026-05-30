@@ -1,0 +1,162 @@
+import type { PropType } from 'vue';
+import { computed, defineComponent, toRef, watch } from 'vue';
+import { NSelect } from 'naive-ui';
+import type { SelectOption } from 'naive-ui';
+import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
+import type { AdminOptionResource, OptionValueKey } from '@/hooks/admin/types';
+import { $t } from '@/locales';
+import type { AdminRemoteSelectQuery } from './types';
+
+type SelectValue = string | number | Array<string | number> | null;
+
+export default defineComponent({
+  name: 'AdminRemoteSelect',
+  props: {
+    value: {
+      type: [String, Number, Array] as PropType<SelectValue>,
+      default: null
+    },
+    resource: {
+      type: String as PropType<AdminOptionResource>,
+      required: true
+    },
+    /** 透传 ai-server options API 查询参数（与各 resource 的 *OptionsQuery 一致） */
+    query: {
+      type: Object as PropType<AdminRemoteSelectQuery>,
+      default: () => ({})
+    },
+    placeholder: {
+      type: String,
+      default: ''
+    },
+    multiple: {
+      type: Boolean,
+      default: false
+    },
+    clearable: {
+      type: Boolean,
+      default: true
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    includeDisabled: {
+      type: Boolean,
+      default: false
+    },
+    limit: {
+      type: Number,
+      default: 50
+    },
+    /** UI 绑定字段，默认 value（实体 ID）；如角色/权限场景可用 code */
+    valueKey: {
+      type: String as PropType<OptionValueKey>,
+      default: 'value'
+    },
+    maxTagCount: {
+      type: [String, Number] as PropType<number | 'responsive'>,
+      default: 'responsive'
+    },
+    style: {
+      type: [String, Object] as PropType<string | Record<string, string>>,
+      default: undefined
+    },
+    excludeValues: {
+      type: Array as PropType<Array<string | number>>,
+      default: () => []
+    },
+    class: {
+      type: String,
+      default: undefined
+    }
+  },
+  emits: ['update:value'],
+  setup(props, { emit }) {
+    const presetValues = computed(() => props.value);
+
+    const apiQuery = computed(() => ({
+      limit: props.limit,
+      includeDisabled: props.includeDisabled,
+      ...props.query
+    }));
+
+    const remote = useAdminRemoteOptions(props.resource, {
+      query: apiQuery,
+      valueKey: toRef(props, 'valueKey'),
+      presetValues
+    });
+
+    const selectOptions = computed<SelectOption[]>(() =>
+      remote.options.value
+        .filter(item => !props.excludeValues.some(v => String(v) === String(item.value)))
+        .map(item => ({
+          label: item.label,
+          value: item.value,
+          disabled: item.disabled
+        }))
+    );
+
+    const remainingCount = computed(() => {
+      const diff = remote.total.value - remote.options.value.length;
+      return diff > 0 ? diff : 0;
+    });
+
+    function handleFocus() {
+      remote.loadInitial().catch(() => undefined);
+    }
+
+    function handleSearch(query: string) {
+      remote.search(query);
+    }
+
+    function handleUpdateValue(value: SelectValue) {
+      emit('update:value', value);
+    }
+
+    watch(
+      () => ({
+        resource: props.resource,
+        limit: props.limit,
+        includeDisabled: props.includeDisabled,
+        valueKey: props.valueKey,
+        query: props.query
+      }),
+      () => {
+        remote.reset();
+      },
+      { deep: true }
+    );
+
+    return () => (
+      <div style={props.style} class={props.class ?? 'w-full'}>
+        <NSelect
+          value={props.value}
+          options={selectOptions.value}
+          placeholder={props.placeholder}
+          multiple={props.multiple}
+          clearable={props.clearable}
+          disabled={props.disabled}
+          loading={remote.loading.value}
+          filterable
+          remote
+          maxTagCount={props.maxTagCount}
+          style={{ width: '100%' }}
+          onFocus={handleFocus}
+          onSearch={handleSearch}
+          onUpdateValue={handleUpdateValue}
+        />
+        {remainingCount.value > 0 ? (
+          <div class="mt-4px text-12px text-gray-400">
+            {$t('common.adminRemoteSelectMoreResults', { count: remainingCount.value })}
+          </div>
+        ) : null}
+        {remote.loadFailed.value ? (
+          <div class="mt-4px text-12px text-red-500">
+            {$t('common.adminRemoteSelectLoadFailed')}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+});

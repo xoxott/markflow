@@ -23,6 +23,7 @@ import { SetupStoreId } from '@/enum';
 import { $t } from '@/locales';
 import { useRouteStore } from '../route';
 import { useTabStore } from '../tab';
+import { useAdminOptionStore } from '../admin-option';
 import { clearAuthStorage, getToken } from './shared';
 
 export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
@@ -89,6 +90,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
 
     clearAuthStorage();
     clearMainRequestPipelineCache();
+    useAdminOptionStore().invalidateResource('all');
 
     authStore.$reset();
 

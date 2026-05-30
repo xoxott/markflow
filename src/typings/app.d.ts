@@ -347,6 +347,8 @@ declare namespace App {
         updateSuccess: string;
         userCenter: string;
         view: string;
+        adminRemoteSelectMoreResults: string;
+        adminRemoteSelectLoadFailed: string;
         yesOrNo: {
           yes: string;
           no: string;

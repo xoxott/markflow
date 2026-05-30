@@ -1,8 +1,6 @@
 import { computed, defineComponent, getCurrentInstance, onMounted, ref, watch } from 'vue';
-import type { SelectOption } from 'naive-ui';
 import { useMessage } from 'naive-ui';
 import {
-  fetchAdminRoleOptions,
   fetchAssignUserRoles,
   fetchBatchBlacklistUsers,
   fetchBatchDeleteUsers,
@@ -20,6 +18,7 @@ import {
   fetchUserList,
   fetchUserStats
 } from '@/service/api/user';
+import { useAdminOptionStore } from '@/store/modules/admin-option';
 import TablePage from '@/components/table-page/TablePage';
 import type { ActionBarConfig } from '@/components/table-page/types';
 import { useAdminListTable } from '@/components/table-page/hooks';
@@ -63,6 +62,7 @@ export default defineComponent({
     const onlineUsersDialog = useOnlineUsersDialog();
     const userStatusDialog = useUserStatusDialog();
     const dialog = useDialog(instance?.appContext.app);
+    const adminOptionStore = useAdminOptionStore();
 
     async function loadUserDetail(userId: number): Promise<User | null> {
       const { data, error } = await fetchUserDetail(userId);
@@ -81,18 +81,10 @@ export default defineComponent({
     });
 
     const selectedRowKeys = ref<number[]>([]);
-    const roles = ref<Api.UserManagement.Role[]>([]);
     const userStats = ref<Api.UserManagement.UserStats | null>(null);
     const statsLoading = ref(false);
     const exportLoading = ref(false);
     const columnChecks = ref<NaiveUI.TableColumnCheck[]>([]);
-
-    const roleOptions = computed<SelectOption[]>(() =>
-      roles.value.map(role => ({
-        label: role.name,
-        value: role.id
-      }))
-    );
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -127,6 +119,10 @@ export default defineComponent({
       await detailDrawer.syncIfOpen();
     }
 
+    function invalidateUserOptions() {
+      adminOptionStore.invalidateResource('users');
+    }
+
     function warnNotManageable() {
       message.warning($t('page.userManagement.notManageable'));
     }
@@ -145,19 +141,6 @@ export default defineComponent({
       }
 
       return manageableIds;
-    }
-
-    async function loadRoles() {
-      try {
-        const { data: rolesData } = await fetchAdminRoleOptions();
-        if (rolesData?.lists && Array.isArray(rolesData.lists)) {
-          roles.value = rolesData.lists;
-        } else {
-          roles.value = [];
-        }
-      } catch {
-        roles.value = [];
-      }
     }
 
     function buildExportParams(format: Api.UserManagement.ExportFormat) {
@@ -206,7 +189,6 @@ export default defineComponent({
       await userDialog.showUserForm({
         isEdit: false,
         formData: createEmptyUserForm(),
-        roleOptions: roleOptions.value,
         onConfirm: async (form: UserFormData) => {
           const { error } = await fetchCreateUser({
             username: form.username,
@@ -218,6 +200,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('common.addSuccess'));
+          invalidateUserOptions();
           await refreshPage();
           return true;
         }
@@ -246,7 +229,6 @@ export default defineComponent({
       await userDialog.showUserForm({
         isEdit: true,
         formData,
-        roleOptions: roleOptions.value,
         onConfirm: async (form: UserFormData) => {
           const updateData: Api.UserManagement.UpdateUserRequest = {
             username: form.username,
@@ -264,6 +246,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('common.updateSuccess'));
+          invalidateUserOptions();
           await refreshPage();
           return true;
         }
@@ -283,13 +266,13 @@ export default defineComponent({
         userId: row.id,
         username: userDetail.username,
         roleIds: userDetail.roles?.map(r => r.id) ?? [],
-        roleOptions: roleOptions.value,
         onConfirm: async (roleIds: number[]) => {
           const { error } = await fetchAssignUserRoles(row.id, { roleIds });
           if (error) return;
 
           message.success($t('page.userManagement.assignRolesSuccess'));
           message.info($t('page.userManagement.reloginHint'));
+          adminOptionStore.invalidateResource('roles');
           await refreshPage();
           return true;
         }
@@ -312,6 +295,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('page.userManagement.blacklistSuccess'));
+          invalidateUserOptions();
           await refreshPage();
         }
       });
@@ -332,6 +316,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('page.userManagement.unblacklistSuccess'));
+          invalidateUserOptions();
           await refreshPage();
         }
       });
@@ -370,6 +355,7 @@ export default defineComponent({
       }
 
       message.success($t('page.userManagement.activateSuccess'));
+      invalidateUserOptions();
       await refreshPage();
       return true;
     }
@@ -387,6 +373,7 @@ export default defineComponent({
       if (error) return false;
 
       message.success($t('page.userManagement.deactivateSuccess'));
+      invalidateUserOptions();
       await refreshPage();
       return true;
     }
@@ -453,6 +440,7 @@ export default defineComponent({
         if (error) return;
 
         message.success($t('common.deleteSuccess'));
+        invalidateUserOptions();
         await refreshPage();
       });
     }
@@ -475,6 +463,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('page.userManagement.batchDeleteSuccess'));
+          invalidateUserOptions();
           selectedRowKeys.value = [];
           await refreshPage();
         }
@@ -497,6 +486,7 @@ export default defineComponent({
         if (error) return;
 
         message.success($t('page.userManagement.batchStatusSuccess'));
+        invalidateUserOptions();
         selectedRowKeys.value = [];
         await refreshPage();
         return;
@@ -515,6 +505,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('page.userManagement.batchStatusSuccess'));
+          invalidateUserOptions();
           selectedRowKeys.value = [];
           await refreshPage();
           return true;
@@ -543,6 +534,7 @@ export default defineComponent({
           if (error) return;
 
           message.success($t('page.userManagement.batchBlacklistSuccess'));
+          invalidateUserOptions();
           selectedRowKeys.value = [];
           await refreshPage();
           return true;
@@ -570,11 +562,10 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      loadRoles();
       loadStats();
     });
 
-    const searchConfig = computed(() => createUserSearchFields(roles.value));
+    const searchConfig = computed(() => createUserSearchFields());
 
     const tableColumns = computed(() =>
       createUserTableColumns({

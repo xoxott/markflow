@@ -1,7 +1,8 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import { NButton, NForm, NFormItem, NSelect, NSpace } from 'naive-ui';
+import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
 import { $t } from '@/locales';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
 import type { UserRoleDialogConfig } from './dialog';
 
@@ -59,15 +60,15 @@ export default defineComponent({
           default: () => (
             <NForm labelPlacement="left" labelWidth="80px">
               <NFormItem label={$t('page.userManagement.role')}>
-                <NSelect
-                  v-model:value={roleIds.value}
+                <AdminRemoteSelect
+                  resource="roles"
+                  value={roleIds.value}
                   multiple
-                  filterable
-                  clearable
-                  maxTagCount="responsive"
                   placeholder={$t('page.userManagement.rolePlaceholder')}
-                  options={props.config.roleOptions}
                   style={{ width: '100%' }}
+                  onUpdate:value={value => {
+                    roleIds.value = (value as number[]) ?? [];
+                  }}
                 />
               </NFormItem>
               <div class="text-12px text-gray-500">{$t('page.userManagement.reloginHint')}</div>

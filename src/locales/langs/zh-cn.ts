@@ -53,6 +53,8 @@ const local: App.I18n.Schema = {
     updateSuccess: '更新成功',
     userCenter: '个人中心',
     view: '查看',
+    adminRemoteSelectMoreResults: '还有 {count} 条，请继续搜索',
+    adminRemoteSelectLoadFailed: '加载选项失败，请重试',
     yesOrNo: {
       yes: '是',
       no: '否'

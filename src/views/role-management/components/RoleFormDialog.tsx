@@ -1,20 +1,11 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
 import type { FormRules } from 'naive-ui';
-import {
-  NButton,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSpace,
-  NTag,
-  NTreeSelect
-} from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NInputNumber, NSpace, NTag } from 'naive-ui';
 import { REG_ROLE_CODE } from '@/constants/reg';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
 import type { RoleFormDialogConfig } from './dialog';
 
@@ -151,25 +142,26 @@ export default defineComponent({
                 />
               </NFormItem>
               <NFormItem label={$t('page.roleManagement.parentRole')} path="parentRoleId">
-                <NSelect
-                  v-model:value={formModel.parentRoleId}
-                  clearable
+                <AdminRemoteSelect
+                  resource="roles"
+                  value={formModel.parentRoleId}
                   placeholder={$t('page.roleManagement.parentRolePlaceholder')}
-                  options={props.config.parentRoleOptions}
+                  excludeValues={props.config.roleId !== undefined ? [props.config.roleId] : []}
+                  onUpdate:value={value => {
+                    formModel.parentRoleId = (value as number | null) ?? null;
+                  }}
                 />
               </NFormItem>
               <NFormItem label={$t('page.roleManagement.permissions')} path="permissionIds">
-                <NTreeSelect
-                  v-model:value={formModel.permissionIds}
+                <AdminRemoteSelect
+                  resource="permissions"
+                  value={formModel.permissionIds}
                   multiple
-                  checkable
-                  cascade
-                  filterable
-                  clearable
-                  maxTagCount="responsive"
                   placeholder={$t('page.roleManagement.permissionsPlaceholder')}
-                  options={props.config.permissionTreeOptions}
                   style={{ width: '100%' }}
+                  onUpdate:value={value => {
+                    formModel.permissionIds = (value as number[]) ?? [];
+                  }}
                 />
               </NFormItem>
               <NFormItem label={$t('page.roleManagement.description')} path="description">

@@ -1,26 +1,22 @@
-import { computed, defineComponent, getCurrentInstance, onMounted, ref } from 'vue';
-import type { TreeOption } from 'naive-ui';
+import { computed, defineComponent, getCurrentInstance } from 'vue';
 import { useMessage } from 'naive-ui';
-import { QUERY_BOOLEAN_TRUE } from '@/constants/queryBoolean';
-import { fetchPermissionList } from '@/service/api/permission';
 import {
   fetchAssignRolePermissions,
   fetchCreateRole,
   fetchDeleteRole,
   fetchRoleDetail,
   fetchRoleList,
-  fetchRoleOptions,
   fetchUpdateRole
 } from '@/service/api/role';
+import { useAdminOptionStore } from '@/store/modules/admin-option';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
-import type { RoleFormData, RoleSelectOption } from './components/dialog';
+import type { RoleFormData } from './components/dialog';
 import { useRoleDialog } from './components/useRoleDialog';
 import { useRolePermissionDialog } from './components/useRolePermissionDialog';
 import { ROLE_LIST_SCROLL_X, createRoleSearchFields, createRoleTableColumns } from './listUiConfig';
-import { mapPermissionListToOptions } from './utils/permissionTree';
 
 type Role = Api.RoleManagement.Role;
 
@@ -45,9 +41,7 @@ export default defineComponent({
     const roleDialog = useRoleDialog();
     const rolePermissionDialog = useRolePermissionDialog();
     const dialog = useDialog(instance?.appContext.app);
-
-    const permissionTreeOptions = ref<TreeOption[]>([]);
-    const allRoles = ref<Role[]>([]);
+    const adminOptionStore = useAdminOptionStore();
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -61,55 +55,15 @@ export default defineComponent({
         immediate: true
       });
 
-    function buildParentRoleOptions(excludeRoleId?: number): RoleSelectOption[] {
-      return allRoles.value
-        .filter(role => role.id !== excludeRoleId)
-        .map(role => ({
-          label: `${role.name} (${role.code})`,
-          value: role.id
-        }));
-    }
-
-    async function loadPermissionOptions() {
-      try {
-        const { data: listData } = await fetchPermissionList({
-          page: 1,
-          limit: 100,
-          isActive: QUERY_BOOLEAN_TRUE
-        });
-        const lists = listData?.lists ?? [];
-        permissionTreeOptions.value = mapPermissionListToOptions(lists);
-      } catch {
-        permissionTreeOptions.value = [];
-      }
-    }
-
-    async function loadRoleOptions() {
-      try {
-        const { data: rolesData } = await fetchRoleOptions({ limit: 100 });
-        allRoles.value = Array.isArray(rolesData?.lists) ? rolesData.lists : [];
-      } catch {
-        allRoles.value = [];
-      }
-    }
-
-    async function ensureDialogOptions() {
-      if (permissionTreeOptions.value.length === 0) {
-        await loadPermissionOptions();
-      }
-      if (allRoles.value.length === 0) {
-        await loadRoleOptions();
-      }
+    function invalidateRoleOptions() {
+      adminOptionStore.invalidateResource('roles');
+      adminOptionStore.invalidateResource('permissions');
     }
 
     async function handleAdd() {
-      await ensureDialogOptions();
-
       await roleDialog.showRoleForm({
         isEdit: false,
         formData: createEmptyRoleForm(),
-        permissionTreeOptions: permissionTreeOptions.value,
-        parentRoleOptions: buildParentRoleOptions(),
         onConfirm: async (form: RoleFormData) => {
           await fetchCreateRole({
             name: form.name,
@@ -120,15 +74,13 @@ export default defineComponent({
             ...(form.parentRoleId !== null ? { parentRoleId: form.parentRoleId } : {})
           });
           message.success($t('common.addSuccess'));
-          await loadRoleOptions();
+          invalidateRoleOptions();
           getData();
         }
       });
     }
 
     async function handleEdit(row: Role) {
-      await ensureDialogOptions();
-
       const { data: roleDetail } = await fetchRoleDetail(row.id);
       if (!roleDetail) {
         message.error($t('page.roleManagement.getDetailFailed'));
@@ -151,8 +103,6 @@ export default defineComponent({
         roleId: row.id,
         isSystem: roleDetail.isSystem,
         formData,
-        permissionTreeOptions: permissionTreeOptions.value,
-        parentRoleOptions: buildParentRoleOptions(row.id),
         onConfirm: async (form: RoleFormData) => {
           const payload: Api.RoleManagement.UpdateRoleRequest = {
             name: form.name,
@@ -166,15 +116,13 @@ export default defineComponent({
           }
           await fetchUpdateRole(row.id, payload);
           message.success($t('common.updateSuccess'));
-          await loadRoleOptions();
+          invalidateRoleOptions();
           getData();
         }
       });
     }
 
     async function handleAssignPermissions(row: Role) {
-      await ensureDialogOptions();
-
       let permissionIds = row.permissions?.map(p => p.id) ?? [];
       if (permissionIds.length === 0) {
         const { data: roleDetail } = await fetchRoleDetail(row.id);
@@ -185,10 +133,10 @@ export default defineComponent({
         roleId: row.id,
         roleName: row.name,
         permissionIds,
-        permissionTreeOptions: permissionTreeOptions.value,
         onConfirm: async ids => {
           await fetchAssignRolePermissions(row.id, { permissionIds: ids });
           message.success($t('page.roleManagement.assignPermissionsSuccess'));
+          adminOptionStore.invalidateResource('permissions');
           getData();
         }
       });
@@ -198,15 +146,10 @@ export default defineComponent({
       await dialog.confirmDelete(row.name, async () => {
         await fetchDeleteRole(row.id);
         message.success($t('common.deleteSuccess'));
-        await loadRoleOptions();
+        invalidateRoleOptions();
         getData();
       });
     }
-
-    onMounted(() => {
-      loadPermissionOptions();
-      loadRoleOptions();
-    });
 
     const searchConfig = computed(() => createRoleSearchFields());
 

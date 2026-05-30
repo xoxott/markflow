@@ -1,9 +1,10 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
 import { useVerificationCode } from '@/hooks/business/verification-code';
 import { useFormRules, useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
 import type { UserFormDialogConfig } from './dialog';
 
@@ -153,14 +154,15 @@ export default defineComponent({
                     </div>
                   </NFormItem>
                   <NFormItem label={$t('page.userManagement.role')}>
-                    <NSelect
-                      v-model:value={formModel.roleIds}
+                    <AdminRemoteSelect
+                      resource="roles"
+                      value={formModel.roleIds}
                       multiple
-                      filterable
-                      clearable
-                      maxTagCount="responsive"
                       placeholder={$t('page.userManagement.rolePlaceholder')}
-                      options={props.config.roleOptions}
+                      style={{ width: '100%' }}
+                      onUpdate:value={value => {
+                        formModel.roleIds = (value as number[]) ?? [];
+                      }}
                     />
                   </NFormItem>
                 </>
