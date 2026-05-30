@@ -1,11 +1,14 @@
 import { onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { DEFAULT_TABLE_PAGE_SIZE } from '@/constants/datatable';
 import { useTable } from '@/hooks/common/table';
 import {
   type RouteQueryConfig,
   applyRouteQueryFilters,
   applyRouteQueryToModel,
+  clearRouteQuery,
+  collectRouteQueryKeys,
+  readRouteQueryValue,
   useRouteQueryWatcher
 } from '@/hooks/common/useRouteQueryFilters';
 import { tableListPlaceholderColumns } from '@/views/_shared/tableListPlaceholderColumns';
@@ -18,11 +21,12 @@ type ListFilters<A extends NaiveUI.TableApiFn> = Omit<ListParams<A>, 'page' | 'l
  *
  * - 写入默认 `page` / `limit`（与全局 {@link DEFAULT_TABLE_PAGE_SIZE} 一致）
  * - 提供与分页联动的 **`onSearch` / `onReset`**
- * - 可选 **`routeQuery`**：在首次拉取前同步/异步解析 URL 查询参数，避免与 `immediate` 竞态
+ * - 可选 **`routeQuery`**：在首次拉取前同步/异步解析 URL 查询参数，避免与 `immediate` 竞态； reset 时恢复到 `listFilters` 基线，并自动从
+ *   URL 移除 deep-link 参数（`resolve` 专用 key 需声明 `extraQueryKeys`）
  */
 export interface UseAdminListTableOptions<A extends NaiveUI.TableApiFn> {
   apiFn: A;
-  /** 除分页外的初始查询字段，需与接口入参键名一致 */
+  /** 除分页外的初始查询字段，需与接口入参键名一致；亦为 reset 基线 */
   listFilters?: ListFilters<A>;
   immediate?: boolean;
   showTotal?: boolean;
@@ -34,12 +38,9 @@ export function useAdminListTable<A extends NaiveUI.TableApiFn>(
 ) {
   const { apiFn, listFilters, showTotal, routeQuery } = options;
   const route = useRoute();
+  const router = useRouter();
 
-  const initialFilters = { ...(listFilters as object) } as ListFilters<A>;
-
-  if (routeQuery?.mapping) {
-    applyRouteQueryToModel(route.query, initialFilters, routeQuery.mapping);
-  }
+  const baselineFilters = { ...(listFilters as object) } as ListFilters<A>;
 
   const usesRouteQuery = Boolean(routeQuery);
   const immediate = options.immediate ?? !usesRouteQuery;
@@ -49,12 +50,20 @@ export function useAdminListTable<A extends NaiveUI.TableApiFn>(
     apiParams: {
       page: 1,
       limit: DEFAULT_TABLE_PAGE_SIZE,
-      ...initialFilters
+      ...baselineFilters
     } as ListParams<A>,
     columns: () => tableListPlaceholderColumns<A>(),
     immediate: usesRouteQuery ? false : immediate,
     showTotal
   });
+
+  if (routeQuery?.mapping) {
+    applyRouteQueryToModel(
+      route.query,
+      tableState.searchParams as ListFilters<A>,
+      routeQuery.mapping
+    );
+  }
 
   const getListLimit = () =>
     (tableState.pagination.pageSize as number | undefined) ?? DEFAULT_TABLE_PAGE_SIZE;
@@ -69,6 +78,14 @@ export function useAdminListTable<A extends NaiveUI.TableApiFn>(
 
   function onReset() {
     tableState.resetSearchParams();
+
+    if (routeQuery) {
+      const keys = collectRouteQueryKeys(routeQuery);
+      if (keys.some(key => readRouteQueryValue(route.query[key]) !== undefined)) {
+        router.replace({ query: clearRouteQuery(route.query, keys) });
+      }
+    }
+
     tableState.getData();
   }
 
@@ -85,7 +102,7 @@ export function useAdminListTable<A extends NaiveUI.TableApiFn>(
     await tableState.getData();
   }
 
-  if (usesRouteQuery) {
+  if (routeQuery) {
     onMounted(() => {
       bootstrapFromRoute();
     });

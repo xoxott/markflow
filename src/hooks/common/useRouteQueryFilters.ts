@@ -17,6 +17,27 @@ export type RouteQueryResolveFn<T extends object> = (
 export interface RouteQueryConfig<T extends object> {
   mapping?: RouteQueryFieldMapping<T>;
   resolve?: RouteQueryResolveFn<T>;
+  /** resolve 专用、不在 mapping 中的 query key（如 permissionId） */
+  extraQueryKeys?: string[];
+}
+
+/** Collect URL query keys managed by routeQuery (mapping keys + extraQueryKeys). */
+export function collectRouteQueryKeys<T extends object>(config: RouteQueryConfig<T>): string[] {
+  const keys = new Set<string>(Object.keys(config.mapping ?? {}));
+  config.extraQueryKeys?.forEach(key => keys.add(key));
+  return [...keys];
+}
+
+/** Remove specified keys from route query; unrelated query params are preserved. */
+export function clearRouteQuery(query: LocationQuery, keys: string[]): LocationQuery {
+  if (keys.length === 0) {
+    return query;
+  }
+
+  const keysToRemove = new Set(keys);
+  return Object.fromEntries(
+    Object.entries(query).filter(([key]) => !keysToRemove.has(key))
+  ) as LocationQuery;
 }
 
 export function readRouteQueryValue(raw: LocationQuery[string]): string | undefined {

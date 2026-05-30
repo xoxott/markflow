@@ -57,6 +57,7 @@ export default defineComponent({
             resource: { field: 'resource' },
             action: { field: 'action' }
           },
+          extraQueryKeys: ['permissionId'],
           resolve: async (query, params) => {
             const permissionId = parseQueryNumber(readRouteQueryValue(query.permissionId) ?? '');
             if (!permissionId) {
