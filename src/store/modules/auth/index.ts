@@ -22,6 +22,7 @@ import { SetupStoreId } from '@/enum';
 import { $t } from '@/locales';
 import { useRouteStore } from '../route';
 import { useTabStore } from '../tab';
+import { clearMainRequestPipelineCache } from '@/service/request';
 import { clearAuthStorage, getToken } from './shared';
 
 export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
@@ -87,6 +88,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     }
 
     clearAuthStorage();
+    clearMainRequestPipelineCache();
 
     authStore.$reset();
 
@@ -338,6 +340,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
   }
 
   async function loginByToken(loginToken: Api.Auth.LoginToken, skipGetUserInfo = false) {
+    clearMainRequestPipelineCache();
+
     // 1. stored in the localStorage, the later requests need it in headers
     localStg.set('token', loginToken.accessToken);
     localStg.set('refreshToken', loginToken.refreshToken);

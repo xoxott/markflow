@@ -12,7 +12,7 @@ import { CircuitBreakerStep } from '@suga/request-circuit-breaker';
 import { CacheReadStep, CacheWriteStep, RequestCacheManager } from '@suga/request-cache';
 import { RetryStep } from '@suga/request-retry';
 import { AxiosTransport } from '../pipeline/AxiosTransport';
-import { buildPipelineSteps } from '../pipeline/buildPipelineSteps';
+import { buildPipelineSteps, createPipelineResources } from '../pipeline/buildPipelineSteps';
 import { PipelineTransportStep } from '../pipeline/PipelineTransportStep';
 import { axiosRequestConfigToNormalized } from '../pipeline/normalizeAxiosConfig';
 import { resolvePipelineProfile } from '../pipeline/pipelineProfile';
@@ -226,6 +226,22 @@ describe('standard 主站管道集成', () => {
     await runPipelineAxiosRequest(steps, config);
     await runPipelineAxiosRequest(steps, { ...config, cache: false });
 
+    expect(adapter).toHaveBeenCalledTimes(2);
+  });
+
+  it('清空 cacheManager 与 dedupeManager 后 GET 重新走网络（模拟切换账号）', async () => {
+    const { transport, adapter } = createCapturingTransport();
+    const { steps, cacheManager, dedupeManager } = createPipelineResources(transport, 'standard');
+    const config = getConfig();
+
+    await runPipelineAxiosRequest(steps, config);
+    await runPipelineAxiosRequest(steps, config);
+    expect(adapter).toHaveBeenCalledTimes(1);
+
+    cacheManager?.clear();
+    dedupeManager?.clear();
+
+    await runPipelineAxiosRequest(steps, config);
     expect(adapter).toHaveBeenCalledTimes(2);
   });
 

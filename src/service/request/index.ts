@@ -81,6 +81,12 @@ export const request = createFlatRequestFromStack<App.Service.Response, RequestI
 
 mainRequestRef.current = request;
 
+/** 认证边界调用：清空主业务管道的 GET 缓存与去重条目 */
+export function clearMainRequestPipelineCache(): void {
+  mainPipelineResources.cacheManager?.clear();
+  mainPipelineResources.dedupeManager?.clear();
+}
+
 initStreamAuth({
   getHeaders: () => buildServiceHeaders(),
   onUnauthorized: () => handleExpiredRequest(request.state)
