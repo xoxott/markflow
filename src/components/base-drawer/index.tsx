@@ -20,6 +20,10 @@ export default defineComponent({
     disabled: {
       type: Boolean,
       default: false
+    },
+    contentRevision: {
+      type: Number,
+      default: 0
     }
   },
   emits: ['update:visible', 'update:loading', 'update:disabled'],
@@ -106,8 +110,8 @@ export default defineComponent({
       if (typeof options.content === 'string') {
         content = <div>{options.content}</div>;
       } else if (typeof options.content === 'function') {
-        const ContentComponent = options.content;
-        content = <ContentComponent />;
+        // 渲染函数直接调用，避免被当作组件实例缓存导致 updateOptions 后内容不刷新
+        content = (options.content as () => VNode)();
       } else if (options.content) {
         const ContentComponent = options.content as any;
         content = <ContentComponent />;
@@ -116,7 +120,11 @@ export default defineComponent({
       if (!content) return null;
 
       return (
-        <NScrollbar style={{ maxHeight: '100%' }} xScrollable={options.xScrollable ?? false}>
+        <NScrollbar
+          key={this.$props.contentRevision}
+          style={{ maxHeight: '100%' }}
+          xScrollable={options.xScrollable ?? false}
+        >
           {content}
         </NScrollbar>
       );

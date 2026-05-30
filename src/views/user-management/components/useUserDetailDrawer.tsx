@@ -1,52 +1,89 @@
-import { ref } from 'vue';
 import type { DrawerInstance } from '@/components/base-drawer/drawer';
 import useDrawer from '@/components/base-drawer/useDrawer';
 import { $t } from '@/locales';
-import type { UserDetailDrawerConfig } from './dialog';
 import UserDetailDrawer from './UserDetailDrawer';
 
-export interface UseUserDetailDrawerReturn {
-  showUserDetail: (config: UserDetailDrawerConfig) => Promise<DrawerInstance>;
-  closeUserDetail: () => void;
+type User = Api.UserManagement.User;
+
+export interface UserDetailDrawerDeps {
+  loadUser: (id: number) => Promise<User | null>;
+  getBuildConfig: () => (user: User) => import('./dialog').UserDetailDrawerConfig;
 }
 
-export function useUserDetailDrawer(): UseUserDetailDrawerReturn {
-  const drawer = useDrawer();
-  const activeInstance = ref<DrawerInstance | null>(null);
+export interface UseUserDetailDrawerReturn {
+  open: (user: User) => Promise<DrawerInstance>;
+  close: () => void;
+  syncIfOpen: () => Promise<void>;
+}
 
-  const closeUserDetail = () => {
-    activeInstance.value?.close();
-    activeInstance.value = null;
+export function useUserDetailDrawer(deps: UserDetailDrawerDeps): UseUserDetailDrawerReturn {
+  const drawer = useDrawer();
+  let activeUserId: number | null = null;
+  let activeInstance: DrawerInstance | null = null;
+
+  const resetActive = () => {
+    activeUserId = null;
+    activeInstance = null;
   };
 
-  const showUserDetail = async (config: UserDetailDrawerConfig) => {
-    closeUserDetail();
+  const close = () => {
+    activeInstance?.close();
+    resetActive();
+  };
+
+  const renderContent = (user: User) => {
+    const config = deps.getBuildConfig()(user);
+
+    return (
+      <UserDetailDrawer
+        user={config.user}
+        onEdit={config.onEdit}
+        onAssignRoles={config.onAssignRoles}
+        onActivate={config.onActivate}
+        onDeactivate={config.onDeactivate}
+        onBlacklist={config.onBlacklist}
+        onUnblacklist={config.onUnblacklist}
+        onKick={config.onKick}
+      />
+    );
+  };
+
+  const open = async (user: User) => {
+    activeInstance?.close();
+
+    activeUserId = user.id;
 
     const instance = await drawer.open({
       title: $t('page.userManagement.userDetail'),
-      content: () => (
-        <UserDetailDrawer
-          user={config.user}
-          onEdit={config.onEdit}
-          onAssignRoles={config.onAssignRoles}
-          onActivate={config.onActivate}
-          onDeactivate={config.onDeactivate}
-          onBlacklist={config.onBlacklist}
-          onUnblacklist={config.onUnblacklist}
-          onKick={config.onKick}
-        />
-      ),
+      content: () => renderContent(user),
       width: 480,
       placement: 'right',
-      closable: true
+      closable: true,
+      onClose: () => {
+        if (activeInstance === instance) {
+          resetActive();
+        }
+      }
     });
 
-    activeInstance.value = instance;
+    activeInstance = instance;
     return instance;
   };
 
-  return {
-    showUserDetail,
-    closeUserDetail
+  const syncIfOpen = async () => {
+    if (activeUserId === null || !activeInstance) {
+      return;
+    }
+
+    const user = await deps.loadUser(activeUserId);
+    if (!user) {
+      return;
+    }
+
+    activeInstance.updateOptions({
+      content: () => renderContent(user)
+    });
   };
+
+  return { open, close, syncIfOpen };
 }

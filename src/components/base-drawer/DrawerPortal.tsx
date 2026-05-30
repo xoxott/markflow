@@ -32,6 +32,10 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
+    contentRevision: {
+      type: Number,
+      default: 0
+    },
     onExpose: {
       type: Function as PropType<(api: DrawerExposeApi) => void>,
       default: undefined
@@ -58,6 +62,7 @@ export default defineComponent({
         <BaseDrawer
           ref={drawerRef}
           options={props.options}
+          contentRevision={props.contentRevision}
           visible={props.visible}
           loading={props.loading}
           disabled={props.disabled}

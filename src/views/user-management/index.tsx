@@ -28,7 +28,7 @@ import { mergeTablePageColumnChecks } from '@/components/table-page/utils/column
 import { $t } from '@/locales';
 import { encryptLoginPassword } from '@/views/_builtin/login/shared/utils';
 import { useDialog } from '@/components/base-dialog/useDialog';
-import type { UserFormData } from './components/dialog';
+import type { UserDetailDrawerConfig, UserFormData } from './components/dialog';
 import { useBlacklistDialog } from './components/useBlacklistDialog';
 import { useOnlineUsersDialog } from './components/useOnlineUsersDialog';
 import { useUserDialog } from './components/useUserDialog';
@@ -61,9 +61,24 @@ export default defineComponent({
     const userRoleDialog = useUserRoleDialog();
     const blacklistDialog = useBlacklistDialog();
     const onlineUsersDialog = useOnlineUsersDialog();
-    const detailDrawer = useUserDetailDrawer();
     const userStatusDialog = useUserStatusDialog();
     const dialog = useDialog(instance?.appContext.app);
+
+    async function loadUserDetail(userId: number): Promise<User | null> {
+      const { data, error } = await fetchUserDetail(userId);
+      if (error || !data) {
+        message.error($t('page.userManagement.getDetailFailed'));
+        return null;
+      }
+      return data;
+    }
+
+    let buildDetailConfig: (user: User) => UserDetailDrawerConfig;
+
+    const detailDrawer = useUserDetailDrawer({
+      loadUser: loadUserDetail,
+      getBuildConfig: () => buildDetailConfig
+    });
 
     const selectedRowKeys = ref<number[]>([]);
     const roles = ref<Api.UserManagement.Role[]>([]);
@@ -109,6 +124,7 @@ export default defineComponent({
 
     async function refreshPage() {
       await Promise.all([getData(), loadStats()]);
+      await detailDrawer.syncIfOpen();
     }
 
     async function loadRoles() {
@@ -160,22 +176,9 @@ export default defineComponent({
     }
 
     async function openUserDetail(row: User) {
-      const { data: userDetail, error } = await fetchUserDetail(row.id);
-      if (error || !userDetail) {
-        message.error($t('page.userManagement.getDetailFailed'));
-        return;
-      }
-
-      await detailDrawer.showUserDetail({
-        user: userDetail,
-        onEdit: () => handleEdit(userDetail),
-        onAssignRoles: () => handleAssignRoles(userDetail),
-        onActivate: () => handleActivate(userDetail),
-        onDeactivate: () => handleDeactivate(userDetail),
-        onBlacklist: () => handleBlacklist(userDetail),
-        onUnblacklist: () => handleUnblacklist(userDetail),
-        onKick: () => handleKick(userDetail)
-      });
+      const user = await loadUserDetail(row.id);
+      if (!user) return;
+      await detailDrawer.open(user);
     }
 
     async function handleAdd() {
@@ -201,11 +204,8 @@ export default defineComponent({
     }
 
     async function handleEdit(row: User) {
-      const { data: userDetail } = await fetchUserDetail(row.id);
-      if (!userDetail) {
-        message.error($t('page.userManagement.getDetailFailed'));
-        return;
-      }
+      const userDetail = await loadUserDetail(row.id);
+      if (!userDetail) return;
 
       const formData: UserFormData = {
         username: userDetail.username,
@@ -245,11 +245,8 @@ export default defineComponent({
     }
 
     async function handleAssignRoles(row: User) {
-      const { data: userDetail } = await fetchUserDetail(row.id);
-      if (!userDetail) {
-        message.error($t('page.userManagement.getDetailFailed'));
-        return;
-      }
+      const userDetail = await loadUserDetail(row.id);
+      if (!userDetail) return;
 
       await userRoleDialog.showUserRole({
         userId: row.id,
@@ -335,18 +332,22 @@ export default defineComponent({
       return true;
     }
 
-    async function handleActivate(row: User) {
-      await activateUser(row);
-    }
-
-    async function handleDeactivate(row: User) {
+    async function promptDeactivate(
+      row: User,
+      options?: { onCancel?: () => void; revertOnFailure?: () => void }
+    ) {
       await userStatusDialog.showStatusReason({
         title: $t('page.userManagement.deactivate'),
         description: $t('page.userManagement.confirmDeactivate', { username: row.username }),
         confirmType: 'warning',
+        onCancel: options?.onCancel,
         onConfirm: async reason => {
           const succeeded = await deactivateUser(row, reason);
-          return succeeded ? true : undefined;
+          if (!succeeded) {
+            options?.revertOnFailure?.();
+            return;
+          }
+          return true;
         }
       });
     }
@@ -357,26 +358,25 @@ export default defineComponent({
         return;
       }
 
-      await userStatusDialog.showStatusReason({
-        title: $t('page.userManagement.deactivate'),
-        description: $t('page.userManagement.confirmDeactivate', { username: row.username }),
-        confirmType: 'warning',
-        onCancel: () => {
-          getData();
-        },
-        onConfirm: async reason => {
-          const succeeded = await deactivateUser(row, reason);
-          if (!succeeded) {
-            await getData();
-            return;
-          }
-          return true;
-        }
+      await promptDeactivate(row, {
+        onCancel: () => getData(),
+        revertOnFailure: () => getData()
       });
     }
 
+    buildDetailConfig = user => ({
+      user,
+      onEdit: () => handleEdit(user),
+      onAssignRoles: () => handleAssignRoles(user),
+      onActivate: () => activateUser(user),
+      onDeactivate: () => promptDeactivate(user),
+      onBlacklist: () => handleBlacklist(user),
+      onUnblacklist: () => handleUnblacklist(user),
+      onKick: () => handleKick(user)
+    });
+
     async function handleDelete(row: User) {
-      detailDrawer.closeUserDetail();
+      detailDrawer.close();
 
       await dialog.confirmDelete(row.username, async () => {
         const { error } = await fetchDeleteUser(row.id);
@@ -498,8 +498,8 @@ export default defineComponent({
         onEdit: handleEdit,
         onDelete: handleDelete,
         onToggleStatus: handleToggleStatus,
-        onActivate: handleActivate,
-        onDeactivate: handleDeactivate,
+        onActivate: activateUser,
+        onDeactivate: promptDeactivate,
         onAssignRoles: handleAssignRoles,
         onBlacklist: handleBlacklist,
         onUnblacklist: handleUnblacklist,

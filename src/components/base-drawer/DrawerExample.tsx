@@ -131,7 +131,33 @@ export default defineComponent({
       });
     };
 
-    // 示例6: 响应式状态监听
+    // 示例6: updateOptions 动态更新内容
+    const openUpdatableDrawer = async () => {
+      let count = 0;
+
+      const instance = await drawer.open({
+        title: '可更新内容',
+        content: () => <div>点击按钮更新内容，当前计数: {count}</div>,
+        width: 420,
+        showFooter: true,
+        customButtons: [
+          {
+            text: '更新内容',
+            type: 'primary',
+            onClick: () => {
+              count += 1;
+              instance.updateOptions({
+                content: () => <div>点击按钮更新内容，当前计数: {count}</div>
+              });
+            }
+          }
+        ],
+        cancelButton: { text: '关闭', type: 'default' },
+        confirmButton: false
+      });
+    };
+
+    // 示例7: 响应式状态监听
     const openWithStateMonitor = async () => {
       const instance = await drawer.confirm({
         title: '状态监听示例',
@@ -153,7 +179,7 @@ export default defineComponent({
       });
     };
 
-    // 示例7: 管理器方法
+    // 示例8: 管理器方法
     const managerDemo = () => {
       console.log('当前抽屉数量:', drawer.getCount());
       console.log('所有抽屉实例:', drawer.getInstances());
@@ -184,6 +210,7 @@ export default defineComponent({
             <NButton onClick={openNestedDrawer}>嵌套抽屉</NButton>
             <NButton onClick={openCustomButtonDrawer}>自定义按钮</NButton>
             <NButton onClick={openWithStateMonitor}>状态监听</NButton>
+            <NButton onClick={openUpdatableDrawer}>updateOptions</NButton>
           </NSpace>
 
           <NSpace>

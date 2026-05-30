@@ -18,7 +18,7 @@ class DrawerManager {
   private instanceStack: symbol[] = []; // 用于管理嵌套层级
 
   /** 创建抽屉实例 */
-  async createDrawer(options: DrawerOptions): Promise<DrawerInstance> {
+  async createDrawer(initialOptions: DrawerOptions): Promise<DrawerInstance> {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -29,6 +29,9 @@ class DrawerManager {
     const visible = ref(false);
     const loading = ref(false);
     const disabled = ref(false);
+    /** 每次 updateOptions 递增，确保内容区 remount */
+    const contentRevision = ref(0);
+    const drawerOptions = ref<DrawerOptions>({ ...initialOptions });
     let destroyed = false;
 
     const instanceId = Symbol('drawer-instance');
@@ -55,7 +58,8 @@ class DrawerManager {
     // 使用 watchEffect 实现响应式渲染
     watchEffect(() => {
       const vnode = createVNode(DrawerPortal, {
-        options,
+        'options': drawerOptions.value,
+        'contentRevision': contentRevision.value,
         'visible': visible.value,
         'loading': loading.value,
         'disabled': disabled.value,
@@ -91,7 +95,8 @@ class DrawerManager {
       destroy: destroyDom,
 
       updateOptions: (newOptions: Partial<DrawerOptions>) => {
-        Object.assign(options, newOptions);
+        drawerOptions.value = { ...drawerOptions.value, ...newOptions };
+        contentRevision.value += 1;
       },
 
       // 响应式状态（只读）
@@ -125,13 +130,16 @@ class DrawerManager {
     };
 
     // 重写 onClose，在关闭时自动销毁实例
-    const originalOnClose = options.onClose;
-    options.onClose = () => {
-      originalOnClose?.();
-      // 延迟销毁，确保动画完成
-      setTimeout(() => {
-        drawerInstance.destroy();
-      }, 300);
+    const originalOnClose = initialOptions.onClose;
+    drawerOptions.value = {
+      ...drawerOptions.value,
+      onClose: () => {
+        originalOnClose?.();
+        // 延迟销毁，确保动画完成
+        setTimeout(() => {
+          drawerInstance.destroy();
+        }, 300);
+      }
     };
 
     // 添加到管理器
