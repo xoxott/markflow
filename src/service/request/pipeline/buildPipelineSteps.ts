@@ -10,7 +10,7 @@ import type { AxiosTransport } from './AxiosTransport';
 import { MutationCacheInvalidateStep } from './MutationCacheInvalidateStep';
 import { PipelineTransportStep } from './PipelineTransportStep';
 import type { PipelineProfile } from './pipelineProfile';
-import { resolvePipelineProfile } from './pipelineProfile';
+import { DEFAULT_PIPELINE_CACHE_EXPIRE_MS, resolvePipelineProfile } from './pipelineProfile';
 
 export interface PipelineResources {
   steps: RequestStep[];
@@ -25,7 +25,9 @@ export function createPipelineResources(
 ): PipelineResources {
   const f = resolvePipelineProfile(profile);
   const steps: RequestStep[] = [new PrepareContextStep()];
-  const cacheManager = f.useCache ? new RequestCacheManager() : undefined;
+  const cacheManager = f.useCache
+    ? new RequestCacheManager({ defaultExpireTime: DEFAULT_PIPELINE_CACHE_EXPIRE_MS })
+    : undefined;
   const dedupeManager = f.useDedupe
     ? new DedupeManager({ dedupeWindow: f.dedupeWindow })
     : undefined;

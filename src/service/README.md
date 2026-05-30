@@ -19,7 +19,7 @@
 | `minimal`   | 仅 `PrepareContext` + `PipelineTransport`，适合调试或极轻场景                             |
 | `resilient` | 在 `standard` 基础上启用 5xx 重试并提高队列并发（见 `pipeline/pipelineProfile.ts`）       |
 
-主业务实例可通过环境变量 **`VITE_HTTP_PIPELINE_PROFILE`** 设为 `standard` | `resilient`（非法或未设则 `standard`）。`createPipelineClient({ pipelineProfile: 'minimal' })` 亦可单独指定。
+主业务实例可通过环境变量 **`VITE_HTTP_PIPELINE_PROFILE`** 设为 `standard` | `resilient`（非法或未设则 `standard`）。`createPipelineClient({ pipelineProfile: 'minimal' })` 亦可单独指定。主业务 GET 默认缓存 **30 秒**（`DEFAULT_PIPELINE_CACHE_EXPIRE_MS`，见 `pipeline/pipelineProfile.ts`）；需更长 TTL 的接口在 axios config 上传 `cacheExpireTime` 单独覆盖。
 
 `createPipelineResources` / `buildPipelineSteps` 对缓存/去重/队列/熔断（及 `resilient` 下的重试）传入 **`enabledByDefault: true`**，并共用同一个 `RequestCacheManager` 与 `DedupeManager`；`CacheWrite` 与 `MutationCacheInvalidateStep` 排在 `Transport` 之前（先 `next()` 发请求再写入/失效）。**写操作**（`POST` / `PUT` / `PATCH` / `DELETE`）成功后会按 URL（及父路径，如 `PATCH /roles/12` 同时失效列表 `GET /roles`）自动清理相关 GET 缓存与去重条目，页面 `getData()` 无需传 `cache: false`。极少数场景可在 axios config 上设 `cache: false` / `dedupe: false`（由 `runPipelineAxiosRequest` 写入 `ctx.meta`）。**会话边界**：切换账号或登出时，auth store 会调用 `clearMainRequestPipelineCache()`（见 `src/service/request/index.ts`），清空主业务管道的 GET 缓存与去重条目，避免跨用户命中上一会话数据；同用户 F5 刷新不受影响。`AxiosTransport` 向上抛出原始 `AxiosError`（保留 `response.status`），供 5xx 重试与熔断计数；`composeSteps` 为 `RetryStep` 注入可重入的后续链执行。GET 命中缓存时由 `runPipelineAxiosRequest` 合成 `AxiosResponse`。集成测试见 `src/service/request/__tests__/pipeline-axios.test.ts`。
 

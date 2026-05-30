@@ -3,6 +3,9 @@ import type { RetryStrategy } from '@suga/request-retry';
 /** 步骤链装配档位：按需切换横切能力组合 */
 export type PipelineProfile = 'standard' | 'minimal' | 'resilient';
 
+/** 主业务 GET 默认缓存 TTL（管理端数据变更较频，短于 request-cache 包默认 5 分钟） */
+export const DEFAULT_PIPELINE_CACHE_EXPIRE_MS = 30 * 1000;
+
 export type PipelineProfileResolved = {
   useCache: boolean;
   useDedupe: boolean;
