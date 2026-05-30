@@ -147,7 +147,7 @@ export function fetchUnblacklistUser(id: number) {
  * @param id User ID
  */
 export function fetchKickUser(id: number) {
-  return request<null>({
+  return request<Api.UserManagement.KickUserResponse>({
     url: `/api/admin/users/${id}/kick`,
     method: 'post'
   });

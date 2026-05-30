@@ -610,6 +610,10 @@ declare namespace App {
           unblacklistSuccess: string;
           batchBlacklistSuccess: string;
           kickOffline: string;
+          kickOfflineDisabled: string;
+          notManageable: string;
+          batchSkipUnmanageable: string;
+          batchAllUnmanageable: string;
           kickOfflineConfirm: string;
           kickOfflineSuccess: string;
           batchEnable: string;

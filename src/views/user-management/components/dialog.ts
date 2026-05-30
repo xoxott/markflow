@@ -69,6 +69,7 @@ export interface UserStatusReasonDialogConfig extends BaseDialogProps {
 /** 在线用户对话框配置 */
 export interface OnlineUsersDialogConfig extends BaseDialogProps {
   users: Api.UserManagement.User[];
+  onKick?: (user: Api.UserManagement.User) => void | Promise<void>;
   onCancel?: () => void;
 }
 

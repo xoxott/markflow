@@ -15,6 +15,7 @@ import {
   fetchSendRegistrationCode,
   fetchSendResetPasswordCode
 } from '@/service/api';
+import { clearMainRequestPipelineCache } from '@/service/request';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { isStaticDemo, seedStaticDemoAuth } from '@/utils/env/static-demo';
@@ -22,7 +23,6 @@ import { SetupStoreId } from '@/enum';
 import { $t } from '@/locales';
 import { useRouteStore } from '../route';
 import { useTabStore } from '../tab';
-import { clearMainRequestPipelineCache } from '@/service/request';
 import { clearAuthStorage, getToken } from './shared';
 
 export const useAuthStore = defineStore(SetupStoreId.Auth, () => {

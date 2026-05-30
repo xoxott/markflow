@@ -36,6 +36,7 @@ import { useUserRoleDialog } from './components/useUserRoleDialog';
 import { useUserStatusDialog } from './components/useUserStatusDialog';
 import UserStatsInline from './components/UserStatsInline';
 import { USER_LIST_SCROLL_X, createUserSearchFields, createUserTableColumns } from './listUiConfig';
+import { filterManageableUserIds, isUserManageable } from './utils/userManageability';
 
 type User = Api.UserManagement.User;
 
@@ -126,6 +127,26 @@ export default defineComponent({
       await detailDrawer.syncIfOpen();
     }
 
+    function warnNotManageable() {
+      message.warning($t('page.userManagement.notManageable'));
+    }
+
+    function resolveManageableBatchIds(): number[] | null {
+      const manageableIds = filterManageableUserIds(data.value ?? [], selectedRowKeys.value);
+
+      if (manageableIds.length === 0) {
+        message.warning($t('page.userManagement.batchAllUnmanageable'));
+        return null;
+      }
+
+      const skippedCount = selectedRowKeys.value.length - manageableIds.length;
+      if (skippedCount > 0) {
+        message.warning($t('page.userManagement.batchSkipUnmanageable', { count: skippedCount }));
+      }
+
+      return manageableIds;
+    }
+
     async function loadRoles() {
       try {
         const { data: rolesData } = await fetchAdminRoleOptions();
@@ -170,7 +191,8 @@ export default defineComponent({
       if (error) return;
 
       await onlineUsersDialog.showOnlineUsers({
-        users: onlineUsers ?? []
+        users: onlineUsers ?? [],
+        onKick: handleKick
       });
     }
 
@@ -203,6 +225,11 @@ export default defineComponent({
     }
 
     async function handleEdit(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       const userDetail = await loadUserDetail(row.id);
       if (!userDetail) return;
 
@@ -244,6 +271,11 @@ export default defineComponent({
     }
 
     async function handleAssignRoles(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       const userDetail = await loadUserDetail(row.id);
       if (!userDetail) return;
 
@@ -265,6 +297,11 @@ export default defineComponent({
     }
 
     async function handleBlacklist(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       await dialog.confirm({
         title: $t('page.userManagement.blacklist'),
         content: $t('page.userManagement.confirmBlacklist', { username: row.username }),
@@ -281,6 +318,11 @@ export default defineComponent({
     }
 
     async function handleUnblacklist(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       await dialog.confirm({
         title: $t('page.userManagement.unblacklist'),
         content: $t('page.userManagement.confirmUnblacklist', { username: row.username }),
@@ -296,21 +338,31 @@ export default defineComponent({
     }
 
     async function handleKick(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       await dialog.confirm({
         title: $t('page.userManagement.kickOffline'),
         content: $t('page.userManagement.kickOfflineConfirm', { username: row.username }),
         type: 'warning',
         onConfirm: async () => {
-          const { error } = await fetchKickUser(row.id);
+          const { data: kickResult, error } = await fetchKickUser(row.id);
           if (error) return;
 
-          message.success($t('page.userManagement.kickOfflineSuccess'));
+          message.success(kickResult?.message ?? $t('page.userManagement.kickOfflineSuccess'));
           await refreshPage();
         }
       });
     }
 
     async function activateUser(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return false;
+      }
+
       const { error } = await fetchUpdateUserStatus(row.id, { isActive: true });
       if (error) {
         await getData();
@@ -323,6 +375,11 @@ export default defineComponent({
     }
 
     async function deactivateUser(row: User, reason?: string) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return false;
+      }
+
       const { error } = await fetchUpdateUserStatus(row.id, {
         isActive: false,
         reason: reason || undefined
@@ -355,6 +412,12 @@ export default defineComponent({
     }
 
     async function handleToggleStatus(row: User, isActive: boolean) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        await getData();
+        return;
+      }
+
       if (isActive) {
         await activateUser(row);
         return;
@@ -378,6 +441,11 @@ export default defineComponent({
     });
 
     async function handleDelete(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
       detailDrawer.close();
 
       await dialog.confirmDelete(row.username, async () => {
@@ -394,10 +462,16 @@ export default defineComponent({
         message.warning($t('page.userManagement.selectUsersToDelete'));
         return;
       }
+
+      const userIds = resolveManageableBatchIds();
+      if (!userIds) {
+        return;
+      }
+
       await dialog.confirmDelete(
-        $t('page.userManagement.confirmBatchDelete', { count: selectedRowKeys.value.length }),
+        $t('page.userManagement.confirmBatchDelete', { count: userIds.length }),
         async () => {
-          const { error } = await fetchBatchDeleteUsers({ userIds: selectedRowKeys.value });
+          const { error } = await fetchBatchDeleteUsers({ userIds });
           if (error) return;
 
           message.success($t('page.userManagement.batchDeleteSuccess'));
@@ -413,7 +487,10 @@ export default defineComponent({
         return;
       }
 
-      const userIds = [...selectedRowKeys.value];
+      const userIds = resolveManageableBatchIds();
+      if (!userIds) {
+        return;
+      }
 
       if (isActive) {
         const { error } = await fetchBatchUpdateUserStatus({ userIds, isActive: true });
@@ -451,11 +528,16 @@ export default defineComponent({
         return;
       }
 
+      const userIds = resolveManageableBatchIds();
+      if (!userIds) {
+        return;
+      }
+
       await blacklistDialog.showBlacklistReason({
-        userCount: selectedRowKeys.value.length,
+        userCount: userIds.length,
         onConfirm: async (reason: string) => {
           const { error } = await fetchBatchBlacklistUsers({
-            userIds: selectedRowKeys.value,
+            userIds,
             reason
           });
           if (error) return;

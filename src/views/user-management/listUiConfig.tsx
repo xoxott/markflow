@@ -4,6 +4,7 @@ import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
+import { isUserManageable } from './utils/userManageability';
 
 type User = Api.UserManagement.User;
 
@@ -193,6 +194,7 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       render: (row: User) => (
         <NSwitch
           value={row.isActive}
+          disabled={!isUserManageable(row)}
           onUpdateValue={value => h.onToggleStatus(row, value)}
           size="small"
         />
@@ -280,46 +282,57 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       mode: 'menu',
       buttons: [
         { key: 'detail', label: $t('page.userManagement.userDetail'), onClick: h.onDetail },
-        { key: 'edit', label: $t('common.edit'), onClick: h.onEdit },
+        {
+          key: 'edit',
+          label: $t('common.edit'),
+          disabled: (row: User) => !isUserManageable(row),
+          onClick: h.onEdit
+        },
         {
           key: 'assignRoles',
           label: $t('page.userManagement.assignRoles'),
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onAssignRoles
         },
         {
           key: 'activate',
           label: $t('page.userManagement.activate'),
           show: (row: User) => !row.isActive,
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onActivate
         },
         {
           key: 'deactivate',
           label: $t('page.userManagement.deactivate'),
           show: (row: User) => row.isActive,
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onDeactivate
         },
         {
           key: 'unblacklist',
           label: $t('page.userManagement.unblacklist'),
           show: (row: User) => row.isBlacklisted,
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onUnblacklist
         },
         {
           key: 'blacklist',
           label: $t('page.userManagement.blacklist'),
           show: (row: User) => !row.isBlacklisted,
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onBlacklist
         },
         {
           key: 'kick',
           label: $t('page.userManagement.kickOffline'),
-          show: (row: User) => row.isOnline,
+          disabled: (row: User) => !isUserManageable(row) || !row.isOnline,
           onClick: h.onKick
         },
         {
           key: 'delete',
           label: $t('common.delete'),
           divider: true,
+          disabled: (row: User) => !isUserManageable(row),
           onClick: h.onDelete
         }
       ]

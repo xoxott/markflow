@@ -33,6 +33,8 @@ declare namespace Api {
       createdAt: string;
       updatedAt: string;
       roles: Role[];
+      /** 当前登录管理员是否可管理该用户（Admin 列表/详情/在线用户返回） */
+      manageable?: boolean;
     }
 
     /** User statistics */
@@ -141,6 +143,11 @@ declare namespace Api {
     /** Batch update user status response */
     interface BatchUpdateStatusResponse {
       updated: number;
+    }
+
+    /** Kick user offline response (ai-server KickUserOfflineOutput) */
+    interface KickUserResponse {
+      message: string;
     }
 
     /** Role list response (after transformBackendResponse) */
