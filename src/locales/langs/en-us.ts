@@ -480,6 +480,12 @@ const local: App.I18n.Schema = {
       assignPermissionsSuccess: 'Permissions assigned successfully',
       filterByPermission: 'Has Permission',
       filterByPermissionPlaceholder: 'Filter roles by permission',
+      filterByParentRole: 'Parent Role',
+      filterByParentRolePlaceholder: 'Filter direct child roles',
+      hasParentRole: 'Parent Role Status',
+      hasParentRolePlaceholder: 'Parent role status',
+      withParentRole: 'Has parent role',
+      topLevelRole: 'Top-level role',
       viewMembers: 'View Members',
       userCount: 'Members',
       permissionCount: '{count} permission(s)'

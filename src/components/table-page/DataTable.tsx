@@ -242,7 +242,7 @@ export default defineComponent({
     return () => (
       <div
         ref={containerRef}
-        class="h-full min-h-0 flex flex-col [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table]:h-full [&_.n-data-table\_\_pagination]:px-16px [&_.n-data-table\_\_pagination]:pb-16px [&_.n-data-table\_\_pagination]:pt-8px"
+        class="h-full min-h-0 flex flex-col [&_.n-data-table_.n-badge-sup]:z-0 [&_.n-data-table\_\_pagination]:box-border [&_.n-data-table]:h-full [&_.n-data-table\_\_pagination]:px-16px [&_.n-data-table\_\_pagination]:pb-16px [&_.n-data-table\_\_pagination]:pt-8px"
       >
         <NDataTable {...mergedTableProps.value} />
       </div>

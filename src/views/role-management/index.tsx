@@ -52,13 +52,17 @@ export default defineComponent({
           search: '',
           isActive: undefined,
           isSystem: undefined,
-          permissionId: undefined as number | undefined
+          permissionId: undefined as number | undefined,
+          parentRoleId: undefined as number | undefined,
+          hasParentRole: undefined
         },
         showTotal: true,
         routeQuery: {
           mapping: {
             search: { field: 'search' },
-            permissionId: { field: 'permissionId', parse: parseQueryNumber }
+            permissionId: { field: 'permissionId', parse: parseQueryNumber },
+            parentRoleId: { field: 'parentRoleId', parse: parseQueryNumber },
+            hasParentRole: { field: 'hasParentRole' }
           }
         }
       });

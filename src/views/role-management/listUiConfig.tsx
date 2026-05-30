@@ -53,6 +53,31 @@ export function createRoleSearchFields(): SearchFieldConfig[] {
           onUpdate:value={value => updateModel('permissionId', value)}
         />
       )
+    },
+    {
+      type: 'custom',
+      field: 'parentRoleId',
+      label: $t('page.roleManagement.filterByParentRole'),
+      render: (model, updateModel) => (
+        <AdminRemoteSelect
+          resource="roles"
+          value={(model.parentRoleId as number | null) ?? null}
+          placeholder={$t('page.roleManagement.filterByParentRolePlaceholder')}
+          clearable
+          onUpdate:value={value => updateModel('parentRoleId', value)}
+        />
+      )
+    },
+    {
+      type: 'select',
+      field: 'hasParentRole',
+      label: $t('page.roleManagement.hasParentRole'),
+      placeholder: $t('page.roleManagement.hasParentRolePlaceholder'),
+      width: '130px',
+      options: createQueryBooleanSelectOptions(
+        $t('page.roleManagement.withParentRole'),
+        $t('page.roleManagement.topLevelRole')
+      )
     }
   ];
 }

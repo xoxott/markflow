@@ -53,6 +53,10 @@ declare namespace Api {
       isSystem?: Common.QueryBoolean;
       /** Filter roles that include this permission */
       permissionId?: number;
+      /** Filter direct child roles of this parent role */
+      parentRoleId?: number;
+      /** Whether a parent role is set（query: true | false） */
+      hasParentRole?: Common.QueryBoolean;
     }
 
     /** Create role request (ai-server CreateRoleInput) */

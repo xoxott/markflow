@@ -474,6 +474,12 @@ const local: App.I18n.Schema = {
       assignPermissionsSuccess: '权限分配成功',
       filterByPermission: '包含权限',
       filterByPermissionPlaceholder: '筛选拥有该权限的角色',
+      filterByParentRole: '父角色',
+      filterByParentRolePlaceholder: '筛选该角色的直接子角色',
+      hasParentRole: '父角色状态',
+      hasParentRolePlaceholder: '父角色状态',
+      withParentRole: '有父角色',
+      topLevelRole: '顶级角色',
       viewMembers: '查看成员',
       userCount: '成员数',
       permissionCount: '{count} 项权限'

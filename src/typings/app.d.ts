@@ -696,6 +696,12 @@ declare namespace App {
           assignPermissionsSuccess: string;
           filterByPermission: string;
           filterByPermissionPlaceholder: string;
+          filterByParentRole: string;
+          filterByParentRolePlaceholder: string;
+          hasParentRole: string;
+          hasParentRolePlaceholder: string;
+          withParentRole: string;
+          topLevelRole: string;
           viewMembers: string;
           userCount: string;
           permissionCount: string;
