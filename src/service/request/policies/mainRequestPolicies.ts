@@ -13,7 +13,8 @@ import {
   getExpiredTokenCodes,
   getLogoutCodes,
   getModalLogoutCodes,
-  isBackendSuccessCode
+  isBackendSuccessCode,
+  isSessionCredentialError
 } from './errorCodes';
 import { parseApiErrorPayload, showGlobalRequestError } from './errorHandler';
 import { createRetryConfig } from './retry';
@@ -91,7 +92,9 @@ export function createMainRequestPolicies(
         hasSession &&
         !isStaticDemo() &&
         !expiredTokenCodes.includes(errorCode) &&
-        (sessionAuthErrorCodeSet.has(errorCode) || logoutCodes.includes(errorCode));
+        (isSessionCredentialError(errorCode) ||
+          sessionAuthErrorCodeSet.has(errorCode) ||
+          logoutCodes.includes(errorCode));
 
       if (shouldLogout) {
         handleLogout();

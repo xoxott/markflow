@@ -72,11 +72,21 @@ function createCommonRequest<ResponseData = any>(
     return handledConfig;
   });
 
-  /** 检查错误响应是否是业务错误格式（包含 statusCode 和 errorCode） */
-  function isBusinessErrorResponse(
-    data: any
-  ): data is { statusCode: number; errorCode?: number | string } {
-    return data && typeof data === 'object' && 'statusCode' in data;
+  /** 检查错误响应是否为可交给 onBackendFail 的业务错误体 */
+  function isBusinessErrorResponse(data: unknown): boolean {
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    const body = data as Record<string, unknown>;
+
+    // 历史格式：{ statusCode, errorCode? }
+    if ('statusCode' in body) {
+      return true;
+    }
+
+    // ai-server 标准错误体：{ code, message, ... }
+    return 'code' in body && 'message' in body;
   }
 
   /** 将 HTTP 401 错误转换为业务错误响应格式，以便复用 onBackendFail 逻辑 */

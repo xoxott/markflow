@@ -7,7 +7,8 @@ import {
   extractErrorCode,
   getExpiredTokenCodes,
   getLogoutCodes,
-  getModalLogoutCodes
+  getModalLogoutCodes,
+  isSessionCredentialError
 } from './errorCodes';
 
 const sessionAuthErrorCodeSet = new Set<string>(SESSION_AUTH_ERROR_CODES);
@@ -48,6 +49,7 @@ export function shouldSuppressGlobalErrorMessage(
 
   return (
     expiredTokenCodes.includes(errorCode) ||
+    isSessionCredentialError(errorCode) ||
     sessionAuthErrorCodeSet.has(errorCode) ||
     modalLogoutCodes.includes(errorCode) ||
     getLogoutCodes().includes(errorCode)

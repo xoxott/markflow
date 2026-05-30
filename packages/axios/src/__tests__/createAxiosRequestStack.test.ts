@@ -76,4 +76,53 @@ describe('createFlatRequestFromStack', () => {
     expect(res.data).toEqual({ n: 1 });
     expect(res.error).toBeNull();
   });
+
+  it('HTTP 401 + ai-server 错误体走 onBackendFail 而非仅 onError', async () => {
+    const onBackendFail = vi.fn().mockResolvedValue(null);
+    const onError = vi.fn();
+
+    const adapter = vi.fn(async config => {
+      const error = new Error('Unauthorized') as import('axios').AxiosError;
+      error.response = {
+        status: 401,
+        statusText: 'Unauthorized',
+        data: {
+          code: 1200,
+          message: 'All user tokens have been revoked. Please login again.',
+          timestamp: '2026-05-30T05:02:27.060Z',
+          path: '/api/admin/users'
+        },
+        headers: {},
+        config
+      };
+      error.config = config;
+      throw error;
+    });
+
+    const stack = createAxiosRequestStack<{
+      code: number;
+      message: string;
+      timestamp: string;
+      path?: string;
+    }>(
+      { adapter: adapter as import('axios').AxiosAdapter },
+      {
+        async onRequest(c) {
+          return c;
+        },
+        isBackendSuccess: res => res.data.code === 200,
+        onBackendFail,
+        transformBackendResponse: r => r.data,
+        onError
+      }
+    );
+
+    const flat = createFlatRequestFromStack(stack, c => stack.instance.request(c));
+    const res = await flat({ url: '/api/admin/users', method: 'get' });
+
+    expect(onBackendFail).toHaveBeenCalledTimes(1);
+    expect(onBackendFail.mock.calls[0]?.[0]?.data?.code).toBe(1200);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(res.error).not.toBeNull();
+  });
 });
