@@ -2,7 +2,6 @@ import { computed, defineComponent, getCurrentInstance, onMounted, ref, watch } 
 import type { SelectOption } from 'naive-ui';
 import { useMessage } from 'naive-ui';
 import {
-  fetchActivateUser,
   fetchAdminRoleOptions,
   fetchAssignUserRoles,
   fetchBatchBlacklistUsers,
@@ -10,13 +9,13 @@ import {
   fetchBatchUpdateUserStatus,
   fetchBlacklistUser,
   fetchCreateUser,
-  fetchDeactivateUser,
   fetchDeleteUser,
   fetchExportUsers,
   fetchKickUser,
   fetchOnlineUsers,
   fetchUnblacklistUser,
   fetchUpdateUser,
+  fetchUpdateUserStatus,
   fetchUserDetail,
   fetchUserList,
   fetchUserStats
@@ -312,7 +311,7 @@ export default defineComponent({
     }
 
     async function activateUser(row: User) {
-      const { error } = await fetchActivateUser(row.id);
+      const { error } = await fetchUpdateUserStatus(row.id, { isActive: true });
       if (error) {
         await getData();
         return false;
@@ -324,7 +323,10 @@ export default defineComponent({
     }
 
     async function deactivateUser(row: User, reason?: string) {
-      const { error } = await fetchDeactivateUser(row.id, reason ? { reason } : undefined);
+      const { error } = await fetchUpdateUserStatus(row.id, {
+        isActive: false,
+        reason: reason || undefined
+      });
       if (error) return false;
 
       message.success($t('page.userManagement.deactivateSuccess'));

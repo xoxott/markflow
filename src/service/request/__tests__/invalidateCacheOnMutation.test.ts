@@ -29,8 +29,8 @@ describe('invalidateCacheOnMutation', () => {
   });
 
   it('collectInvalidationUrlPaths 对任意深度子路径失效至集合列表', () => {
-    expect(collectInvalidationUrlPaths('/api/admin/users/123/activate')).toEqual([
-      '/api/admin/users/123/activate',
+    expect(collectInvalidationUrlPaths('/api/admin/users/123/status')).toEqual([
+      '/api/admin/users/123/status',
       '/api/admin/users/123',
       '/api/admin/users'
     ]);

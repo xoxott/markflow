@@ -114,11 +114,6 @@ declare namespace Api {
       reason?: string;
     }
 
-    /** Activate / deactivate user request (ai-server UserStatusReasonInputDto) */
-    interface UserStatusReasonRequest {
-      reason?: string;
-    }
-
     /** Batch blacklist users request */
     interface BatchBlacklistRequest {
       userIds: number[];

@@ -104,34 +104,6 @@ export function fetchUpdateUserStatus(
 }
 
 /**
- * Activate user
- *
- * @param id User ID
- * @param data Optional reason for audit log
- */
-export function fetchActivateUser(id: number, data?: Api.UserManagement.UserStatusReasonRequest) {
-  return request<Api.UserManagement.UpdateUserResponse>({
-    url: `/api/admin/users/${id}/activate`,
-    method: 'post',
-    data
-  });
-}
-
-/**
- * Deactivate user
- *
- * @param id User ID
- * @param data Optional reason for audit log
- */
-export function fetchDeactivateUser(id: number, data?: Api.UserManagement.UserStatusReasonRequest) {
-  return request<Api.UserManagement.UpdateUserResponse>({
-    url: `/api/admin/users/${id}/deactivate`,
-    method: 'post',
-    data
-  });
-}
-
-/**
  * Assign roles to user (full replace)
  *
  * @param id User ID
