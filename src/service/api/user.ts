@@ -218,3 +218,31 @@ export async function fetchExportUsers(params: Api.UserManagement.ExportUsersPar
 
   downloadBlob(blob, filename);
 }
+
+/** Get user effective permissions (role + direct) */
+export function fetchUserEffectivePermissions(userId: number) {
+  return request<Api.UserManagement.UserEffectivePermissionsResponse>({
+    url: `/api/admin/permissions/users/${userId}/effective`,
+    method: 'get'
+  });
+}
+
+/** Assign direct permission to user */
+export function fetchAssignUserPermission(
+  userId: number,
+  data: Api.UserManagement.AssignUserPermissionRequest
+) {
+  return request({
+    url: `/api/admin/permissions/users/${userId}/assign`,
+    method: 'post',
+    data
+  });
+}
+
+/** Revoke direct permission from user */
+export function fetchRevokeUserPermission(userId: number, permissionId: number) {
+  return request({
+    url: `/api/admin/permissions/users/${userId}/revoke/${permissionId}`,
+    method: 'delete'
+  });
+}

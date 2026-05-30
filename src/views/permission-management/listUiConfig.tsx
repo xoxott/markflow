@@ -2,6 +2,7 @@ import { NSwitch } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
+import { PermissionFacetSelect } from '@/components/permission-facet-select';
 import { $t } from '@/locales';
 
 type Permission = Api.PermissionManagement.Permission;
@@ -26,32 +27,40 @@ export function createPermissionSearchFields(): SearchFieldConfig[] {
       width: '200px'
     },
     {
-      type: 'select',
+      type: 'custom',
       field: 'resource',
       label: $t('page.permissionManagement.resource'),
-      placeholder: $t('page.permissionManagement.resourcePlaceholder'),
-      width: '120px',
-      options: [
-        { label: '用户', value: 'user' },
-        { label: '角色', value: 'role' },
-        { label: '权限', value: 'permission' },
-        { label: '系统', value: 'system' },
-        { label: '其他', value: 'other' }
-      ]
+      render: (model, updateModel) => (
+        <PermissionFacetSelect
+          facet="resources"
+          value={(model.resource as string | null | undefined) ?? null}
+          placeholder={$t('page.permissionManagement.resourcePlaceholder')}
+          clearable
+          tag={false}
+          onUpdate:value={value => {
+            if (value !== model.resource) {
+              updateModel('action', undefined);
+            }
+            updateModel('resource', value ?? undefined);
+          }}
+        />
+      )
     },
     {
-      type: 'select',
+      type: 'custom',
       field: 'action',
       label: $t('page.permissionManagement.action'),
-      placeholder: $t('page.permissionManagement.actionPlaceholder'),
-      width: '120px',
-      options: [
-        { label: '读取', value: 'read' },
-        { label: '写入', value: 'write' },
-        { label: '删除', value: 'delete' },
-        { label: '创建', value: 'create' },
-        { label: '管理', value: 'manage' }
-      ]
+      render: (model, updateModel) => (
+        <PermissionFacetSelect
+          facet="actions"
+          resource={(model.resource as string | null | undefined) ?? null}
+          value={(model.action as string | null | undefined) ?? null}
+          placeholder={$t('page.permissionManagement.actionPlaceholder')}
+          clearable
+          tag={false}
+          onUpdate:value={value => updateModel('action', value ?? undefined)}
+        />
+      )
     },
     {
       type: 'select',
@@ -90,6 +99,7 @@ export interface PermissionTableColumnHandlers {
   onEdit: (row: Permission) => void;
   onDelete: (row: Permission) => void;
   onToggleStatus: (id: number, isActive: boolean) => void;
+  onViewRelatedRoles: (row: Permission) => void;
 }
 
 export function createPermissionTableColumns(
@@ -151,7 +161,14 @@ export function createPermissionTableColumns(
     createActionColumn(
       {
         mode: 'inline',
+        maxShow: 3,
         buttons: [
+          {
+            label: $t('page.permissionManagement.viewRelatedRoles'),
+            type: 'default',
+            icon: 'carbon:user-role',
+            onClick: h.onViewRelatedRoles
+          },
           {
             label: $t('common.edit'),
             type: 'primary',
@@ -171,4 +188,4 @@ export function createPermissionTableColumns(
   ];
 }
 
-export const PERMISSION_LIST_SCROLL_X = 1760;
+export const PERMISSION_LIST_SCROLL_X = 1960;

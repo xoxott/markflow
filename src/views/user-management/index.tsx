@@ -1,6 +1,7 @@
 import { computed, defineComponent, getCurrentInstance, onMounted, ref, watch } from 'vue';
 import { useMessage } from 'naive-ui';
 import {
+  fetchAssignUserPermission,
   fetchAssignUserRoles,
   fetchBatchBlacklistUsers,
   fetchBatchDeleteUsers,
@@ -11,14 +12,18 @@ import {
   fetchExportUsers,
   fetchKickUser,
   fetchOnlineUsers,
+  fetchRevokeUserPermission,
   fetchUnblacklistUser,
   fetchUpdateUser,
   fetchUpdateUserStatus,
   fetchUserDetail,
+  fetchUserEffectivePermissions,
   fetchUserList,
   fetchUserStats
 } from '@/service/api/user';
 import { useAdminOptionStore } from '@/store/modules/admin-option';
+import { parseQueryNumber } from '@/hooks/common/useRouteQueryFilters';
+import { useRouterPush } from '@/hooks/common/router';
 import TablePage from '@/components/table-page/TablePage';
 import type { ActionBarConfig } from '@/components/table-page/types';
 import { useAdminListTable } from '@/components/table-page/hooks';
@@ -32,10 +37,12 @@ import { useOnlineUsersDialog } from './components/useOnlineUsersDialog';
 import { useUserDialog } from './components/useUserDialog';
 import { useUserDetailDrawer } from './components/useUserDetailDrawer';
 import { useUserRoleDialog } from './components/useUserRoleDialog';
+import { useUserDirectPermissionDialog } from './components/useUserDirectPermissionDialog';
 import { useUserStatusDialog } from './components/useUserStatusDialog';
 import UserStatsInline from './components/UserStatsInline';
 import { USER_LIST_SCROLL_X, createUserSearchFields, createUserTableColumns } from './listUiConfig';
 import { filterManageableUserIds, isUserManageable } from './utils/userManageability';
+import { excludeExistingPermissionIds, pickDirectPermissions } from './utils/effectivePermissions';
 
 type User = Api.UserManagement.User;
 
@@ -58,11 +65,14 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const userDialog = useUserDialog(instance?.appContext.app);
     const userRoleDialog = useUserRoleDialog(instance?.appContext.app);
+    const userDirectPermissionDialog = useUserDirectPermissionDialog(instance?.appContext.app);
     const blacklistDialog = useBlacklistDialog();
     const onlineUsersDialog = useOnlineUsersDialog();
     const userStatusDialog = useUserStatusDialog();
     const dialog = useDialog(instance?.appContext.app);
     const adminOptionStore = useAdminOptionStore();
+    const { routerPushByKey } = useRouterPush();
+    const permissionsRefreshKey = ref(0);
 
     async function loadUserDetail(userId: number): Promise<User | null> {
       const { data, error } = await fetchUserDetail(userId);
@@ -99,7 +109,12 @@ export default defineComponent({
           sortOrder: undefined as 'asc' | 'desc' | undefined
         },
         showTotal: true,
-        immediate: true
+        routeQuery: {
+          mapping: {
+            roleId: { field: 'roleId', parse: parseQueryNumber },
+            search: { field: 'search' }
+          }
+        }
       });
 
     async function loadStats() {
@@ -274,10 +289,68 @@ export default defineComponent({
           message.success($t('page.userManagement.assignRolesSuccess'));
           message.info($t('page.userManagement.reloginHint'));
           adminOptionStore.invalidateResource('roles');
+          permissionsRefreshKey.value += 1;
           await refreshPage();
           return true;
         }
       });
+    }
+
+    async function handleAssignDirectPermissions(row: User) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
+      const { data: effectiveData } = await fetchUserEffectivePermissions(row.id);
+      const assignedDirectPermissions = pickDirectPermissions(effectiveData?.data ?? []);
+
+      await userDirectPermissionDialog.showUserDirectPermission({
+        userId: row.id,
+        username: row.username,
+        assignedDirectPermissions,
+        onConfirm: async permissionIds => {
+          const newIds = excludeExistingPermissionIds(
+            permissionIds,
+            assignedDirectPermissions.map(item => item.permissionId)
+          );
+
+          if (newIds.length === 0) {
+            message.warning($t('page.userManagement.noNewDirectPermissions'));
+            return false;
+          }
+
+          for (const permissionId of newIds) {
+            const { error } = await fetchAssignUserPermission(row.id, { permissionId });
+            if (error) return false;
+          }
+
+          message.success($t('page.userManagement.assignDirectPermissionsSuccess'));
+          adminOptionStore.invalidateResource('permissions');
+          permissionsRefreshKey.value += 1;
+          await detailDrawer.syncIfOpen();
+          return true;
+        }
+      });
+    }
+
+    async function handleRevokeDirectPermission(row: User, permissionId: number) {
+      if (!isUserManageable(row)) {
+        warnNotManageable();
+        return;
+      }
+
+      const { error } = await fetchRevokeUserPermission(row.id, permissionId);
+      if (error) return;
+
+      message.success($t('page.userManagement.revokeDirectPermissionSuccess'));
+      adminOptionStore.invalidateResource('permissions');
+      permissionsRefreshKey.value += 1;
+      await detailDrawer.syncIfOpen();
+    }
+
+    function navigateToRole(_roleId: number, roleName: string) {
+      routerPushByKey('role-management', { query: { search: roleName } });
     }
 
     async function handleBlacklist(row: User) {
@@ -419,8 +492,12 @@ export default defineComponent({
 
     buildDetailConfig = user => ({
       user,
+      permissionsRefreshKey: permissionsRefreshKey.value,
       onEdit: () => handleEdit(user),
       onAssignRoles: () => handleAssignRoles(user),
+      onAssignDirectPermissions: () => handleAssignDirectPermissions(user),
+      onRevokeDirectPermission: permissionId => handleRevokeDirectPermission(user, permissionId),
+      onRoleClick: (roleId, roleName) => navigateToRole(roleId, roleName),
       onActivate: () => activateUser(user),
       onDeactivate: () => promptDeactivate(user),
       onBlacklist: () => handleBlacklist(user),

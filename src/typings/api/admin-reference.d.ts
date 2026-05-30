@@ -25,6 +25,25 @@ declare namespace Api {
       action?: string;
     }
 
+    /** GET /admin/permissions/options/resources */
+    type PermissionResourceOptionsQuery = OptionsBaseQuery;
+
+    /** GET /admin/permissions/options/actions */
+    interface PermissionActionOptionsQuery extends OptionsBaseQuery {
+      resource: string;
+    }
+
+    /** resource/action 维度选项（value/label 均为字符串，非实体 ID） */
+    interface PermissionFacetOption {
+      value: string;
+      label: string;
+    }
+
+    interface PermissionFacetOptionListData {
+      items: PermissionFacetOption[];
+      total: number;
+    }
+
     type AdminOptionResource = 'roles' | 'users' | 'permissions';
 
     type AdminOptionsQueryMap = {

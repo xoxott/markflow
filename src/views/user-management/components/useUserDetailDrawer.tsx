@@ -37,8 +37,12 @@ export function useUserDetailDrawer(deps: UserDetailDrawerDeps): UseUserDetailDr
     return (
       <UserDetailDrawer
         user={config.user}
+        permissionsRefreshKey={config.permissionsRefreshKey}
         onEdit={config.onEdit}
         onAssignRoles={config.onAssignRoles}
+        onAssignDirectPermissions={config.onAssignDirectPermissions}
+        onRevokeDirectPermission={config.onRevokeDirectPermission}
+        onRoleClick={config.onRoleClick}
         onActivate={config.onActivate}
         onDeactivate={config.onDeactivate}
         onBlacklist={config.onBlacklist}

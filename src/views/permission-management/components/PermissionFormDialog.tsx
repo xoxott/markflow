@@ -1,27 +1,14 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
+import { PermissionFacetSelect } from '@/components/permission-facet-select';
 import BaseDialog from '@/components/base-dialog';
+import { buildPermissionCode } from '../utils/permissionCode';
 import type { PermissionFormDialogConfig } from './dialog';
 
-// 常见的资源和操作选项
-const RESOURCE_OPTIONS = [
-  { label: '用户', value: 'user' },
-  { label: '角色', value: 'role' },
-  { label: '权限', value: 'permission' },
-  { label: '系统', value: 'system' },
-  { label: '其他', value: 'other' }
-];
-
-const ACTION_OPTIONS = [
-  { label: '创建', value: 'create' },
-  { label: '读取', value: 'read' },
-  { label: '更新', value: 'update' },
-  { label: '删除', value: 'delete' },
-  { label: '管理', value: 'manage' }
-];
+const FACET_PATTERN = /^[a-z0-9_-]+$/;
 
 export default defineComponent({
   name: 'PermissionFormDialog',
@@ -38,7 +25,24 @@ export default defineComponent({
 
     const formModel = useSyncedFormModel(() => props.config.formData);
 
-    // 表单验证规则
+    watch(
+      () => formModel.resource,
+      (_resource, previousResource) => {
+        if (previousResource !== undefined) {
+          formModel.action = '';
+        }
+      }
+    );
+
+    watch(
+      () => [formModel.resource, formModel.action] as const,
+      ([resource, action]) => {
+        if (!props.config.isEdit && resource && action) {
+          formModel.code = buildPermissionCode(resource, action);
+        }
+      }
+    );
+
     const formRules = {
       name: [
         {
@@ -47,22 +51,15 @@ export default defineComponent({
           trigger: 'blur'
         }
       ],
-      code: [
-        {
-          required: true,
-          message: $t('page.permissionManagement.codeRequired' as any),
-          trigger: 'blur'
-        },
-        {
-          pattern: /^[A-Z_][A-Z0-9_]*$/,
-          message: $t('page.permissionManagement.codeInvalid' as any),
-          trigger: 'blur'
-        }
-      ],
       resource: [
         {
           required: true,
           message: $t('page.permissionManagement.resourceRequired' as any),
+          trigger: 'change'
+        },
+        {
+          pattern: FACET_PATTERN,
+          message: $t('page.permissionManagement.resourceInvalid' as any),
           trigger: 'change'
         }
       ],
@@ -71,11 +68,15 @@ export default defineComponent({
           required: true,
           message: $t('page.permissionManagement.actionRequired' as any),
           trigger: 'change'
+        },
+        {
+          pattern: FACET_PATTERN,
+          message: $t('page.permissionManagement.actionInvalid' as any),
+          trigger: 'change'
         }
       ]
     };
 
-    // 关闭弹窗
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -91,7 +92,6 @@ export default defineComponent({
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
@@ -100,13 +100,11 @@ export default defineComponent({
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -115,6 +113,8 @@ export default defineComponent({
         }
       }
     );
+
+    const isEdit = computed(() => props.config.isEdit);
 
     return () => (
       <BaseDialog show={props.show} config={dialogConfig.value}>
@@ -133,29 +133,34 @@ export default defineComponent({
                   placeholder={$t('page.permissionManagement.namePlaceholder' as any)}
                 />
               </NFormItem>
+              <NFormItem label={$t('page.permissionManagement.resource' as any)} path="resource">
+                <PermissionFacetSelect
+                  facet="resources"
+                  value={formModel.resource || null}
+                  placeholder={$t('page.permissionManagement.resourcePlaceholder' as any)}
+                  disabled={isEdit.value}
+                  onUpdate:value={value => {
+                    formModel.resource = value ?? '';
+                  }}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.permissionManagement.action' as any)} path="action">
+                <PermissionFacetSelect
+                  facet="actions"
+                  resource={formModel.resource || null}
+                  value={formModel.action || null}
+                  placeholder={$t('page.permissionManagement.actionPlaceholder' as any)}
+                  disabled={isEdit.value}
+                  onUpdate:value={value => {
+                    formModel.action = value ?? '';
+                  }}
+                />
+              </NFormItem>
               <NFormItem label={$t('page.permissionManagement.code' as any)} path="code">
                 <NInput
                   v-model:value={formModel.code}
                   placeholder={$t('page.permissionManagement.codePlaceholder' as any)}
-                  disabled={props.config.isEdit}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.permissionManagement.resource' as any)} path="resource">
-                <NSelect
-                  v-model:value={formModel.resource}
-                  placeholder={$t('page.permissionManagement.resourcePlaceholder' as any)}
-                  options={RESOURCE_OPTIONS}
-                  filterable
-                  tag
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.permissionManagement.action' as any)} path="action">
-                <NSelect
-                  v-model:value={formModel.action}
-                  placeholder={$t('page.permissionManagement.actionPlaceholder' as any)}
-                  options={ACTION_OPTIONS}
-                  filterable
-                  tag
+                  disabled
                 />
               </NFormItem>
               <NFormItem
@@ -168,14 +173,6 @@ export default defineComponent({
                   placeholder={$t('page.permissionManagement.descriptionPlaceholder' as any)}
                   rows={3}
                 />
-              </NFormItem>
-              <NFormItem label={$t('page.permissionManagement.status' as any)} path="isActive">
-                <NSwitch v-model:value={formModel.isActive} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isActive
-                    ? $t('page.permissionManagement.active' as any)
-                    : $t('page.permissionManagement.inactive' as any)}
-                </span>
               </NFormItem>
             </NForm>
           ),

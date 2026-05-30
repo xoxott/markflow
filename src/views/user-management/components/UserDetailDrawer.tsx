@@ -4,6 +4,7 @@ import { NButton, NDescriptions, NDescriptionsItem, NSpace, NTag, NTooltip } fro
 import { formatApiDateTime } from '@/utils/datetime';
 import { $t } from '@/locales';
 import { isUserManageable } from '../utils/userManageability';
+import UserEffectivePermissionsPanel from './UserEffectivePermissionsPanel';
 
 type User = Api.UserManagement.User;
 
@@ -14,11 +15,24 @@ export default defineComponent({
       type: Object as PropType<User>,
       required: true
     },
+    permissionsRefreshKey: {
+      type: Number,
+      default: 0
+    },
     onEdit: {
       type: Function as PropType<() => void>
     },
     onAssignRoles: {
       type: Function as PropType<() => void>
+    },
+    onAssignDirectPermissions: {
+      type: Function as PropType<() => void>
+    },
+    onRevokeDirectPermission: {
+      type: Function as PropType<(permissionId: number) => void | Promise<void>>
+    },
+    onRoleClick: {
+      type: Function as PropType<(roleId: number, roleName: string) => void>
     },
     onActivate: {
       type: Function as PropType<() => void>
@@ -52,11 +66,23 @@ export default defineComponent({
             <NDescriptionsItem label={$t('page.userManagement.role')}>
               {props.user.roles?.length ? (
                 <NSpace size="small">
-                  {props.user.roles.map(role => (
-                    <NTag key={role.id} type="info" size="small" round>
-                      {role.name}
-                    </NTag>
-                  ))}
+                  {props.user.roles.map(role =>
+                    props.onRoleClick ? (
+                      <span
+                        key={role.id}
+                        class="cursor-pointer"
+                        onClick={() => props.onRoleClick?.(role.id, role.name)}
+                      >
+                        <NTag type="info" size="small" round>
+                          {role.name}
+                        </NTag>
+                      </span>
+                    ) : (
+                      <NTag key={role.id} type="info" size="small" round>
+                        {role.name}
+                      </NTag>
+                    )
+                  )}
                 </NSpace>
               ) : (
                 '-'
@@ -107,6 +133,14 @@ export default defineComponent({
               {formatApiDateTime(props.user.createdAt)}
             </NDescriptionsItem>
           </NDescriptions>
+
+          <UserEffectivePermissionsPanel
+            userId={props.user.id}
+            manageable={manageable}
+            refreshKey={props.permissionsRefreshKey}
+            onAssignDirectPermissions={manageable ? props.onAssignDirectPermissions : undefined}
+            onRevokeDirectPermission={manageable ? props.onRevokeDirectPermission : undefined}
+          />
 
           {manageable && (
             <NSpace class="mt-16px" size="small" wrap>

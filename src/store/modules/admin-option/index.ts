@@ -1,9 +1,9 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { SetupStoreId } from '@/enum';
-import { buildAdminOptionCacheKey } from './cacheKey';
+import { buildAdminOptionCacheKey, buildPermissionFacetCacheKey } from './cacheKey';
 
-export { buildAdminOptionCacheKey };
+export { buildAdminOptionCacheKey, buildPermissionFacetCacheKey };
 
 const DEFAULT_TTL_MS = 30_000;
 
@@ -42,7 +42,11 @@ export const useAdminOptionStore = defineStore(SetupStoreId.AdminOption, () => {
     }
 
     for (const key of cache.value.keys()) {
-      if (key.startsWith(`${resource}:`)) {
+      if (
+        key.startsWith(`${resource}:`) ||
+        (resource === 'permissions' &&
+          (key.startsWith('permission-resources:') || key.startsWith('permission-actions:')))
+      ) {
         cache.value.delete(key);
       }
     }

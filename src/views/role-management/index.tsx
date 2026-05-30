@@ -9,6 +9,8 @@ import {
   fetchUpdateRole
 } from '@/service/api/role';
 import { useAdminOptionStore } from '@/store/modules/admin-option';
+import { parseQueryNumber } from '@/hooks/common/useRouteQueryFilters';
+import { useRouterPush } from '@/hooks/common/router';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -49,11 +51,23 @@ export default defineComponent({
         listFilters: {
           search: '',
           isActive: undefined,
-          isSystem: undefined
+          isSystem: undefined,
+          permissionId: undefined as number | undefined
         },
         showTotal: true,
-        immediate: true
+        routeQuery: {
+          mapping: {
+            search: { field: 'search' },
+            permissionId: { field: 'permissionId', parse: parseQueryNumber }
+          }
+        }
       });
+
+    const { routerPushByKey } = useRouterPush();
+
+    function handleViewMembers(row: Role) {
+      routerPushByKey('user-management', { query: { roleId: String(row.id) } });
+    }
 
     function invalidateRoleOptions() {
       adminOptionStore.invalidateResource('roles');
@@ -163,7 +177,8 @@ export default defineComponent({
       createRoleTableColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onAssignPermissions: handleAssignPermissions
+        onAssignPermissions: handleAssignPermissions,
+        onViewMembers: handleViewMembers
       })
     );
 

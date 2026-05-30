@@ -50,7 +50,7 @@ export function fetchUpdatePermission(
 ) {
   return request<Api.PermissionManagement.UpdatePermissionResponse>({
     url: `/api/admin/permissions/${id}`,
-    method: 'put',
+    method: 'patch',
     data
   });
 }
@@ -88,10 +88,20 @@ export function fetchBatchDeletePermissions(
  * @param id Permission ID
  * @param isActive Status
  */
-export function fetchTogglePermissionStatus(id: number, isActive: boolean) {
+export function fetchActivatePermission(id: number) {
   return request<Api.PermissionManagement.TogglePermissionStatusResponse>({
-    url: `/api/admin/permissions/${id}/status`,
-    method: 'patch',
-    data: { isActive }
+    url: `/api/admin/permissions/${id}/activate`,
+    method: 'post'
   });
+}
+
+export function fetchDeactivatePermission(id: number) {
+  return request<Api.PermissionManagement.TogglePermissionStatusResponse>({
+    url: `/api/admin/permissions/${id}/deactivate`,
+    method: 'post'
+  });
+}
+
+export function fetchTogglePermissionStatus(id: number, isActive: boolean) {
+  return isActive ? fetchActivatePermission(id) : fetchDeactivatePermission(id);
 }

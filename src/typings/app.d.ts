@@ -600,6 +600,17 @@ declare namespace App {
           getDetailFailed: string;
           assignRoles: string;
           assignRolesSuccess: string;
+          assignDirectPermissions: string;
+          assignDirectPermissionsSuccess: string;
+          assignedDirectPermissions: string;
+          addDirectPermissions: string;
+          noNewDirectPermissions: string;
+          revokeDirectPermission: string;
+          revokeDirectPermissionSuccess: string;
+          effectivePermissions: string;
+          permissionSourceRole: string;
+          permissionSourceDirect: string;
+          noEffectivePermissions: string;
           reloginHint: string;
           blacklist: string;
           unblacklist: string;
@@ -683,6 +694,10 @@ declare namespace App {
           customRole: string;
           assignPermissions: string;
           assignPermissionsSuccess: string;
+          filterByPermission: string;
+          filterByPermissionPlaceholder: string;
+          viewMembers: string;
+          userCount: string;
           permissionCount: string;
         };
         permissionManagement: {
@@ -714,10 +729,14 @@ declare namespace App {
           codeInvalid: string;
           resourceRequired: string;
           actionRequired: string;
+          resourceInvalid: string;
+          actionInvalid: string;
+          viewRelatedRoles: string;
           createSuccess: string;
           updateSuccess: string;
           deleteSuccess: string;
           batchDeleteSuccess: string;
+          batchDeletePartialSuccess: string;
           toggleStatusSuccess: string;
           confirmBatchDelete: string;
           selectPermissionsToDelete: string;

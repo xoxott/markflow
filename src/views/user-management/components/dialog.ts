@@ -39,6 +39,18 @@ export interface UserRoleDialogConfig extends BaseDialogProps {
   onCancel?: () => void;
 }
 
+/** 分配直接权限对话框配置 */
+export interface UserDirectPermissionDialogConfig extends BaseDialogProps {
+  userId: number;
+  username: string;
+  /** 已直接分配的权限（用于展示与去重） */
+  assignedDirectPermissions?: Array<
+    Pick<Api.UserManagement.EffectivePermission, 'permissionId' | 'name' | 'code'>
+  >;
+  onConfirm: (permissionIds: number[]) => boolean | undefined | Promise<boolean | undefined>;
+  onCancel?: () => void;
+}
+
 /** 拉黑原因对话框配置 */
 export interface BlacklistReasonDialogConfig extends BaseDialogProps {
   userCount: number;
@@ -74,8 +86,12 @@ export interface OnlineUsersDialogConfig extends BaseDialogProps {
 /** 用户详情抽屉配置 */
 export interface UserDetailDrawerConfig {
   user: Api.UserManagement.User;
+  permissionsRefreshKey?: number;
   onEdit?: () => void;
   onAssignRoles?: () => void;
+  onAssignDirectPermissions?: () => void;
+  onRevokeDirectPermission?: (permissionId: number) => void | Promise<void>;
+  onRoleClick?: (roleId: number, roleName: string) => void;
   onActivate?: () => void;
   onDeactivate?: () => void;
   onBlacklist?: () => void;

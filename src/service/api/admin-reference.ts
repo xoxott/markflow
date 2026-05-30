@@ -26,3 +26,25 @@ export function fetchAdminPermissionOptions(params?: Api.AdminReference.Permissi
     params
   });
 }
+
+/** 权限资源维度选项 GET /admin/permissions/options/resources */
+export function fetchAdminPermissionResourceOptions(
+  params?: Api.AdminReference.PermissionResourceOptionsQuery
+) {
+  return request<Api.AdminReference.PermissionFacetOptionListData>({
+    url: '/api/admin/permissions/options/resources',
+    method: 'get',
+    params
+  });
+}
+
+/** 权限操作维度选项 GET /admin/permissions/options/actions（须传 resource） */
+export function fetchAdminPermissionActionOptions(
+  params: Api.AdminReference.PermissionActionOptionsQuery
+) {
+  return request<Api.AdminReference.PermissionFacetOptionListData>({
+    url: '/api/admin/permissions/options/actions',
+    method: 'get',
+    params
+  });
+}

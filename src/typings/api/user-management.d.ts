@@ -155,5 +155,25 @@ declare namespace Api {
 
     /** Online users response */
     type OnlineUsersResponse = User[];
+
+    /** Effective permission item (role + direct) */
+    interface EffectivePermission {
+      permissionId: number;
+      code: string;
+      name: string;
+      source: 'role' | 'direct';
+      roleName?: string;
+    }
+
+    /** User effective permissions response */
+    interface UserEffectivePermissionsResponse {
+      data: EffectivePermission[];
+      total: number;
+    }
+
+    /** Assign direct permission to user */
+    interface AssignUserPermissionRequest {
+      permissionId: number;
+    }
   }
 }

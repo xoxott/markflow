@@ -39,6 +39,8 @@ declare namespace Api {
       updatedAt: string;
       permissions?: RolePermissionRef[];
       parentRole?: RoleParentRef;
+      /** 拥有该角色的用户数量 */
+      userCount?: number;
     }
 
     /** Role list query parameters */
@@ -49,6 +51,8 @@ declare namespace Api {
       isActive?: Common.QueryBoolean;
       /** Filter by system role（query: true | false） */
       isSystem?: Common.QueryBoolean;
+      /** Filter roles that include this permission */
+      permissionId?: number;
     }
 
     /** Create role request (ai-server CreateRoleInput) */

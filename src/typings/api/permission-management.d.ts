@@ -43,20 +43,13 @@ declare namespace Api {
     interface CreatePermissionRequest {
       name: string;
       code: string;
-      resource: string;
-      action: string;
       description?: string;
-      isActive?: boolean;
     }
 
     /** Update permission request */
     interface UpdatePermissionRequest {
       name?: string;
-      code?: string;
-      resource?: string;
-      action?: string;
       description?: string;
-      isActive?: boolean;
     }
 
     /** Batch delete permissions request */
@@ -100,8 +93,8 @@ declare namespace Api {
 
     /** Batch delete permissions response */
     interface BatchDeletePermissionsResponse {
-      message: string;
       deletedCount: number;
+      failedIds: number[];
     }
 
     /** Toggle permission status response */
@@ -115,6 +108,19 @@ declare namespace Api {
       message: string;
       roleId: number;
       permissionIds: number[];
+    }
+
+    /** Permission role ref */
+    interface PermissionRoleRef {
+      id: number;
+      code: string;
+      name: string;
+    }
+
+    /** Permission roles list response */
+    interface PermissionRolesResponse {
+      data: PermissionRoleRef[];
+      total: number;
     }
   }
 }

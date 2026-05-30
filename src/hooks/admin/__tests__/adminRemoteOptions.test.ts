@@ -1,7 +1,11 @@
 import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildAdminOptionCacheKey, useAdminOptionStore } from '@/store/modules/admin-option';
+import {
+  buildAdminOptionCacheKey,
+  buildPermissionFacetCacheKey,
+  useAdminOptionStore
+} from '@/store/modules/admin-option';
 import {
   buildPresetOptionsFromTargets,
   buildPresetOptionsFromValues,
@@ -38,6 +42,15 @@ describe('buildAdminOptionCacheKey', () => {
 
   it('uses empty entries for omitted params', () => {
     expect(buildAdminOptionCacheKey('users', {})).toBe('users:[]');
+  });
+
+  it('builds stable permission facet cache keys', () => {
+    expect(buildPermissionFacetCacheKey('resources', { search: 'user', limit: 50 })).toBe(
+      'permission-resources:[["limit",50],["search","user"]]'
+    );
+    expect(buildPermissionFacetCacheKey('actions', { resource: 'user', limit: 50 })).toBe(
+      'permission-actions:[["limit",50],["resource","user"]]'
+    );
   });
 });
 

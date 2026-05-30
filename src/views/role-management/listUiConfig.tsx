@@ -2,6 +2,7 @@ import { NSpace, NTag } from 'naive-ui';
 import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
+import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import { $t } from '@/locales';
 
 type Role = Api.RoleManagement.Role;
@@ -38,6 +39,20 @@ export function createRoleSearchFields(): SearchFieldConfig[] {
         $t('page.roleManagement.systemRole'),
         $t('page.roleManagement.customRole')
       )
+    },
+    {
+      type: 'custom',
+      field: 'permissionId',
+      label: $t('page.roleManagement.filterByPermission'),
+      render: (model, updateModel) => (
+        <AdminRemoteSelect
+          resource="permissions"
+          value={(model.permissionId as number | null) ?? null}
+          placeholder={$t('page.roleManagement.filterByPermissionPlaceholder')}
+          clearable
+          onUpdate:value={value => updateModel('permissionId', value)}
+        />
+      )
     }
   ];
 }
@@ -46,6 +61,7 @@ export interface RoleTableColumnHandlers {
   onEdit: (row: Role) => void;
   onDelete: (row: Role) => void;
   onAssignPermissions: (row: Role) => void;
+  onViewMembers: (row: Role) => void;
 }
 
 function renderPermissionsCell(row: Role) {
@@ -102,6 +118,12 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       render: (row: Role) => renderPermissionsCell(row)
     },
     {
+      title: $t('page.roleManagement.userCount'),
+      key: 'userCount',
+      width: 90,
+      render: (row: Role) => row.userCount ?? 0
+    },
+    {
       title: $t('page.roleManagement.isSystem'),
       key: 'isSystem',
       width: 100,
@@ -148,6 +170,12 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
       maxShow: 3,
       buttons: [
         {
+          label: $t('page.roleManagement.viewMembers'),
+          type: 'default',
+          icon: 'carbon:user-multiple',
+          onClick: h.onViewMembers
+        },
+        {
           label: $t('page.roleManagement.assignPermissions'),
           type: 'info',
           icon: 'carbon:key',
@@ -171,4 +199,4 @@ export function createRoleTableColumns(h: RoleTableColumnHandlers): TableColumnC
   ];
 }
 
-export const ROLE_LIST_SCROLL_X = 2040;
+export const ROLE_LIST_SCROLL_X = 2130;

@@ -10,6 +10,8 @@ import {
   fetchUpdatePermission
 } from '@/service/api/permission';
 import { useAdminOptionStore } from '@/store/modules/admin-option';
+import { parseQueryNumber, readRouteQueryValue } from '@/hooks/common/useRouteQueryFilters';
+import { useRouterPush } from '@/hooks/common/router';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -21,6 +23,7 @@ import {
   createPermissionSearchFields,
   createPermissionTableColumns
 } from './listUiConfig';
+import { buildPermissionCode } from './utils/permissionCode';
 
 type Permission = Api.PermissionManagement.Permission;
 
@@ -32,6 +35,7 @@ export default defineComponent({
     const permissionDialog = usePermissionDialog();
     const dialog = useDialog(instance?.appContext.app);
     const adminOptionStore = useAdminOptionStore();
+    const { routerPushByKey } = useRouterPush();
 
     const selectedRowKeys = ref<number[]>([]);
 
@@ -47,8 +51,33 @@ export default defineComponent({
           sortOrder: undefined as 'asc' | 'desc' | undefined
         },
         showTotal: true,
-        immediate: true
+        routeQuery: {
+          mapping: {
+            search: { field: 'search' },
+            resource: { field: 'resource' },
+            action: { field: 'action' }
+          },
+          resolve: async (query, params) => {
+            const permissionId = parseQueryNumber(readRouteQueryValue(query.permissionId) ?? '');
+            if (!permissionId) {
+              return false;
+            }
+
+            const { data: permissionDetail } = await fetchPermissionDetail(permissionId);
+            if (!permissionDetail) {
+              return false;
+            }
+
+            params.resource = permissionDetail.resource;
+            params.action = permissionDetail.action;
+            return true;
+          }
+        }
       });
+
+    function handleViewRelatedRoles(row: Permission) {
+      routerPushByKey('role-management', { query: { permissionId: String(row.id) } });
+    }
 
     async function handleAdd() {
       const formData: PermissionFormData = {
@@ -66,11 +95,8 @@ export default defineComponent({
         onConfirm: async (form: PermissionFormData) => {
           await fetchCreatePermission({
             name: form.name,
-            code: form.code,
-            resource: form.resource,
-            action: form.action,
-            description: form.description || undefined,
-            isActive: form.isActive
+            code: buildPermissionCode(form.resource, form.action),
+            description: form.description || undefined
           });
           message.success($t('common.addSuccess'));
           adminOptionStore.invalidateResource('permissions');
@@ -99,14 +125,10 @@ export default defineComponent({
         isEdit: true,
         formData,
         onConfirm: async (form: PermissionFormData) => {
-          const updateData: Api.PermissionManagement.UpdatePermissionRequest = {
+          await fetchUpdatePermission(row.id, {
             name: form.name,
-            resource: form.resource,
-            action: form.action,
-            description: form.description || undefined,
-            isActive: form.isActive
-          };
-          await fetchUpdatePermission(row.id, updateData);
+            description: form.description || undefined
+          });
           message.success($t('common.updateSuccess'));
           adminOptionStore.invalidateResource('permissions');
           getData();
@@ -139,13 +161,33 @@ export default defineComponent({
         message.warning($t('page.permissionManagement.selectPermissionsToDelete'));
         return;
       }
+
       await dialog.confirmDelete(
         $t('page.permissionManagement.confirmBatchDelete', {
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await fetchBatchDeletePermissions({ ids: selectedRowKeys.value });
-          message.success($t('page.permissionManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeletePermissions({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.permissionManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.permissionManagement.batchDeleteSuccess'));
+          }
+
           adminOptionStore.invalidateResource('permissions');
           selectedRowKeys.value = [];
           getData();
@@ -159,7 +201,8 @@ export default defineComponent({
       createPermissionTableColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onToggleStatus: handleToggleStatus
+        onToggleStatus: handleToggleStatus,
+        onViewRelatedRoles: handleViewRelatedRoles
       })
     );
 
