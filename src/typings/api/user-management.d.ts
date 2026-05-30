@@ -108,6 +108,17 @@ declare namespace Api {
       reason?: string;
     }
 
+    /** Update single user status request (ai-server UpdateUserStatusInputDto) */
+    interface UpdateUserStatusRequest {
+      isActive: boolean;
+      reason?: string;
+    }
+
+    /** Activate / deactivate user request (ai-server UserStatusReasonInputDto) */
+    interface UserStatusReasonRequest {
+      reason?: string;
+    }
+
     /** Batch blacklist users request */
     interface BatchBlacklistRequest {
       userIds: number[];

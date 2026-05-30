@@ -246,6 +246,7 @@ const local: App.I18n.Schema = {
         riskFactors: 'Risk factors',
         riskFactorNewDevice: 'New or untrusted device',
         riskFactorNewIp: 'New IP address',
+        riskFactorUnusualTime: 'Unusual login time',
         backToLogin: 'Back to sign in'
       },
       codeLogin: {
@@ -365,6 +366,15 @@ const local: App.I18n.Schema = {
       deleteSuccess: 'User deleted successfully',
       batchDeleteSuccess: 'Batch delete successfully',
       toggleStatusSuccess: 'Status updated successfully',
+      activate: 'Activate',
+      deactivate: 'Deactivate',
+      activateSuccess: 'User activated',
+      deactivateSuccess: 'User deactivated',
+      confirmDeactivate: 'Are you sure you want to deactivate user "{username}"?',
+      statusReasonLabel: 'Reason',
+      statusReasonPlaceholder:
+        'Enter a reason for the status change (optional, recorded in audit log)',
+      batchStatusReasonHint: 'This will deactivate {count} selected users',
       confirmBatchDelete: 'Are you sure you want to delete {count} selected users?',
       selectUsersToDelete: 'Please select users to delete',
       selectUsersForBatch: 'Please select users first',

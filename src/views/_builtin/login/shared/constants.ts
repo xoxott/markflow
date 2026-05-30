@@ -8,5 +8,6 @@ export const LOGIN_ALT_BTN_CLASS = 'h-36px flex-1';
 /** 风控风险因素 code → i18n 键（未知 code 原样展示） */
 export const RISK_FACTOR_I18N: Record<string, App.I18n.I18nKey> = {
   new_or_untrusted_device: 'page.login.pwdLogin.riskFactorNewDevice',
-  new_ip: 'page.login.pwdLogin.riskFactorNewIp'
+  new_ip: 'page.login.pwdLogin.riskFactorNewIp',
+  unusual_time: 'page.login.pwdLogin.riskFactorUnusualTime'
 };

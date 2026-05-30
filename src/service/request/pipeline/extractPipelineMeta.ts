@@ -18,6 +18,9 @@ export function extractPipelineMetaFromAxiosConfig(
   if (config.cacheExpireTime !== undefined) {
     meta.cacheExpireTime = config.cacheExpireTime;
   }
+  if (config.invalidatePaths !== undefined) {
+    meta.invalidatePaths = config.invalidatePaths;
+  }
 
   return meta;
 }

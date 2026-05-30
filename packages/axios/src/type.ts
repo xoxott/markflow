@@ -83,6 +83,8 @@ export type CustomAxiosRequestConfig<R extends ResponseType = 'json'> = Omit<
   dedupe?: boolean | object;
   /** GET 缓存过期时间（毫秒） */
   cacheExpireTime?: number;
+  /** 写操作成功后额外失效的 GET 路径前缀（无 query）。 默认会按 `/api/{scope}/{resource}` 约定自动向上失效；非标准 URL 时可显式声明。 */
+  invalidatePaths?: string[];
 };
 
 export interface RequestInstanceCommon<T> {

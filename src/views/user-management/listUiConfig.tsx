@@ -98,7 +98,9 @@ export interface UserTableColumnHandlers {
   onDetail: (row: User) => void;
   onEdit: (row: User) => void;
   onDelete: (row: User) => void;
-  onToggleStatus: (id: number, isActive: boolean) => void;
+  onToggleStatus: (row: User, isActive: boolean) => void;
+  onActivate: (row: User) => void;
+  onDeactivate: (row: User) => void;
   onAssignRoles: (row: User) => void;
   onBlacklist: (row: User) => void;
   onUnblacklist: (row: User) => void;
@@ -191,7 +193,7 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
       render: (row: User) => (
         <NSwitch
           value={row.isActive}
-          onUpdateValue={value => h.onToggleStatus(row.id, value)}
+          onUpdateValue={value => h.onToggleStatus(row, value)}
           size="small"
         />
       )
@@ -283,6 +285,18 @@ export function createUserTableColumns(h: UserTableColumnHandlers): TableColumnC
           key: 'assignRoles',
           label: $t('page.userManagement.assignRoles'),
           onClick: h.onAssignRoles
+        },
+        {
+          key: 'activate',
+          label: $t('page.userManagement.activate'),
+          show: (row: User) => !row.isActive,
+          onClick: h.onActivate
+        },
+        {
+          key: 'deactivate',
+          label: $t('page.userManagement.deactivate'),
+          show: (row: User) => row.isActive,
+          onClick: h.onDeactivate
         },
         {
           key: 'unblacklist',

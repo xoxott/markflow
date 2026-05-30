@@ -31,6 +31,7 @@ export function axiosRequestConfigToNormalized(
     cache: _cache,
     dedupe: _dedupe,
     cacheExpireTime: _cacheExpireTime,
+    invalidatePaths: _invalidatePaths,
     ...rest
   } = config as Record<string, unknown>;
 

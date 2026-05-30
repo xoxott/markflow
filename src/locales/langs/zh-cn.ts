@@ -244,6 +244,7 @@ const local: App.I18n.Schema = {
         riskFactors: '风险因素',
         riskFactorNewDevice: '新设备或未信任设备',
         riskFactorNewIp: '新IP地址',
+        riskFactorUnusualTime: '异常登录时间',
         backToLogin: '返回重新登录'
       },
       codeLogin: {
@@ -361,6 +362,14 @@ const local: App.I18n.Schema = {
       deleteSuccess: '删除用户成功',
       batchDeleteSuccess: '批量删除成功',
       toggleStatusSuccess: '状态更新成功',
+      activate: '启用',
+      deactivate: '停用',
+      activateSuccess: '用户已启用',
+      deactivateSuccess: '用户已停用',
+      confirmDeactivate: '确定要停用用户「{username}」吗？',
+      statusReasonLabel: '原因',
+      statusReasonPlaceholder: '请输入状态变更原因（可选，写入审计日志）',
+      batchStatusReasonHint: '将对选中的 {count} 个用户执行批量停用',
       confirmBatchDelete: '确认删除选中的 {count} 个用户吗？',
       selectUsersToDelete: '请选择要删除的用户',
       selectUsersForBatch: '请先选择用户',

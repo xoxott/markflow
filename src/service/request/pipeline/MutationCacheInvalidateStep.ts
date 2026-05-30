@@ -4,9 +4,9 @@ import type { RequestContext, RequestStep } from '@suga/request-core';
 import type { RequestCacheManager } from '@suga/request-cache';
 import type { DedupeManager } from '@suga/request-dedupe';
 import {
-  collectInvalidationUrlPaths,
   getGetRequestKeyPrefix,
-  isMutationMethod
+  isMutationMethod,
+  mergeInvalidationUrlPaths
 } from './invalidateCacheOnMutation';
 
 export interface MutationCacheInvalidateStepOptions {
@@ -35,7 +35,8 @@ export class MutationCacheInvalidateStep implements RequestStep {
       }
 
       const url = String(ctx.config.url || '');
-      const paths = collectInvalidationUrlPaths(url);
+      const explicitPaths = ctx.meta.invalidatePaths as string[] | undefined;
+      const paths = mergeInvalidationUrlPaths(url, explicitPaths);
 
       for (const urlPath of paths) {
         this.cacheManager?.deleteGetKeysByUrlPrefix(urlPath);

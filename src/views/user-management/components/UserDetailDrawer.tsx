@@ -19,6 +19,12 @@ export default defineComponent({
     onAssignRoles: {
       type: Function as PropType<() => void>
     },
+    onActivate: {
+      type: Function as PropType<() => void>
+    },
+    onDeactivate: {
+      type: Function as PropType<() => void>
+    },
     onBlacklist: {
       type: Function as PropType<() => void>
     },
@@ -107,6 +113,16 @@ export default defineComponent({
           {props.onAssignRoles && (
             <NButton size="small" onClick={props.onAssignRoles}>
               {$t('page.userManagement.assignRoles')}
+            </NButton>
+          )}
+          {!props.user.isActive && props.onActivate && (
+            <NButton size="small" type="success" onClick={props.onActivate}>
+              {$t('page.userManagement.activate')}
+            </NButton>
+          )}
+          {props.user.isActive && props.onDeactivate && (
+            <NButton size="small" type="warning" onClick={props.onDeactivate}>
+              {$t('page.userManagement.deactivate')}
             </NButton>
           )}
           {props.user.isBlacklisted

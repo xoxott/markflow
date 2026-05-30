@@ -2,6 +2,7 @@ import { computed, defineComponent, getCurrentInstance, onMounted, ref, watch } 
 import type { SelectOption } from 'naive-ui';
 import { useMessage } from 'naive-ui';
 import {
+  fetchActivateUser,
   fetchAdminRoleOptions,
   fetchAssignUserRoles,
   fetchBatchBlacklistUsers,
@@ -9,6 +10,7 @@ import {
   fetchBatchUpdateUserStatus,
   fetchBlacklistUser,
   fetchCreateUser,
+  fetchDeactivateUser,
   fetchDeleteUser,
   fetchExportUsers,
   fetchKickUser,
@@ -32,6 +34,7 @@ import { useOnlineUsersDialog } from './components/useOnlineUsersDialog';
 import { useUserDialog } from './components/useUserDialog';
 import { useUserDetailDrawer } from './components/useUserDetailDrawer';
 import { useUserRoleDialog } from './components/useUserRoleDialog';
+import { useUserStatusDialog } from './components/useUserStatusDialog';
 import UserStatsInline from './components/UserStatsInline';
 import { USER_LIST_SCROLL_X, createUserSearchFields, createUserTableColumns } from './listUiConfig';
 
@@ -59,6 +62,7 @@ export default defineComponent({
     const blacklistDialog = useBlacklistDialog();
     const onlineUsersDialog = useOnlineUsersDialog();
     const detailDrawer = useUserDetailDrawer();
+    const userStatusDialog = useUserStatusDialog();
     const dialog = useDialog(instance?.appContext.app);
 
     const selectedRowKeys = ref<number[]>([]);
@@ -166,6 +170,8 @@ export default defineComponent({
         user: userDetail,
         onEdit: () => handleEdit(userDetail),
         onAssignRoles: () => handleAssignRoles(userDetail),
+        onActivate: () => handleActivate(userDetail),
+        onDeactivate: () => handleDeactivate(userDetail),
         onBlacklist: () => handleBlacklist(userDetail),
         onUnblacklist: () => handleUnblacklist(userDetail),
         onKick: () => handleKick(userDetail)
@@ -308,12 +314,65 @@ export default defineComponent({
       });
     }
 
-    async function handleToggleStatus(userId: number, isActive: boolean) {
-      const { error } = await fetchBatchUpdateUserStatus({ userIds: [userId], isActive });
-      if (error) return;
+    async function activateUser(row: User) {
+      const { error } = await fetchActivateUser(row.id);
+      if (error) {
+        await getData();
+        return false;
+      }
 
-      message.success($t('page.userManagement.toggleStatusSuccess'));
+      message.success($t('page.userManagement.activateSuccess'));
       await refreshPage();
+      return true;
+    }
+
+    async function deactivateUser(row: User, reason?: string) {
+      const { error } = await fetchDeactivateUser(row.id, reason ? { reason } : undefined);
+      if (error) return false;
+
+      message.success($t('page.userManagement.deactivateSuccess'));
+      await refreshPage();
+      return true;
+    }
+
+    async function handleActivate(row: User) {
+      await activateUser(row);
+    }
+
+    async function handleDeactivate(row: User) {
+      await userStatusDialog.showStatusReason({
+        title: $t('page.userManagement.deactivate'),
+        description: $t('page.userManagement.confirmDeactivate', { username: row.username }),
+        confirmType: 'warning',
+        onConfirm: async reason => {
+          const succeeded = await deactivateUser(row, reason);
+          return succeeded ? true : undefined;
+        }
+      });
+    }
+
+    async function handleToggleStatus(row: User, isActive: boolean) {
+      if (isActive) {
+        await activateUser(row);
+        return;
+      }
+
+      await userStatusDialog.showStatusReason({
+        title: $t('page.userManagement.deactivate'),
+        description: $t('page.userManagement.confirmDeactivate', { username: row.username }),
+        confirmType: 'warning',
+        onCancel: () => {
+          getData();
+        },
+        onConfirm: async reason => {
+          const succeeded = await deactivateUser(row, reason);
+          if (!succeeded) {
+            await getData();
+            return;
+          }
+          return true;
+        }
+      });
     }
 
     async function handleDelete(row: User) {
@@ -352,15 +411,36 @@ export default defineComponent({
         return;
       }
 
-      const { error } = await fetchBatchUpdateUserStatus({
-        userIds: selectedRowKeys.value,
-        isActive
-      });
-      if (error) return;
+      const userIds = [...selectedRowKeys.value];
 
-      message.success($t('page.userManagement.batchStatusSuccess'));
-      selectedRowKeys.value = [];
-      await refreshPage();
+      if (isActive) {
+        const { error } = await fetchBatchUpdateUserStatus({ userIds, isActive: true });
+        if (error) return;
+
+        message.success($t('page.userManagement.batchStatusSuccess'));
+        selectedRowKeys.value = [];
+        await refreshPage();
+        return;
+      }
+
+      await userStatusDialog.showStatusReason({
+        title: $t('page.userManagement.batchDisable'),
+        userCount: userIds.length,
+        confirmType: 'warning',
+        onConfirm: async reason => {
+          const { error } = await fetchBatchUpdateUserStatus({
+            userIds,
+            isActive: false,
+            reason: reason || undefined
+          });
+          if (error) return;
+
+          message.success($t('page.userManagement.batchStatusSuccess'));
+          selectedRowKeys.value = [];
+          await refreshPage();
+          return true;
+        }
+      });
     }
 
     async function handleBatchBlacklist() {
@@ -418,6 +498,8 @@ export default defineComponent({
         onEdit: handleEdit,
         onDelete: handleDelete,
         onToggleStatus: handleToggleStatus,
+        onActivate: handleActivate,
+        onDeactivate: handleDeactivate,
         onAssignRoles: handleAssignRoles,
         onBlacklist: handleBlacklist,
         onUnblacklist: handleUnblacklist,

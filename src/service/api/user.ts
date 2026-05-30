@@ -87,6 +87,51 @@ export function fetchDeleteUser(id: number) {
 }
 
 /**
+ * Update user status (activate or deactivate)
+ *
+ * @param id User ID
+ * @param data Target status and optional reason
+ */
+export function fetchUpdateUserStatus(
+  id: number,
+  data: Api.UserManagement.UpdateUserStatusRequest
+) {
+  return request<Api.UserManagement.UpdateUserResponse>({
+    url: `/api/admin/users/${id}/status`,
+    method: 'patch',
+    data
+  });
+}
+
+/**
+ * Activate user
+ *
+ * @param id User ID
+ * @param data Optional reason for audit log
+ */
+export function fetchActivateUser(id: number, data?: Api.UserManagement.UserStatusReasonRequest) {
+  return request<Api.UserManagement.UpdateUserResponse>({
+    url: `/api/admin/users/${id}/activate`,
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * Deactivate user
+ *
+ * @param id User ID
+ * @param data Optional reason for audit log
+ */
+export function fetchDeactivateUser(id: number, data?: Api.UserManagement.UserStatusReasonRequest) {
+  return request<Api.UserManagement.UpdateUserResponse>({
+    url: `/api/admin/users/${id}/deactivate`,
+    method: 'post',
+    data
+  });
+}
+
+/**
  * Assign roles to user (full replace)
  *
  * @param id User ID

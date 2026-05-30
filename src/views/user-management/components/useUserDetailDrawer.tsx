@@ -29,6 +29,8 @@ export function useUserDetailDrawer(): UseUserDetailDrawerReturn {
           user={config.user}
           onEdit={config.onEdit}
           onAssignRoles={config.onAssignRoles}
+          onActivate={config.onActivate}
+          onDeactivate={config.onDeactivate}
           onBlacklist={config.onBlacklist}
           onUnblacklist={config.onUnblacklist}
           onKick={config.onKick}

@@ -470,6 +470,7 @@ declare namespace App {
             riskFactors: string;
             riskFactorNewDevice: string;
             riskFactorNewIp: string;
+            riskFactorUnusualTime: string;
             backToLogin: string;
           };
           codeLogin: {
@@ -583,6 +584,14 @@ declare namespace App {
           deleteSuccess: string;
           batchDeleteSuccess: string;
           toggleStatusSuccess: string;
+          activate: string;
+          deactivate: string;
+          activateSuccess: string;
+          deactivateSuccess: string;
+          confirmDeactivate: string;
+          statusReasonLabel: string;
+          statusReasonPlaceholder: string;
+          batchStatusReasonHint: string;
           confirmBatchDelete: string;
           selectUsersToDelete: string;
           selectUsersForBatch: string;
