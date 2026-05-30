@@ -16,7 +16,7 @@ declare namespace Api {
 
     /** GET /admin/users/options */
     interface UserOptionsQuery extends OptionsBaseQuery {
-      roleCode?: string;
+      roleId?: number;
     }
 
     /** GET /admin/permissions/options */

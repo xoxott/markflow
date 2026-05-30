@@ -21,7 +21,11 @@ declare namespace Api {
       sentAt: string | null;
       expiresAt: string | null;
       targetUserIds: number[] | null;
-      targetRoleCodes: string[] | null;
+      targetRoleIds: number[] | null;
+      /** detail 可选：目标用户名称回显 */
+      targetUsers?: Api.AdminOptionTarget[] | null;
+      /** detail 可选：目标角色名称回显 */
+      targetRoles?: Api.AdminOptionTarget[] | null;
       readCount: number | null;
       totalCount: number | null;
       createdAt: string;
@@ -54,7 +58,7 @@ declare namespace Api {
       sentAt?: string;
       expiresAt?: string;
       targetUserIds?: number[];
-      targetRoleCodes?: string[];
+      targetRoleIds?: number[];
     }
 
     /** Update notification request */
@@ -67,7 +71,7 @@ declare namespace Api {
       sentAt?: string;
       expiresAt?: string;
       targetUserIds?: number[];
-      targetRoleCodes?: string[];
+      targetRoleIds?: number[];
     }
 
     /** Batch delete notifications request */

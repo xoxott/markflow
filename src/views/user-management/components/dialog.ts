@@ -32,6 +32,8 @@ export interface UserRoleDialogConfig extends BaseDialogProps {
   userId: number;
   username: string;
   roleIds: number[];
+  /** 当前已分配角色（用于下拉回显 label） */
+  roles?: Array<Pick<Api.UserManagement.Role, 'id' | 'name'>>;
   /** 返回 true 表示成功并关闭 */
   onConfirm: (roleIds: number[]) => boolean | undefined | Promise<boolean | undefined>;
   onCancel?: () => void;

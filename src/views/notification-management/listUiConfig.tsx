@@ -94,7 +94,7 @@ export function createNotificationTableColumns(
       width: 150,
       render: (row: Notification) => {
         if (!row.targetUserIds || row.targetUserIds.length === 0) {
-          return row.targetRoleCodes && row.targetRoleCodes.length > 0
+          return row.targetRoleIds && row.targetRoleIds.length > 0
             ? $t('page.notificationManagement.targetRoles')
             : $t('page.notificationManagement.allUsers');
         }

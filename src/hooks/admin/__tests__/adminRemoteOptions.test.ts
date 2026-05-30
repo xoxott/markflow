@@ -1,13 +1,17 @@
+import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildAdminOptionCacheKey, useAdminOptionStore } from '@/store/modules/admin-option';
 import {
+  buildPresetOptionsFromTargets,
   buildPresetOptionsFromValues,
+  hasAdminSelectBoundValue,
   mergeAdminOptionItems
 } from '@/hooks/admin/adminOptionUtils';
 import { fetchAdminOptions } from '@/hooks/admin/fetchAdminOptions';
 import { mapOptionsToUi } from '@/hooks/admin/normalizeOptions';
 import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
+import type { UiOptionItem } from '@/hooks/admin/types';
 
 const fetchAdminRoleOptionsMock = vi.fn();
 
@@ -81,6 +85,22 @@ describe('adminOptionUtils', () => {
       { value: 'b', label: 'b' }
     ]);
     expect(buildPresetOptionsFromValues(null)).toEqual([]);
+  });
+
+  it('hasAdminSelectBoundValue detects bound values', () => {
+    expect(hasAdminSelectBoundValue(null)).toBe(false);
+    expect(hasAdminSelectBoundValue([])).toBe(false);
+    expect(hasAdminSelectBoundValue([1])).toBe(true);
+    expect(hasAdminSelectBoundValue('admin')).toBe(true);
+  });
+
+  it('buildPresetOptionsFromTargets uses names when provided and ID fallback otherwise', () => {
+    expect(buildPresetOptionsFromTargets([1, 2], [{ id: 1, name: 'Admin' }])).toEqual([
+      { value: 1, label: 'Admin' },
+      { value: 2, label: '2' }
+    ]);
+    expect(buildPresetOptionsFromTargets([], [{ id: 1, name: 'Admin' }])).toEqual([]);
+    expect(buildPresetOptionsFromTargets([3], null)).toEqual([{ value: 3, label: '3' }]);
   });
 });
 
@@ -256,5 +276,62 @@ describe('useAdminRemoteOptions debounce', () => {
       expect.not.objectContaining({ valueKey: expect.anything(), valueField: expect.anything() })
     );
     expect(remote.options.value).toEqual([{ value: 'admin', label: 'Admin' }]);
+  });
+});
+
+describe('useAdminRemoteOptions presetOptions', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    fetchAdminRoleOptionsMock.mockReset();
+    fetchAdminRoleOptionsMock.mockResolvedValue({
+      data: { items: [], total: 0 },
+      error: null
+    });
+  });
+
+  it('prefers presetOptions labels over presetValues placeholders', () => {
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues: ref([1]),
+      presetOptions: [{ value: 1, label: 'Admin Role' }]
+    });
+
+    expect(remote.options.value).toEqual([{ value: 1, label: 'Admin Role' }]);
+  });
+
+  it('falls back to presetValues when presetOptions is empty', () => {
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues: ref([42]),
+      presetOptions: []
+    });
+
+    expect(remote.options.value).toEqual([{ value: 42, label: '42' }]);
+  });
+
+  it('restores preset options after reset', async () => {
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues: ref([2]),
+      presetOptions: [{ value: 2, label: 'Editor' }]
+    });
+
+    await remote.loadInitial();
+    expect(remote.options.value).toEqual([{ value: 2, label: 'Editor' }]);
+
+    remote.reset();
+    expect(remote.options.value).toEqual([{ value: 2, label: 'Editor' }]);
+  });
+
+  it('reacts when presetOptions ref changes', async () => {
+    const presetOptionsRef = ref<UiOptionItem[]>([{ value: 1, label: 'First' }]);
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues: ref([1]),
+      presetOptions: presetOptionsRef
+    });
+
+    expect(remote.options.value).toEqual([{ value: 1, label: 'First' }]);
+
+    presetOptionsRef.value = [{ value: 1, label: 'Updated' }];
+    await nextTick();
+
+    expect(remote.options.value).toEqual([{ value: 1, label: 'Updated' }]);
   });
 });

@@ -12,6 +12,7 @@ import {
   NSwitch
 } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
+import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -39,6 +40,13 @@ export default defineComponent({
         expiresAtTimestamp.value = source.expiresAt ? new Date(source.expiresAt).getTime() : null;
       }
     });
+
+    const targetUserPresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(formModel.targetUserIds, props.config.targetUsers)
+    );
+    const targetRolePresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(formModel.targetRoleIds, props.config.targetRoles)
+    );
 
     // 通知类型选项
     const typeOptions = [
@@ -163,6 +171,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="users"
                   value={formModel.targetUserIds}
+                  presetOptions={targetUserPresetOptions.value}
                   multiple
                   placeholder={$t('page.notificationManagement.targetUsersPlaceholder' as any)}
                   style={{ width: '100%' }}
@@ -173,17 +182,17 @@ export default defineComponent({
               </NFormItem>
               <NFormItem
                 label={$t('page.notificationManagement.targetRoles' as any)}
-                path="targetRoleCodes"
+                path="targetRoleIds"
               >
                 <AdminRemoteSelect
                   resource="roles"
-                  valueKey="code"
-                  value={formModel.targetRoleCodes}
+                  value={formModel.targetRoleIds}
+                  presetOptions={targetRolePresetOptions.value}
                   multiple
                   placeholder={$t('page.notificationManagement.targetRolesPlaceholder' as any)}
                   style={{ width: '100%' }}
                   onUpdate:value={value => {
-                    formModel.targetRoleCodes = (value as string[]) ?? [];
+                    formModel.targetRoleIds = (value as number[]) ?? [];
                   }}
                 />
               </NFormItem>

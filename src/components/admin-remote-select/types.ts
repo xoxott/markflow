@@ -1,7 +1,8 @@
 import type {
   AdminOptionResource,
   AdminOptionsQueryMap,
-  OptionValueKey
+  OptionValueKey,
+  UiOptionItem
 } from '@/hooks/admin/types';
 
 /** 与 resource 对应的 query；例：AdminRemoteSelectQuery<'roles'> */
@@ -24,6 +25,8 @@ interface AdminRemoteSelectSharedProps {
   'maxTagCount'?: number | 'responsive';
   'style'?: string | Record<string, string>;
   'excludeValues'?: Array<string | number>;
+  /** 已选值的回显选项（含 label）；编辑/分配场景传入已知 label，避免只显示 ID */
+  'presetOptions'?: UiOptionItem[];
   'class'?: string;
   'onUpdate:value'?: (value: SelectValue) => void;
 }

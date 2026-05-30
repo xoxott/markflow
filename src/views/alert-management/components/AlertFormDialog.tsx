@@ -11,6 +11,7 @@ import {
   NSwitch
 } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
+import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -30,6 +31,13 @@ export default defineComponent({
     const { formRef, validate } = useNaiveForm();
 
     const formModel = useSyncedFormModel(() => props.config.formData);
+
+    const targetUserPresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(formModel.targetUserIds, props.config.targetUsers)
+    );
+    const targetRolePresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(formModel.targetRoleIds, props.config.targetRoles)
+    );
 
     // 告警级别选项
     const levelOptions = [
@@ -162,6 +170,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="users"
                   value={formModel.targetUserIds}
+                  presetOptions={targetUserPresetOptions.value}
                   multiple
                   placeholder={$t('page.alertManagement.targetUsersPlaceholder' as any)}
                   style={{ width: '100%' }}
@@ -170,19 +179,16 @@ export default defineComponent({
                   }}
                 />
               </NFormItem>
-              <NFormItem
-                label={$t('page.alertManagement.targetRoles' as any)}
-                path="targetRoleCodes"
-              >
+              <NFormItem label={$t('page.alertManagement.targetRoles' as any)} path="targetRoleIds">
                 <AdminRemoteSelect
                   resource="roles"
-                  valueKey="code"
-                  value={formModel.targetRoleCodes}
+                  value={formModel.targetRoleIds}
+                  presetOptions={targetRolePresetOptions.value}
                   multiple
                   placeholder={$t('page.alertManagement.targetRolesPlaceholder' as any)}
                   style={{ width: '100%' }}
                   onUpdate:value={value => {
-                    formModel.targetRoleCodes = (value as string[]) ?? [];
+                    formModel.targetRoleIds = (value as number[]) ?? [];
                   }}
                 />
               </NFormItem>

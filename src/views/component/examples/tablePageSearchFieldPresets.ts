@@ -76,13 +76,13 @@ export const manySearchFields: SearchFieldConfig[] = [
   },
   {
     type: 'select',
-    field: 'roleCode',
+    field: 'roleId',
     label: '角色',
     placeholder: '请选择角色',
     width: '130px',
     options: [
-      { label: '管理员', value: 'admin' },
-      { label: '用户', value: 'user' }
+      { label: '管理员', value: 1 },
+      { label: '用户', value: 2 }
     ]
   },
   {

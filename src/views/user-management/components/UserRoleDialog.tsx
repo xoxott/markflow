@@ -1,6 +1,7 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
 import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
+import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -25,6 +26,10 @@ export default defineComponent({
         roleIds.value = [...ids];
       },
       { immediate: true }
+    );
+
+    const rolePresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(roleIds.value, props.config.roles)
     );
 
     const handleClose = () => {
@@ -63,6 +68,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="roles"
                   value={roleIds.value}
+                  presetOptions={rolePresetOptions.value}
                   multiple
                   placeholder={$t('page.userManagement.rolePlaceholder')}
                   style={{ width: '100%' }}

@@ -60,8 +60,8 @@ declare namespace Api {
       isOnline?: Common.QueryBoolean;
       /** Filter by blacklist status（query: true | false） */
       isBlacklisted?: Common.QueryBoolean;
-      /** Filter by role code */
-      roleCode?: string;
+      /** Filter by role ID */
+      roleId?: number;
       /** Sort field */
       sortBy?: string;
       /** Sort direction */

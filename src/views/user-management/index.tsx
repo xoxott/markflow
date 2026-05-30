@@ -94,7 +94,7 @@ export default defineComponent({
           isActive: undefined,
           isOnline: undefined,
           isBlacklisted: undefined,
-          roleCode: undefined,
+          roleId: undefined,
           sortBy: undefined as string | undefined,
           sortOrder: undefined as 'asc' | 'desc' | undefined
         },
@@ -151,7 +151,7 @@ export default defineComponent({
         isActive: params.isActive,
         isOnline: params.isOnline,
         isBlacklisted: params.isBlacklisted,
-        roleCode: params.roleCode,
+        roleId: params.roleId,
         sortBy: params.sortBy,
         sortOrder: params.sortOrder
       };
@@ -266,6 +266,7 @@ export default defineComponent({
         userId: row.id,
         username: userDetail.username,
         roleIds: userDetail.roles?.map(r => r.id) ?? [],
+        roles: userDetail.roles ?? [],
         onConfirm: async (roleIds: number[]) => {
           const { error } = await fetchAssignUserRoles(row.id, { roleIds });
           if (error) return;

@@ -23,6 +23,8 @@ export interface UseAdminRemoteOptionsConfig<R extends AdminOptionResource> {
     | number
     | null
     | undefined;
+  /** 已选值的回显选项（含 label）；优先于 presetValues 生成的占位项 */
+  presetOptions?: Ref<UiOptionItem[] | undefined> | UiOptionItem[];
 }
 
 function resolveConfigQuery<R extends AdminOptionResource>(
@@ -58,7 +60,7 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
   const total = ref(0);
   const loading = ref(false);
   const loadFailed = ref(false);
-  const presetOptions = ref<UiOptionItem[]>([]);
+  const resolvedPresetItems = ref<UiOptionItem[]>([]);
 
   let fetchSeq = 0;
 
@@ -73,9 +75,22 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     );
   }
 
+  function resolvePresetItems(): UiOptionItem[] {
+    const items = config.presetOptions;
+    const resolved =
+      items && typeof items === 'object' && 'value' in items && !Array.isArray(items)
+        ? ((items as Ref<UiOptionItem[]>).value ?? [])
+        : ((items as UiOptionItem[] | undefined) ?? []);
+    if (resolved.length > 0) {
+      return resolved;
+    }
+    return resolvePresetValues();
+  }
+
   function syncPresetOptions() {
-    presetOptions.value = resolvePresetValues();
-    options.value = mergeAdminOptionItems(options.value, presetOptions.value);
+    resolvedPresetItems.value = resolvePresetItems();
+    // preset 后写入，使回显 label 能覆盖 options 中的占位项
+    options.value = mergeAdminOptionItems(resolvedPresetItems.value, options.value);
   }
 
   async function fetchOptions(searchText: string) {
@@ -99,14 +114,14 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
       if (result.failed) {
         loadFailed.value = true;
         if (options.value.length === 0) {
-          options.value = mergeAdminOptionItems([], presetOptions.value);
+          options.value = mergeAdminOptionItems([], resolvedPresetItems.value);
           total.value = 0;
         }
         return;
       }
 
       const uiItems = mapOptionsToUi(result.data, resolveConfigValueKey(config.valueKey));
-      options.value = mergeAdminOptionItems(uiItems, presetOptions.value);
+      options.value = mergeAdminOptionItems(uiItems, resolvedPresetItems.value);
       total.value = result.data.total;
     } finally {
       if (seq === fetchSeq) {
@@ -133,7 +148,7 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     options.value = [];
     total.value = 0;
     loadFailed.value = false;
-    presetOptions.value = [];
+    syncPresetOptions();
   }
 
   if (
@@ -147,6 +162,18 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
       { deep: true }
     );
   }
+
+  if (
+    config.presetOptions &&
+    typeof config.presetOptions === 'object' &&
+    'value' in config.presetOptions
+  ) {
+    watch(config.presetOptions as Ref<UiOptionItem[] | undefined>, () => syncPresetOptions(), {
+      deep: true
+    });
+  }
+
+  syncPresetOptions();
 
   return {
     options,

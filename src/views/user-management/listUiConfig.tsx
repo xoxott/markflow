@@ -62,16 +62,15 @@ export function createUserSearchFields(): SearchFieldConfig[] {
     },
     {
       type: 'custom',
-      field: 'roleCode',
+      field: 'roleId',
       label: $t('page.userManagement.role'),
       render: (model, updateModel) => (
         <AdminRemoteSelect
           resource="roles"
-          valueKey="code"
-          value={(model.roleCode as string | null) ?? null}
+          value={(model.roleId as number | null) ?? null}
           placeholder={$t('page.userManagement.rolePlaceholder')}
           clearable
-          onUpdate:value={value => updateModel('roleCode', value)}
+          onUpdate:value={value => updateModel('roleId', value)}
         />
       )
     },

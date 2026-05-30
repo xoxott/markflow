@@ -22,7 +22,11 @@ declare namespace Api {
       metric: string | null;
       isEnabled: boolean;
       targetUserIds: number[] | null;
-      targetRoleCodes: string[] | null;
+      targetRoleIds: number[] | null;
+      /** detail 可选：目标用户名称回显 */
+      targetUsers?: Api.AdminOptionTarget[] | null;
+      /** detail 可选：目标角色名称回显 */
+      targetRoles?: Api.AdminOptionTarget[] | null;
       triggerCount: number | null;
       lastTriggeredAt: string | null;
       resolvedAt: string | null;
@@ -60,7 +64,7 @@ declare namespace Api {
       metric?: string;
       isEnabled?: boolean;
       targetUserIds?: number[];
-      targetRoleCodes?: string[];
+      targetRoleIds?: number[];
     }
 
     /** Update alert request */
@@ -73,7 +77,7 @@ declare namespace Api {
       metric?: string;
       isEnabled?: boolean;
       targetUserIds?: number[];
-      targetRoleCodes?: string[];
+      targetRoleIds?: number[];
     }
 
     /** Batch delete alerts request */

@@ -1,9 +1,10 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, toRef, watch } from 'vue';
+import { computed, defineComponent, onMounted, toRef, watch } from 'vue';
 import { NSelect } from 'naive-ui';
 import type { SelectOption } from 'naive-ui';
+import { hasAdminSelectBoundValue } from '@/hooks/admin/adminOptionUtils';
 import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
-import type { AdminOptionResource, OptionValueKey } from '@/hooks/admin/types';
+import type { AdminOptionResource, OptionValueKey, UiOptionItem } from '@/hooks/admin/types';
 import { $t } from '@/locales';
 import type { AdminRemoteSelectQuery } from './types';
 
@@ -49,7 +50,7 @@ export default defineComponent({
       type: Number,
       default: 50
     },
-    /** UI 绑定字段，默认 value（实体 ID）；如角色/权限场景可用 code */
+    /** UI 绑定字段，默认 value（实体 ID）；仅菜单可见性等鉴权配置可指定 code */
     valueKey: {
       type: String as PropType<OptionValueKey>,
       default: 'value'
@@ -66,6 +67,11 @@ export default defineComponent({
       type: Array as PropType<Array<string | number>>,
       default: () => []
     },
+    /** 已选值的回显选项（含 label）；编辑/分配场景传入已知 label，避免只显示 ID */
+    presetOptions: {
+      type: Array as PropType<UiOptionItem[]>,
+      default: undefined
+    },
     class: {
       type: String,
       default: undefined
@@ -74,6 +80,7 @@ export default defineComponent({
   emits: ['update:value'],
   setup(props, { emit }) {
     const presetValues = computed(() => props.value);
+    const presetOptionsProp = toRef(props, 'presetOptions');
 
     const apiQuery = computed(() => ({
       limit: props.limit,
@@ -84,7 +91,8 @@ export default defineComponent({
     const remote = useAdminRemoteOptions(props.resource, {
       query: apiQuery,
       valueKey: toRef(props, 'valueKey'),
-      presetValues
+      presetValues,
+      presetOptions: presetOptionsProp
     });
 
     const selectOptions = computed<SelectOption[]>(() =>
@@ -127,6 +135,12 @@ export default defineComponent({
       },
       { deep: true }
     );
+
+    onMounted(() => {
+      if (hasAdminSelectBoundValue(props.value)) {
+        remote.loadInitial().catch(() => undefined);
+      }
+    });
 
     return () => (
       <div style={props.style} class={props.class ?? 'w-full'}>

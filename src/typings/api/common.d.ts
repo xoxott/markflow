@@ -1,6 +1,12 @@
 /** Common API types */
 
 declare namespace Api {
+  /** 目标实体（detail 可选返回 name，供 admin 下拉编辑回显） */
+  interface AdminOptionTarget {
+    id: number;
+    name: string;
+  }
+
   /**
    * Standard response format
    *

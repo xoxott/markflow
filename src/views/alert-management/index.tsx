@@ -60,7 +60,7 @@ export default defineComponent({
         metric: '',
         isEnabled: true,
         targetUserIds: [],
-        targetRoleCodes: []
+        targetRoleIds: []
       };
 
       await alertDialog.showAlertForm({
@@ -76,7 +76,7 @@ export default defineComponent({
             metric: form.metric || undefined,
             isEnabled: form.isEnabled,
             targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleCodes: form.targetRoleCodes.length > 0 ? form.targetRoleCodes : undefined
+            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
           });
           message.success($t('common.addSuccess'));
           getData();
@@ -100,12 +100,14 @@ export default defineComponent({
         metric: alertDetail.metric || '',
         isEnabled: alertDetail.isEnabled,
         targetUserIds: alertDetail.targetUserIds || [],
-        targetRoleCodes: alertDetail.targetRoleCodes || []
+        targetRoleIds: alertDetail.targetRoleIds || []
       };
 
       await alertDialog.showAlertForm({
         isEdit: true,
         formData,
+        targetUsers: alertDetail.targetUsers ?? undefined,
+        targetRoles: alertDetail.targetRoles ?? undefined,
         onConfirm: async (form: AlertFormData) => {
           const updateData: Api.AlertManagement.UpdateAlertRequest = {
             name: form.name,
@@ -116,7 +118,7 @@ export default defineComponent({
             metric: form.metric || undefined,
             isEnabled: form.isEnabled,
             targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleCodes: form.targetRoleCodes.length > 0 ? form.targetRoleCodes : undefined
+            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
           };
           await fetchUpdateAlert(row.id, updateData);
           message.success($t('common.updateSuccess'));

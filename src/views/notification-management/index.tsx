@@ -58,7 +58,7 @@ export default defineComponent({
         sentAt: '',
         expiresAt: '',
         targetUserIds: [],
-        targetRoleCodes: []
+        targetRoleIds: []
       };
 
       await notificationDialog.showNotificationForm({
@@ -74,7 +74,7 @@ export default defineComponent({
             sentAt: form.sentAt || undefined,
             expiresAt: form.expiresAt || undefined,
             targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleCodes: form.targetRoleCodes.length > 0 ? form.targetRoleCodes : undefined
+            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
           });
           message.success($t('common.addSuccess'));
           getData();
@@ -98,12 +98,14 @@ export default defineComponent({
         sentAt: notificationDetail.sentAt || '',
         expiresAt: notificationDetail.expiresAt || '',
         targetUserIds: notificationDetail.targetUserIds || [],
-        targetRoleCodes: notificationDetail.targetRoleCodes || []
+        targetRoleIds: notificationDetail.targetRoleIds || []
       };
 
       await notificationDialog.showNotificationForm({
         isEdit: true,
         formData,
+        targetUsers: notificationDetail.targetUsers ?? undefined,
+        targetRoles: notificationDetail.targetRoles ?? undefined,
         onConfirm: async (form: NotificationFormData) => {
           const updateData: Api.NotificationManagement.UpdateNotificationRequest = {
             title: form.title,
@@ -114,7 +116,7 @@ export default defineComponent({
             sentAt: form.sentAt || undefined,
             expiresAt: form.expiresAt || undefined,
             targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleCodes: form.targetRoleCodes.length > 0 ? form.targetRoleCodes : undefined
+            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
           };
           await fetchUpdateNotification(row.id, updateData);
           message.success($t('common.updateSuccess'));

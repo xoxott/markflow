@@ -120,7 +120,7 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
       width: 150,
       render: (row: Alert) => {
         if (!row.targetUserIds || row.targetUserIds.length === 0) {
-          return row.targetRoleCodes && row.targetRoleCodes.length > 0
+          return row.targetRoleIds && row.targetRoleIds.length > 0
             ? $t('page.alertManagement.targetRoles')
             : $t('page.alertManagement.allUsers');
         }
