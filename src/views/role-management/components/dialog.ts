@@ -1,3 +1,4 @@
+import type { AdminOptionTarget } from '@/hooks/admin/adminOptionUtils';
 import type { BaseDialogProps } from '@/components/base-dialog/dialog';
 
 /** 角色表单数据 */
@@ -21,6 +22,10 @@ export interface RoleFormDialogConfig extends BaseDialogProps {
   isSystem?: boolean;
   /** 表单数据 */
   formData: RoleFormData;
+  /** 已分配权限（编辑回显 label） */
+  permissions?: AdminOptionTarget[];
+  /** 父角色（编辑回显 label） */
+  parentRole?: AdminOptionTarget | null;
   /** 确认回调 */
   onConfirm: (data: RoleFormData) => void | Promise<void>;
   /** 取消回调 */
@@ -32,6 +37,8 @@ export interface RolePermissionDialogConfig extends BaseDialogProps {
   roleId: number;
   roleName: string;
   permissionIds: number[];
+  /** 已分配权限（回显 label） */
+  permissions?: AdminOptionTarget[];
   onConfirm: (permissionIds: number[]) => void | Promise<void>;
   onCancel?: () => void;
 }

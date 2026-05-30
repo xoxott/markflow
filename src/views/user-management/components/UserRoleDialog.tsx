@@ -1,8 +1,8 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
 import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
-import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { DIALOG_OVER_DRAWER_Z_INDEX } from '@/constants/overlay-z-index';
+import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';

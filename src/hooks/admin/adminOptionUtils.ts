@@ -23,14 +23,14 @@ export function buildPresetOptionsFromTargets(
   }));
 }
 
-/** 合并 preset（回显占位）与远程结果；同 value 时远程 label 优先 */
+/** 合并两组 option；同 value 时以后写入的一组为准（overrideItems 覆盖 baseItems） */
 export function mergeAdminOptionItems(
-  remoteItems: UiOptionItem[],
-  presetItems: UiOptionItem[] = []
+  baseItems: UiOptionItem[],
+  overrideItems: UiOptionItem[] = []
 ): UiOptionItem[] {
   const map = new Map<string, UiOptionItem>();
 
-  for (const item of [...presetItems, ...remoteItems]) {
+  for (const item of [...baseItems, ...overrideItems]) {
     map.set(String(item.value), item);
   }
 

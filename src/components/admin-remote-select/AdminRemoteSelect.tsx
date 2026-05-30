@@ -2,7 +2,6 @@ import type { PropType } from 'vue';
 import { computed, defineComponent, onMounted, toRef, watch } from 'vue';
 import { NSelect } from 'naive-ui';
 import type { SelectOption } from 'naive-ui';
-import { hasAdminSelectBoundValue } from '@/hooks/admin/adminOptionUtils';
 import { SELECT_MENU_OVER_DIALOG_Z_INDEX } from '@/constants/overlay-z-index';
 import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
 import type { AdminOptionResource, OptionValueKey, UiOptionItem } from '@/hooks/admin/types';
@@ -111,8 +110,14 @@ export default defineComponent({
       return diff > 0 ? diff : 0;
     });
 
-    function handleFocus() {
-      remote.loadInitial().catch(() => undefined);
+    function handleMenuShow(show: boolean) {
+      if (!show || remote.loading.value) {
+        return;
+      }
+      // 挂载预加载未完成或曾失败时，展开菜单补拉一次（避免 focus/show 重复请求）
+      if (!remote.initialLoaded.value || remote.loadFailed.value) {
+        remote.loadInitial().catch(() => undefined);
+      }
     }
 
     function handleSearch(query: string) {
@@ -138,9 +143,7 @@ export default defineComponent({
     );
 
     onMounted(() => {
-      if (hasAdminSelectBoundValue(props.value)) {
-        remote.loadInitial().catch(() => undefined);
-      }
+      remote.loadInitial().catch(() => undefined);
     });
 
     return () => (
@@ -158,7 +161,7 @@ export default defineComponent({
           maxTagCount={props.maxTagCount}
           style={{ width: '100%' }}
           menuProps={{ style: { zIndex: SELECT_MENU_OVER_DIALOG_Z_INDEX } }}
-          onFocus={handleFocus}
+          onUpdateShow={handleMenuShow}
           onSearch={handleSearch}
           onUpdateValue={handleUpdateValue}
         />

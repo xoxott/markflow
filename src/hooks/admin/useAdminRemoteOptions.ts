@@ -60,6 +60,7 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
   const total = ref(0);
   const loading = ref(false);
   const loadFailed = ref(false);
+  const initialLoaded = ref(false);
   const resolvedPresetItems = ref<UiOptionItem[]>([]);
 
   let fetchSeq = 0;
@@ -89,8 +90,8 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
 
   function syncPresetOptions() {
     resolvedPresetItems.value = resolvePresetItems();
-    // preset 后写入，使回显 label 能覆盖 options 中的占位项
-    options.value = mergeAdminOptionItems(resolvedPresetItems.value, options.value);
+    // preset 覆盖已有 options，保证编辑/分配场景回显 label 不被占位项盖住
+    options.value = mergeAdminOptionItems(options.value, resolvedPresetItems.value);
   }
 
   async function fetchOptions(searchText: string) {
@@ -121,11 +122,13 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
       }
 
       const uiItems = mapOptionsToUi(result.data, resolveConfigValueKey(config.valueKey));
-      options.value = mergeAdminOptionItems(uiItems, resolvedPresetItems.value);
+      // 远程 API 覆盖 preset 同 value 项（/options 返回的 label 为权威来源）
+      options.value = mergeAdminOptionItems(resolvedPresetItems.value, uiItems);
       total.value = result.data.total;
     } finally {
       if (seq === fetchSeq) {
         loading.value = false;
+        initialLoaded.value = true;
       }
     }
   }
@@ -148,6 +151,7 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     options.value = [];
     total.value = 0;
     loadFailed.value = false;
+    initialLoaded.value = false;
     syncPresetOptions();
   }
 
@@ -180,6 +184,7 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     total,
     loading,
     loadFailed,
+    initialLoaded,
     search,
     loadInitial,
     reset

@@ -63,13 +63,13 @@ describe('mapOptionsToUi', () => {
 });
 
 describe('adminOptionUtils', () => {
-  it('mergeAdminOptionItems dedupes by value with remote label winning', () => {
+  it('mergeAdminOptionItems dedupes by value with override winning', () => {
     const merged = mergeAdminOptionItems(
+      [{ value: 1, label: 'Preset A' }],
       [
         { value: 1, label: 'Remote A' },
         { value: 2, label: 'Remote B' }
-      ],
-      [{ value: 1, label: 'Preset A' }]
+      ]
     );
 
     expect(merged).toEqual([

@@ -4,6 +4,7 @@ import type { FormRules } from 'naive-ui';
 import { NButton, NForm, NFormItem, NInput, NInputNumber, NSpace, NTag } from 'naive-ui';
 import { REG_ROLE_CODE } from '@/constants/reg';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
+import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -25,6 +26,16 @@ export default defineComponent({
     const { formRef, validate } = useNaiveForm();
 
     const formModel = useSyncedFormModel(() => props.config.formData);
+
+    const permissionPresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(formModel.permissionIds, props.config.permissions)
+    );
+    const parentRolePresetOptions = computed(() =>
+      buildPresetOptionsFromTargets(
+        formModel.parentRoleId !== null ? [formModel.parentRoleId] : [],
+        props.config.parentRole ? [props.config.parentRole] : undefined
+      )
+    );
 
     const codeDisabled = computed(() => props.config.isEdit && Boolean(props.config.isSystem));
 
@@ -145,6 +156,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="roles"
                   value={formModel.parentRoleId}
+                  presetOptions={parentRolePresetOptions.value}
                   placeholder={$t('page.roleManagement.parentRolePlaceholder')}
                   excludeValues={props.config.roleId !== undefined ? [props.config.roleId] : []}
                   onUpdate:value={value => {
@@ -156,6 +168,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="permissions"
                   value={formModel.permissionIds}
+                  presetOptions={permissionPresetOptions.value}
                   multiple
                   placeholder={$t('page.roleManagement.permissionsPlaceholder')}
                   style={{ width: '100%' }}

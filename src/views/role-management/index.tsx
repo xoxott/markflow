@@ -103,6 +103,10 @@ export default defineComponent({
         roleId: row.id,
         isSystem: roleDetail.isSystem,
         formData,
+        permissions: roleDetail.permissions?.map(p => ({ id: p.id, name: p.name })) ?? [],
+        parentRole: roleDetail.parentRole
+          ? { id: roleDetail.parentRole.id, name: roleDetail.parentRole.name }
+          : null,
         onConfirm: async (form: RoleFormData) => {
           const payload: Api.RoleManagement.UpdateRoleRequest = {
             name: form.name,
@@ -123,16 +127,18 @@ export default defineComponent({
     }
 
     async function handleAssignPermissions(row: Role) {
-      let permissionIds = row.permissions?.map(p => p.id) ?? [];
-      if (permissionIds.length === 0) {
+      let permissions = row.permissions ?? [];
+      if (permissions.length === 0) {
         const { data: roleDetail } = await fetchRoleDetail(row.id);
-        permissionIds = roleDetail?.permissions?.map(p => p.id) ?? [];
+        permissions = roleDetail?.permissions ?? [];
       }
+      const permissionIds = permissions.map(p => p.id);
 
       await rolePermissionDialog.showRolePermission({
         roleId: row.id,
         roleName: row.name,
         permissionIds,
+        permissions: permissions.map(p => ({ id: p.id, name: p.name })),
         onConfirm: async ids => {
           await fetchAssignRolePermissions(row.id, { permissionIds: ids });
           message.success($t('page.roleManagement.assignPermissionsSuccess'));
