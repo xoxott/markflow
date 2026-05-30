@@ -2,7 +2,7 @@ import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
 import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
 import { DIALOG_OVER_DRAWER_Z_INDEX } from '@/constants/overlay-z-index';
-import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
+import { mapTargetsToPresetOptionsIfAny } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -29,9 +29,7 @@ export default defineComponent({
       { immediate: true }
     );
 
-    const rolePresetOptions = computed(() =>
-      buildPresetOptionsFromTargets(roleIds.value, props.config.roles)
-    );
+    const rolePresetOptions = mapTargetsToPresetOptionsIfAny(props.config.roles);
 
     const handleClose = () => {
       props.config.onClose?.();
@@ -70,7 +68,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="roles"
                   value={roleIds.value}
-                  presetOptions={rolePresetOptions.value}
+                  presetOptions={rolePresetOptions}
                   multiple
                   placeholder={$t('page.userManagement.rolePlaceholder')}
                   style={{ width: '100%' }}

@@ -23,7 +23,7 @@ export interface UseAdminRemoteOptionsConfig<R extends AdminOptionResource> {
     | number
     | null
     | undefined;
-  /** 已选值的回显选项（含 label）；优先于 presetValues 生成的占位项 */
+  /** 已选值的回显选项（含 label）；传服务端 detail 已知实体，不随当前 bind value 变化 */
   presetOptions?: Ref<UiOptionItem[] | undefined> | UiOptionItem[];
 }
 
@@ -80,18 +80,37 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     const items = config.presetOptions;
     const resolved =
       items && typeof items === 'object' && 'value' in items && !Array.isArray(items)
-        ? ((items as Ref<UiOptionItem[]>).value ?? [])
+        ? ((items as Ref<UiOptionItem[] | undefined>).value ?? [])
         : ((items as UiOptionItem[] | undefined) ?? []);
     if (resolved.length > 0) {
       return resolved;
     }
+    // presetOptions 显式传 [] 时不回退 presetValues；远程失败时 tag 可能暂显示 ID
     return resolvePresetValues();
+  }
+
+  /** 调用方显式传入 presetOptions（含空数组）；undefined 表示未提供，回退 presetValues sync */
+  function isExplicitPresetOptions(): boolean {
+    if (!config.presetOptions) {
+      return false;
+    }
+    if (
+      typeof config.presetOptions === 'object' &&
+      'value' in config.presetOptions &&
+      !Array.isArray(config.presetOptions)
+    ) {
+      return (config.presetOptions as Ref<UiOptionItem[] | undefined>).value !== undefined;
+    }
+    return true;
   }
 
   function syncPresetOptions() {
     resolvedPresetItems.value = resolvePresetItems();
-    // preset 覆盖已有 options，保证编辑/分配场景回显 label 不被占位项盖住
-    options.value = mergeAdminOptionItems(options.value, resolvedPresetItems.value);
+    // initialLoaded=false：远程未返回，preset 覆盖 ID 占位，保证打开即回显
+    // initialLoaded=true：远程已写入 options，保留远程 label，避免选中后回退为 ID
+    options.value = initialLoaded.value
+      ? mergeAdminOptionItems(resolvedPresetItems.value, options.value)
+      : mergeAdminOptionItems(options.value, resolvedPresetItems.value);
   }
 
   async function fetchOptions(searchText: string) {
@@ -155,10 +174,14 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
     syncPresetOptions();
   }
 
+  const explicitPresetOptions = isExplicitPresetOptions();
+
+  // 未显式传 presetOptions 时监听 presetValues，供列表筛选等仅 bind value 的场景做初始占位
   if (
     config.presetValues &&
     typeof config.presetValues === 'object' &&
-    'value' in config.presetValues
+    'value' in config.presetValues &&
+    !explicitPresetOptions
   ) {
     watch(
       config.presetValues as Ref<Array<string | number> | string | number | null | undefined>,
@@ -170,7 +193,8 @@ export function useAdminRemoteOptions<R extends AdminOptionResource>(
   if (
     config.presetOptions &&
     typeof config.presetOptions === 'object' &&
-    'value' in config.presetOptions
+    'value' in config.presetOptions &&
+    explicitPresetOptions
   ) {
     watch(config.presetOptions as Ref<UiOptionItem[] | undefined>, () => syncPresetOptions(), {
       deep: true

@@ -3,6 +3,7 @@ import { computed, defineComponent, onMounted, toRef, watch } from 'vue';
 import { NSelect } from 'naive-ui';
 import type { SelectOption } from 'naive-ui';
 import { SELECT_MENU_OVER_DIALOG_Z_INDEX } from '@/constants/overlay-z-index';
+import { coerceAdminSelectValue } from '@/hooks/admin/adminOptionUtils';
 import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
 import type { AdminOptionResource, OptionValueKey, UiOptionItem } from '@/hooks/admin/types';
 import { $t } from '@/locales';
@@ -67,7 +68,7 @@ export default defineComponent({
       type: Array as PropType<Array<string | number>>,
       default: () => []
     },
-    /** 已选值的回显选项（含 label）；编辑/分配场景传入已知 label，避免只显示 ID */
+    /** 服务端 detail 已知实体的静态回显；不随当前 value 变化，新选项 label 由远程 options 提供 */
     presetOptions: {
       type: Array as PropType<UiOptionItem[]>,
       default: undefined
@@ -125,7 +126,7 @@ export default defineComponent({
     }
 
     function handleUpdateValue(value: SelectValue) {
-      emit('update:value', value);
+      emit('update:value', coerceAdminSelectValue(value, remote.options.value) as SelectValue);
     }
 
     watch(

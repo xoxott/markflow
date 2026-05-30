@@ -6,7 +6,28 @@ export interface AdminOptionTarget {
   name: string;
 }
 
-/** 从已选 ID 与可选名称构建回显 option；无 name 时 label 为 ID 字符串 */
+/** 从服务端 detail 已知实体构建静态回显 option（不随当前选中值变化） */
+export function mapTargetsToPresetOptions(targets?: AdminOptionTarget[] | null): UiOptionItem[] {
+  return (targets ?? []).map(target => ({
+    value: target.id,
+    label: target.name
+  }));
+}
+
+/** 有 targets 时返回 preset；无则 undefined，不传 prop 时 hook 可监听 presetValues */
+export function mapTargetsToPresetOptionsIfAny(
+  targets?: AdminOptionTarget[] | null
+): UiOptionItem[] | undefined {
+  if (!targets?.length) {
+    return undefined;
+  }
+  return mapTargetsToPresetOptions(targets);
+}
+
+/**
+ * 从已选 ID 与可选名称构建回显 option；无 name 时 label 为 ID 字符串。 仅当 ids 与 targets 可能不一致时使用；编辑弹窗静态回显请用
+ * mapTargetsToPresetOptions。
+ */
 export function buildPresetOptionsFromTargets(
   ids: number[] | null | undefined,
   targets?: AdminOptionTarget[] | null
@@ -63,4 +84,27 @@ export function hasAdminSelectBoundValue(
     return value.length > 0;
   }
   return true;
+}
+
+type AdminSelectValue = string | number | Array<string | number> | null;
+
+/** 将 NSelect emit 的值对齐到 options 中的类型，避免 number/string 不一致导致 tag 显示原始值 */
+export function coerceAdminSelectValue(
+  value: AdminSelectValue,
+  options: UiOptionItem[]
+): AdminSelectValue {
+  if (value === null) {
+    return null;
+  }
+
+  const coerceOne = (item: string | number) => {
+    const matched = options.find(option => String(option.value) === String(item));
+    return matched ? matched.value : item;
+  };
+
+  if (Array.isArray(value)) {
+    return value.map(coerceOne);
+  }
+
+  return coerceOne(value);
 }

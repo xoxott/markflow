@@ -1,7 +1,7 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
 import { NButton, NForm, NFormItem, NSpace } from 'naive-ui';
-import { buildPresetOptionsFromTargets } from '@/hooks/admin/adminOptionUtils';
+import { mapTargetsToPresetOptionsIfAny } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
@@ -26,10 +26,6 @@ export default defineComponent({
         permissionIds.value = [...ids];
       },
       { immediate: true }
-    );
-
-    const permissionPresetOptions = computed(() =>
-      buildPresetOptionsFromTargets(permissionIds.value, props.config.permissions)
     );
 
     const handleClose = () => {
@@ -68,7 +64,7 @@ export default defineComponent({
                 <AdminRemoteSelect
                   resource="permissions"
                   value={permissionIds.value}
-                  presetOptions={permissionPresetOptions.value}
+                  presetOptions={mapTargetsToPresetOptionsIfAny(props.config.permissions)}
                   multiple
                   placeholder={$t('page.roleManagement.permissionsPlaceholder')}
                   style={{ width: '100%' }}

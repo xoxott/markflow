@@ -5,7 +5,10 @@ import { buildAdminOptionCacheKey, useAdminOptionStore } from '@/store/modules/a
 import {
   buildPresetOptionsFromTargets,
   buildPresetOptionsFromValues,
+  coerceAdminSelectValue,
   hasAdminSelectBoundValue,
+  mapTargetsToPresetOptions,
+  mapTargetsToPresetOptionsIfAny,
   mergeAdminOptionItems
 } from '@/hooks/admin/adminOptionUtils';
 import { fetchAdminOptions } from '@/hooks/admin/fetchAdminOptions';
@@ -101,6 +104,40 @@ describe('adminOptionUtils', () => {
     ]);
     expect(buildPresetOptionsFromTargets([], [{ id: 1, name: 'Admin' }])).toEqual([]);
     expect(buildPresetOptionsFromTargets([3], null)).toEqual([{ value: 3, label: '3' }]);
+  });
+
+  it('mapTargetsToPresetOptions maps server detail targets to static echo options', () => {
+    expect(
+      mapTargetsToPresetOptions([
+        { id: 1, name: 'Admin' },
+        { id: 2, name: 'Editor' }
+      ])
+    ).toEqual([
+      { value: 1, label: 'Admin' },
+      { value: 2, label: 'Editor' }
+    ]);
+    expect(mapTargetsToPresetOptions(null)).toEqual([]);
+    expect(mapTargetsToPresetOptions([])).toEqual([]);
+  });
+
+  it('mapTargetsToPresetOptionsIfAny returns undefined when targets empty', () => {
+    expect(mapTargetsToPresetOptionsIfAny(null)).toBeUndefined();
+    expect(mapTargetsToPresetOptionsIfAny([])).toBeUndefined();
+    expect(mapTargetsToPresetOptionsIfAny([{ id: 1, name: 'Admin' }])).toEqual([
+      { value: 1, label: 'Admin' }
+    ]);
+  });
+
+  it('coerceAdminSelectValue aligns emitted values to option value types', () => {
+    const options = [
+      { value: 1, label: 'Admin' },
+      { value: 'editor', label: 'Editor' }
+    ];
+
+    expect(coerceAdminSelectValue('1', options)).toBe(1);
+    expect(coerceAdminSelectValue(['1', 'editor'], options)).toEqual([1, 'editor']);
+    expect(coerceAdminSelectValue(null, options)).toBeNull();
+    expect(coerceAdminSelectValue('missing', options)).toBe('missing');
   });
 });
 
@@ -333,5 +370,72 @@ describe('useAdminRemoteOptions presetOptions', () => {
     await nextTick();
 
     expect(remote.options.value).toEqual([{ value: 1, label: 'Updated' }]);
+  });
+
+  it('keeps remote labels after selection when presetOptions is static', async () => {
+    fetchAdminRoleOptionsMock.mockResolvedValueOnce({
+      data: {
+        items: [
+          { value: 1, label: 'Admin', code: 'admin' },
+          { value: 2, label: 'Editor', code: 'editor' }
+        ],
+        total: 2
+      },
+      error: null
+    });
+
+    const presetValues = ref<number[]>([1]);
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues,
+      presetOptions: ref([{ value: 1, label: 'Admin From Config' }])
+    });
+
+    await remote.loadInitial();
+    expect(remote.options.value.find(item => item.value === 2)?.label).toBe('Editor');
+
+    presetValues.value = [1, 2];
+    await nextTick();
+
+    expect(remote.options.value.find(item => item.value === 1)?.label).toBe('Admin');
+    expect(remote.options.value.find(item => item.value === 2)?.label).toBe('Editor');
+    expect(remote.options.value.find(item => item.value === 2)?.label).not.toBe('2');
+  });
+
+  it('syncs presetValues when presetOptions ref is undefined', async () => {
+    const presetValues = ref<number[]>([1]);
+    const presetOptionsRef = ref<UiOptionItem[] | undefined>(undefined);
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues,
+      presetOptions: presetOptionsRef
+    });
+
+    expect(remote.options.value).toEqual([{ value: 1, label: '1' }]);
+
+    presetValues.value = [1, 2];
+    await nextTick();
+
+    expect(remote.options.value).toEqual([
+      { value: 1, label: '1' },
+      { value: 2, label: '2' }
+    ]);
+  });
+
+  it('reset clears initialLoaded and restores preset-first merge', async () => {
+    fetchAdminRoleOptionsMock.mockResolvedValueOnce({
+      data: { items: [{ value: 1, label: 'Admin', code: 'admin' }], total: 1 },
+      error: null
+    });
+
+    const remote = useAdminRemoteOptions('roles', {
+      presetValues: ref([1]),
+      presetOptions: ref([{ value: 1, label: 'Preset Admin' }])
+    });
+
+    await remote.loadInitial();
+    expect(remote.options.value).toEqual([{ value: 1, label: 'Admin' }]);
+
+    remote.reset();
+    expect(remote.initialLoaded.value).toBe(false);
+    expect(remote.options.value).toEqual([{ value: 1, label: 'Preset Admin' }]);
   });
 });
