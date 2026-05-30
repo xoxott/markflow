@@ -3,6 +3,7 @@ import { computed, defineComponent, onMounted, toRef, watch } from 'vue';
 import { NSelect } from 'naive-ui';
 import type { SelectOption } from 'naive-ui';
 import { hasAdminSelectBoundValue } from '@/hooks/admin/adminOptionUtils';
+import { SELECT_MENU_OVER_DIALOG_Z_INDEX } from '@/constants/overlay-z-index';
 import { useAdminRemoteOptions } from '@/hooks/admin/useAdminRemoteOptions';
 import type { AdminOptionResource, OptionValueKey, UiOptionItem } from '@/hooks/admin/types';
 import { $t } from '@/locales';
@@ -156,6 +157,7 @@ export default defineComponent({
           remote
           maxTagCount={props.maxTagCount}
           style={{ width: '100%' }}
+          menuProps={{ style: { zIndex: SELECT_MENU_OVER_DIALOG_Z_INDEX } }}
           onFocus={handleFocus}
           onSearch={handleSearch}
           onUpdateValue={handleUpdateValue}

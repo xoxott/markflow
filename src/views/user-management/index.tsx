@@ -56,8 +56,8 @@ export default defineComponent({
   setup() {
     const message = useMessage();
     const instance = getCurrentInstance();
-    const userDialog = useUserDialog();
-    const userRoleDialog = useUserRoleDialog();
+    const userDialog = useUserDialog(instance?.appContext.app);
+    const userRoleDialog = useUserRoleDialog(instance?.appContext.app);
     const blacklistDialog = useBlacklistDialog();
     const onlineUsersDialog = useOnlineUsersDialog();
     const userStatusDialog = useUserStatusDialog();

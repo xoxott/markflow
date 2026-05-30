@@ -59,6 +59,8 @@ export function useUserDetailDrawer(deps: UserDetailDrawerDeps): UseUserDetailDr
       width: 480,
       placement: 'right',
       closable: true,
+      // 允许在抽屉上打开弹窗（分配角色等）时与 teleported 下拉正常交互
+      trapFocus: false,
       onClose: () => {
         if (activeInstance === instance) {
           resetActive();
