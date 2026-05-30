@@ -15,6 +15,16 @@ type TableColumn<T> = NaiveUI.TableColumn<T>;
 // transformBackendResponse returns response.data.data, which is { lists: T[], meta: {...} }
 type ListResponseData<T> = Api.ListData<T>;
 
+function parseListMeta(meta?: Api.ListData<unknown>['meta']) {
+  const limit = Number(meta?.limit) || DEFAULT_TABLE_PAGE_SIZE;
+
+  return {
+    page: Number(meta?.page) || 1,
+    pageSize: limit <= 0 ? DEFAULT_TABLE_PAGE_SIZE : limit,
+    total: Number(meta?.total) || 0
+  };
+}
+
 export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTableConfig<A>) {
   const scope = effectScope();
   const appStore = useAppStore();
@@ -49,12 +59,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
       const responseData = res.data as unknown as ListResponseData<GetTableData<A>>;
 
       const records: GetTableData<A>[] = responseData?.lists || [];
-      const page = responseData?.meta?.page || 1;
-      const limit = responseData?.meta?.limit || DEFAULT_TABLE_PAGE_SIZE;
-      const total = responseData?.meta?.total || 0;
-
-      // Ensure that the limit is greater than 0, If it is less than 0, it will cause paging calculation errors.
-      const pageSize = limit <= 0 ? DEFAULT_TABLE_PAGE_SIZE : limit;
+      const { page, pageSize, total } = parseListMeta(responseData?.meta);
 
       const recordsWithIndex: NaiveUI.TableDataWithIndex<GetTableData<A>>[] = records.map(
         (item, index) => {

@@ -138,8 +138,8 @@ export default defineComponent({
           render: (_row: any, index: number) => {
             const pg = props.pagination;
             const isObj = typeof pg === 'object' && pg !== null;
-            const page = isObj ? ((pg as PaginationProps).page ?? 1) : 1;
-            const pageSize = isObj ? ((pg as PaginationProps).pageSize ?? 10) : 10;
+            const page = isObj ? Number((pg as PaginationProps).page ?? 1) || 1 : 1;
+            const pageSize = isObj ? Number((pg as PaginationProps).pageSize ?? 10) || 10 : 10;
             return (page - 1) * pageSize + index + 1;
           }
         });
@@ -205,11 +205,17 @@ export default defineComponent({
     });
 
     /** 合并顺序：外部 tableProps 先展开，再用内置受控字段覆盖，避免 checkedRowKeys 被意外冲掉 */
+    const usesServerPagination = computed(() => {
+      const pg = props.pagination;
+      return pg !== false && pg !== undefined && typeof pg === 'object';
+    });
+
     const mergedTableProps = computed((): Partial<NaiveDataTableProps> => {
       const useFlexHeight = autoFlexEnabled.value && flexHeight.value;
 
       return {
         ...(props.tableProps ?? {}),
+        remote: props.tableProps?.remote ?? (usesServerPagination.value ? true : undefined),
         columns: processedColumns.value,
         data: props.data,
         loading: props.loading,

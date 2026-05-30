@@ -29,11 +29,11 @@ declare namespace Api {
     /** Pagination metadata */
     meta: {
       /** Current page */
-      page: number;
+      page: number | string;
       /** Items per page */
-      limit: number;
+      limit: number | string;
       /** Total count */
-      total: number;
+      total: number | string;
       /** Total pages */
       totalPages: number;
       /** Whether has previous page */
