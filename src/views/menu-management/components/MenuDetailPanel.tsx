@@ -109,7 +109,9 @@ export default defineComponent({
                       )}
                     </div>
                     <div class="min-w-0">
-                      <h3 class="menu-management__detail-name">{resolveMenuNodeLabel(props.node)}</h3>
+                      <h3 class="menu-management__detail-name">
+                        {resolveMenuNodeLabel(props.node)}
+                      </h3>
                       <div class="menu-management__detail-meta">
                         <NTag
                           size="small"
