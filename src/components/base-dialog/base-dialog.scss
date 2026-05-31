@@ -1,0 +1,15 @@
+.base-dialog__card--scrollable {
+  :deep(.n-card__content) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+.base-dialog__content-host {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}

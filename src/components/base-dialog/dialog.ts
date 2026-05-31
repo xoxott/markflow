@@ -30,8 +30,8 @@ export interface BaseDialogProps {
   minHeight?: number;
   /** 最大宽度 */
   maxWidth?: number;
-  /** 最大高度 */
-  maxHeight?: number;
+  /** 最大高度（支持 px 数值或 calc/vh 等 CSS 表达式） */
+  maxHeight?: number | string;
   /** 是否可拖拽 */
   draggable?: boolean;
   /** 是否可调整大小 */

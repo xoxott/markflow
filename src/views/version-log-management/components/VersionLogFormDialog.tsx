@@ -1,6 +1,6 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import { NButton, NDatePicker, NForm, NFormItem, NInput, NSelect, NSpace, NSwitch } from 'naive-ui';
+import { NButton, NDatePicker, NForm, NFormItem, NInput, NSpace, NSwitch } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
@@ -20,27 +20,15 @@ export default defineComponent({
     const { formRef, validate } = useNaiveForm();
 
     const releaseDateTimestamp = ref<number | null>(null);
-    const publishedAtTimestamp = ref<number | null>(null);
 
     const formModel = useSyncedFormModel(() => props.config.formData, {
       afterSync(_, source) {
         releaseDateTimestamp.value = source.releaseDate
           ? new Date(source.releaseDate).getTime()
           : null;
-        publishedAtTimestamp.value = source.publishedAt
-          ? new Date(source.publishedAt).getTime()
-          : null;
       }
     });
 
-    // 版本类型选项
-    const typeOptions = [
-      { label: $t('page.versionLogManagement.typeMajor'), value: 'major' },
-      { label: $t('page.versionLogManagement.typeMinor'), value: 'minor' },
-      { label: $t('page.versionLogManagement.typePatch'), value: 'patch' }
-    ];
-
-    // 表单验证规则
     const formRules = {
       version: [
         {
@@ -54,11 +42,11 @@ export default defineComponent({
           trigger: 'blur'
         }
       ],
-      type: [
+      title: [
         {
           required: true,
-          message: $t('page.versionLogManagement.typeRequired'),
-          trigger: 'change'
+          message: $t('page.versionLogManagement.titleRequired'),
+          trigger: 'blur'
         }
       ],
       releaseDate: [
@@ -67,17 +55,14 @@ export default defineComponent({
           message: $t('page.versionLogManagement.releaseDateRequired'),
           trigger: 'change'
         }
-      ],
-      content: [
-        {
-          required: true,
-          message: $t('page.versionLogManagement.contentRequired'),
-          trigger: 'blur'
-        }
       ]
     };
 
-    // 关闭弹窗
+    const updateReleaseDate = (value: number | null) => {
+      releaseDateTimestamp.value = value;
+      formModel.releaseDate = value ? new Date(value).toISOString() : '';
+    };
+
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -88,37 +73,26 @@ export default defineComponent({
       onClose: handleClose,
       title: props.config.title ?? (props.config.isEdit ? $t('common.edit') : $t('common.add')),
       width: props.config.width ?? 800,
-      height: props.config.height ?? 'auto',
+      height: props.config.height ?? 'calc(100vh - 80px)',
+      maxHeight: props.config.maxHeight ?? 'calc(100vh - 80px)',
+      minHeight: props.config.minHeight ?? 520,
       draggable: props.config.draggable ?? true,
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
 
-      // 将时间戳转换为 ISO 字符串
-      const submitData = {
-        ...formModel,
-        releaseDate: releaseDateTimestamp.value
-          ? new Date(releaseDateTimestamp.value).toISOString()
-          : '',
-        publishedAt: publishedAtTimestamp.value
-          ? new Date(publishedAtTimestamp.value).toISOString()
-          : ''
-      };
-      await props.config.onConfirm(submitData);
+      await props.config.onConfirm({ ...formModel });
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -146,29 +120,26 @@ export default defineComponent({
                   disabled={props.config.isEdit}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.versionLogManagement.type')} path="type">
-                <NSelect
-                  v-model:value={formModel.type}
-                  placeholder={$t('page.versionLogManagement.typePlaceholder')}
-                  options={typeOptions}
+              <NFormItem label={$t('page.versionLogManagement.releaseTitle')} path="title">
+                <NInput
+                  v-model:value={formModel.title}
+                  placeholder={$t('page.versionLogManagement.titlePlaceholder')}
                 />
               </NFormItem>
               <NFormItem label={$t('page.versionLogManagement.releaseDate')} path="releaseDate">
                 <NDatePicker
-                  v-model:value={releaseDateTimestamp.value}
+                  value={releaseDateTimestamp.value}
                   type="date"
                   placeholder={$t('page.versionLogManagement.releaseDatePlaceholder')}
                   style={{ width: '100%' }}
-                  onUpdateValue={value => {
-                    releaseDateTimestamp.value = value;
-                  }}
+                  onUpdateValue={updateReleaseDate}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.versionLogManagement.content')} path="content">
+              <NFormItem label={$t('page.versionLogManagement.description')} path="description">
                 <NInput
-                  v-model:value={formModel.content}
+                  v-model:value={formModel.description}
                   type="textarea"
-                  placeholder={$t('page.versionLogManagement.contentPlaceholder')}
+                  placeholder={$t('page.versionLogManagement.descriptionPlaceholder')}
                   rows={4}
                 />
               </NFormItem>
@@ -196,24 +167,12 @@ export default defineComponent({
                   rows={3}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.versionLogManagement.publishedAt')} path="publishedAt">
-                <NDatePicker
-                  v-model:value={publishedAtTimestamp.value}
-                  type="datetime"
-                  placeholder={$t('page.versionLogManagement.publishedAtPlaceholder')}
-                  clearable
-                  style={{ width: '100%' }}
-                  onUpdateValue={value => {
-                    publishedAtTimestamp.value = value;
-                  }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.versionLogManagement.status')} path="isPublished">
-                <NSwitch v-model:value={formModel.isPublished} />
+              <NFormItem label={$t('page.versionLogManagement.isPrerelease')} path="isPrerelease">
+                <NSwitch v-model:value={formModel.isPrerelease} />
                 <span style={{ marginLeft: '8px' }}>
-                  {formModel.isPublished
-                    ? $t('page.versionLogManagement.published')
-                    : $t('page.versionLogManagement.unpublished')}
+                  {formModel.isPrerelease
+                    ? $t('page.versionLogManagement.prerelease')
+                    : $t('page.versionLogManagement.stableRelease')}
                 </span>
               </NFormItem>
             </NForm>

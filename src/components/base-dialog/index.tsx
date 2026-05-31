@@ -1,11 +1,13 @@
 /** BaseDialog - 基础可拖拽弹窗组件 基于 Naive UI 的 NModal 进行二次封装,添加拖拽和调整大小功能 */
 
 import type { PropType } from 'vue';
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { NButton, NCard, NIcon, NModal, useThemeVars } from 'naive-ui';
+import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useElementSize } from '@vueuse/core';
+import { NButton, NCard, NIcon, NModal, NScrollbar, useThemeVars } from 'naive-ui';
 import { Close, Contract, Expand } from '@vicons/ionicons5';
 import type { BaseDialogProps, DialogPosition, ResizeDirection } from './dialog';
 import { DEFAULT_DIALOG_CONFIG } from './dialog';
+import './base-dialog.scss';
 
 /** BaseDialog config prop 的宽松类型 — 允许 extends BaseDialogProps 的子类型传递额外字段 */
 type BaseDialogConfigProp = BaseDialogProps & Record<string, any>;
@@ -20,6 +22,13 @@ export default defineComponent({
     const themeVars = useThemeVars();
     const dialogRef = ref<HTMLElement | null>(null);
     const headerRef = ref<HTMLElement | null>(null);
+    const contentHostRef = ref<HTMLElement | null>(null);
+    const scrollbarRef = ref<{ sync?: () => void } | null>(null);
+    const { height: contentHostHeight } = useElementSize(contentHostRef);
+
+    const syncScrollbar = () => {
+      nextTick(() => scrollbarRef.value?.sync?.());
+    };
 
     // 从 config 中获取参数，带默认值
     const getConfig = <K extends keyof BaseDialogProps>(key: K): BaseDialogProps[K] =>
@@ -44,6 +53,14 @@ export default defineComponent({
     const zIndex = computed(() => getConfig('zIndex'));
     const dialogClass = computed(() => getConfig('class') ?? '');
     const contentClass = computed(() => getConfig('contentClass') ?? '');
+
+    const isScrollable = computed(() => Boolean(maxHeight.value));
+
+    const scrollbarStyle = computed(() => {
+      if (!isScrollable.value) return undefined;
+      const hostHeight = contentHostHeight.value;
+      return hostHeight > 0 ? { height: `${hostHeight}px` } : undefined;
+    });
 
     // 状态管理
     const isDragging = ref(false);
@@ -109,13 +126,23 @@ export default defineComponent({
         style.height = `${height.value}px`;
       } else if (height.value !== 'auto') {
         style.height = height.value as string;
+      } else if (maxHeight.value) {
+        // 仅设置 maxHeight 时默认撑满至最大高度，避免可滚动内容区被 flex 压扁
+        style.height =
+          typeof maxHeight.value === 'number' ? `${maxHeight.value}px` : maxHeight.value;
       }
 
       // 最小/最大尺寸
       if (minWidth.value) style.minWidth = `${minWidth.value}px`;
       if (minHeight.value) style.minHeight = `${minHeight.value}px`;
       if (maxWidth.value) style.maxWidth = `${maxWidth.value}px`;
-      if (maxHeight.value) style.maxHeight = `${maxHeight.value}px`;
+      if (maxHeight.value) {
+        style.maxHeight =
+          typeof maxHeight.value === 'number' ? `${maxHeight.value}px` : maxHeight.value;
+        style.display = 'flex';
+        style.flexDirection = 'column';
+        style.overflow = 'hidden';
+      }
 
       // 位置
       if (
@@ -262,7 +289,9 @@ export default defineComponent({
       const minW = minWidth.value || 200;
       const minH = minHeight.value || 150;
       const maxW = maxWidth.value || window.innerWidth;
-      const maxH = maxHeight.value || window.innerHeight;
+      const maxH =
+        // 字符串 maxHeight（如 calc）无法参与像素运算，resize 时以视口高度为上限
+        typeof maxHeight.value === 'number' ? maxHeight.value : window.innerHeight;
 
       // 根据方向计算新尺寸和位置
       if (direction.includes('e')) {
@@ -447,6 +476,12 @@ export default defineComponent({
       }
     };
 
+    watch(contentHostHeight, hostHeight => {
+      if (props.show && hostHeight > 0) {
+        syncScrollbar();
+      }
+    });
+
     // 监听显示状态
     watch(
       () => props.show,
@@ -455,6 +490,7 @@ export default defineComponent({
           setTimeout(() => {
             props.config.onAfterEnter?.();
             initPosition();
+            syncScrollbar();
           }, 50);
         } else {
           // 重置状态
@@ -504,7 +540,42 @@ export default defineComponent({
         >
           {renderResizeHandles()}
 
-          <NCard bordered={false} role="dialog" aria-modal="true" class="h-full flex flex-col">
+          <NCard
+            bordered={false}
+            role="dialog"
+            aria-modal="true"
+            class={
+              isScrollable.value
+                ? 'base-dialog__card base-dialog__card--scrollable h-full min-h-0'
+                : 'base-dialog__card h-full flex flex-col'
+            }
+            style={
+              isScrollable.value
+                ? {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    maxHeight: '100%',
+                    overflow: 'hidden'
+                  }
+                : undefined
+            }
+            contentStyle={
+              isScrollable.value
+                ? {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    minHeight: 0,
+                    overflow: 'hidden',
+                    padding: 0
+                  }
+                : undefined
+            }
+            headerStyle={isScrollable.value ? { flexShrink: 0 } : undefined}
+            footerStyle={isScrollable.value ? { flexShrink: 0 } : undefined}
+          >
             {{
               header: () => (
                 <div
@@ -551,11 +622,26 @@ export default defineComponent({
                   </div>
                 </div>
               ),
-              default: () => (
-                <div class={['flex-1 overflow-auto px-4 py-3', contentClass.value]}>
-                  {slots.default?.()}
-                </div>
-              ),
+              default: () => {
+                const content = slots.default?.();
+
+                if (isScrollable.value) {
+                  return (
+                    <div ref={contentHostRef} class="base-dialog__content-host">
+                      <NScrollbar
+                        ref={scrollbarRef}
+                        class={contentClass.value}
+                        style={scrollbarStyle.value}
+                        yPlacement="right"
+                      >
+                        <div class="px-4 py-3">{content}</div>
+                      </NScrollbar>
+                    </div>
+                  );
+                }
+
+                return <div class={['px-4 py-3', contentClass.value]}>{content}</div>;
+              },
               footer: slots.footer
                 ? () => <div class="flex items-center justify-end gap-2">{slots.footer?.()}</div>
                 : undefined
