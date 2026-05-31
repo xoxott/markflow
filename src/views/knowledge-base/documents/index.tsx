@@ -30,7 +30,7 @@ export default defineComponent({
     );
 
     const handleBack = () => {
-      router.push({ name: 'file-manager' });
+      router.push({ name: 'knowledge-base' });
     };
 
     const handleReindexKb = async () => {

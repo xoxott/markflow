@@ -30,7 +30,7 @@ export interface FileExplorerSidebarConfig {
 /**
  * 文件浏览器壳组件 — 仅负责布局与子组件组合
  *
- * 业务逻辑、预览/上传抽屉由页面层（views/file-manager）编排
+ * 业务逻辑、预览/上传抽屉由页面层（views/knowledge-base）编排
  */
 export default defineComponent({
   name: 'FileExplorer',

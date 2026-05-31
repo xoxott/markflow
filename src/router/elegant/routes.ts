@@ -60,26 +60,26 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
-    name: 'file-manager',
-    path: '/file-manager',
-    component: 'layout.base$view.file-manager',
+    name: 'knowledge-base',
+    path: '/knowledge-base',
+    component: 'layout.base$view.knowledge-base',
     meta: {
-      title: 'file-manager',
-      i18nKey: 'route.file-manager',
+      title: 'knowledge-base',
+      i18nKey: 'route.knowledge-base',
       icon: 'mdi:book-open-page-variant',
       order: 3
     }
   },
   {
-    name: 'file-manager-documents',
-    path: '/file-manager/:kbId',
-    component: 'layout.base$view.file-manager-documents',
+    name: 'knowledge-base-documents',
+    path: '/knowledge-base/:kbId',
+    component: 'layout.base$view.knowledge-base-documents',
     props: true,
     meta: {
-      title: 'file-manager-documents',
-      i18nKey: 'route.file-manager-documents',
+      title: 'knowledge-base-documents',
+      i18nKey: 'route.knowledge-base-documents',
       hideInMenu: true,
-      activeMenu: 'file-manager'
+      activeMenu: 'knowledge-base'
     }
   },
   {

@@ -4,7 +4,7 @@ import type { RouteKey } from '@elegant-router/types';
 export const ROUTE_DEFAULT_PERMISSION_CODES: Partial<Record<RouteKey, string[]>> = {
   'home': ['dashboard:read'],
   'ai-workflow': ['workflow:read'],
-  'file-manager': ['file:read'],
+  'knowledge-base': ['file:read'],
   'monitoring': ['monitoring:read'],
   'agent-management': ['agent:read'],
   'model-profile-management': ['model-profile:read'],

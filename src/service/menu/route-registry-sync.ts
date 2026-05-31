@@ -1,13 +1,9 @@
 import type { RouteKey } from '@elegant-router/types';
 import { resolveDefaultPermissionCodes } from '@/constants/rbac/route-permissions';
-import { $t } from '@/locales';
 import { generatedRoutes } from '@/router/elegant/routes';
 
+/** Fallback title stored in backend; runtime labels use i18nKey + frontend locale. */
 function resolveRouteRegistryTitle(route: (typeof generatedRoutes)[number]): string {
-  const i18nKey = route.meta?.i18nKey;
-  if (i18nKey) {
-    return String($t(i18nKey));
-  }
   return String(route.meta?.title ?? route.name);
 }
 

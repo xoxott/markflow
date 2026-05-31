@@ -4,7 +4,7 @@ import type { RouteKey } from '@elegant-router/types';
 export const TOP_LEVEL_MENU_KEYS: Array<{ key: RouteKey; order: number }> = [
   { key: 'home', order: 1 },
   { key: 'ai-workflow', order: 2 },
-  { key: 'file-manager', order: 3 },
+  { key: 'knowledge-base', order: 3 },
   { key: 'monitoring', order: 4 }
 ];
 

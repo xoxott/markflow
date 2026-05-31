@@ -22,8 +22,8 @@ declare module "@elegant-router/types" {
     "500": "/500";
     "chat": "/chat";
     "component": "/component";
-    "file-manager": "/file-manager";
-    "file-manager-documents": "/file-manager/:kbId";
+    "knowledge-base": "/knowledge-base";
+    "knowledge-base-documents": "/knowledge-base/:kbId";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
@@ -85,8 +85,8 @@ declare module "@elegant-router/types" {
     | "500"
     | "chat"
     | "component"
-    | "file-manager"
-    | "file-manager-documents"
+    | "knowledge-base"
+    | "knowledge-base-documents"
     | "home"
     | "iframe-page"
     | "login"
@@ -135,8 +135,8 @@ declare module "@elegant-router/types" {
     | "login"
     | "chat"
     | "component"
-    | "file-manager"
-    | "file-manager-documents"
+    | "knowledge-base"
+    | "knowledge-base-documents"
     | "home"
     | "markdownedit"
     | "mobile"

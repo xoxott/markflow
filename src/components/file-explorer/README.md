@@ -1,6 +1,6 @@
 # File Explorer
 
-Vue 3 + TypeScript 文件浏览器 UI 模块。提供布局、视图、交互与数据源抽象；**完整「文件管理器页面」在 `views/file-manager` 组合**。
+Vue 3 + TypeScript 文件浏览器 UI 模块。提供布局、视图、交互与数据源抽象；**知识库文档页在 `views/knowledge-base` 组合**。
 
 ## 特性
 
@@ -14,7 +14,7 @@ Vue 3 + TypeScript 文件浏览器 UI 模块。提供布局、视图、交互与
 ## 架构
 
 ```
-views/file-manager/              # 页面层：编排与抽屉
+views/knowledge-base/              # 页面层：编排与抽屉
 ├── index.tsx
 ├── composables/useFileManagerPage.ts
 └── components/FileManagerDrawers.tsx
@@ -70,7 +70,7 @@ file-explorer/
 
 ## 页面集成
 
-参考 `src/views/file-manager/index.tsx`：
+参考 `src/views/knowledge-base/index.tsx`：
 
 ```tsx
 const page = useFileManagerPage();
@@ -189,7 +189,7 @@ interface IFileDataSource {
 
 ## 手动测试
 
-路由：`/file-manager`
+路由：`/knowledge-base`
 
 1. 列表加载、五种视图切换、排序与分页
 2. 单选 / 多选 / 圈选、`Ctrl+A`、`Escape`
@@ -210,7 +210,7 @@ interface IFileDataSource {
 
 | 路径                                 | 说明                                        |
 | ------------------------------------ | ------------------------------------------- |
-| `src/views/file-manager/`            | 文件管理器页面                              |
+| `src/views/knowledge-base/`          | 知识库页面                                  |
 | `src/views/upload/`                  | 上传能力（与 `useFileExplorerUpload` 共用） |
 | `src/components/base-dialog/`        | 通用对话框                                  |
 | `src/components/common-interaction/` | `DragPreview` 等                            |

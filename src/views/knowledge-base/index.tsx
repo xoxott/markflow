@@ -86,7 +86,7 @@ export default defineComponent({
     }
 
     function handleEnter(row: KnowledgeBase) {
-      router.push({ name: 'file-manager-documents', params: { kbId: row.id } });
+      router.push({ name: 'knowledge-base-documents', params: { kbId: row.id } });
     }
 
     async function handleDelete(row: KnowledgeBase) {

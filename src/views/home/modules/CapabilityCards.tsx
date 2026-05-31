@@ -30,7 +30,7 @@ export default defineComponent({
       },
       {
         key: 'knowledge-base',
-        routeKey: 'file-manager',
+        routeKey: 'knowledge-base',
         titleKey: 'page.home.knowledgeBase.title',
         descKey: 'page.home.knowledgeBase.desc',
         icon: 'mdi:book-open-page-variant',
