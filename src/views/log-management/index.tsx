@@ -12,9 +12,10 @@ import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
-import { useLogDialog } from './components/useLogDialog';
+import { useLogDetailDrawer } from './components/useLogDetailDrawer';
 import {
   LOG_LIST_SCROLL_X,
+  type LogListFilterLogType,
   createLogSearchFields,
   createLogTableColumns,
   serializeLogListFilters
@@ -25,19 +26,19 @@ type Log = Api.LogManagement.Log;
 const SUPER_ADMIN_ROLE_CODE = 'super_admin';
 const DEFAULT_OLD_LOG_DAYS = 30;
 
-function fetchLogListForTable(
-  params: Api.LogManagement.LogListParams & { logType?: Api.LogManagement.LogType | 'all' }
-) {
+type LogListTableParams = Omit<Api.LogManagement.LogListParams, 'logType'> & {
+  logType?: LogListFilterLogType;
+};
+
+function fetchLogListForTable(params: LogListTableParams) {
   const serialized = serializeLogListFilters(params as unknown as Record<string, unknown>);
-  const { logType, ...filters } = serialized;
 
   return fetchLogList({
     page: params.page,
     limit: params.limit,
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
-    ...filters,
-    ...(logType && logType !== 'all' ? { logType } : {})
+    ...serialized
   });
 }
 
@@ -47,7 +48,7 @@ export default defineComponent({
     const message = useMessage();
     const instance = getCurrentInstance();
     const dialog = useDialog(instance?.appContext.app);
-    const logDialog = useLogDialog(instance?.appContext.app);
+    const logDetailDrawer = useLogDetailDrawer();
     const authStore = useAuthStore();
 
     const selectedRowKeys = ref<number[]>([]);
@@ -60,7 +61,7 @@ export default defineComponent({
       useAdminListTable({
         apiFn: fetchLogListForTable,
         listFilters: {
-          logType: 'access' as Api.LogManagement.LogType,
+          logType: 'access' as LogListFilterLogType,
           search: '',
           userId: undefined,
           ip: undefined,
@@ -76,14 +77,20 @@ export default defineComponent({
       });
 
     async function handleViewDetail(row: Log) {
+      const loadingRef = message.loading($t('page.logManagement.loadingDetail'), { duration: 0 });
+
       try {
         const { data: logDetail } = await fetchLogDetail(row.id);
         if (logDetail) {
-          await logDialog.showLogDetail({ log: logDetail });
+          await logDetailDrawer.open(logDetail);
+        } else {
+          message.warning($t('page.logManagement.logDetailNotFound'));
         }
       } catch (error: unknown) {
         const err = error as { message?: string };
         message.error(err?.message || $t('page.logManagement.getDetailFailed'));
+      } finally {
+        loadingRef.destroy();
       }
     }
 

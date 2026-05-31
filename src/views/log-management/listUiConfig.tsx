@@ -5,6 +5,7 @@ import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import { $t } from '@/locales';
 
 type Log = Api.LogManagement.Log;
+export type LogListFilterLogType = Api.LogManagement.LogType | 'all';
 
 const METHOD_TAG_TYPE: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
   GET: 'info',
@@ -30,10 +31,9 @@ export function serializeLogListFilters(
 ): Partial<Api.LogManagement.LogListParams> {
   const startDate = params.startDate;
   const endDate = params.endDate;
-  const logType = params.logType as Api.LogManagement.LogType | 'all' | undefined;
+  const logType = params.logType as LogListFilterLogType | undefined;
 
-  return {
-    logType: logType ?? 'access',
+  const result: Partial<Api.LogManagement.LogListParams> = {
     search: (params.search as string) || undefined,
     userId: params.userId as number | undefined,
     ip: (params.ip as string) || undefined,
@@ -44,6 +44,12 @@ export function serializeLogListFilters(
     sortBy: params.sortBy as string | undefined,
     sortOrder: params.sortOrder as 'ASC' | 'DESC' | undefined
   };
+
+  if (logType && logType !== 'all') {
+    result.logType = logType;
+  }
+
+  return result;
 }
 
 export function createLogSearchFields(): SearchFieldConfig[] {
@@ -176,20 +182,17 @@ export function createLogTableColumns(h: LogTableColumnHandlers): TableColumnCon
       title: $t('page.logManagement.responseStatus'),
       key: 'statusCode',
       width: 120,
-      render: (row: Log) => {
-        if (row.statusCode === null) return '-';
-        return (
-          <NTag type={getLogStatusTagType(row.statusCode)} size="small">
-            {row.statusCode}
-          </NTag>
-        );
-      }
+      render: (row: Log) => (
+        <NTag type={getLogStatusTagType(row.statusCode)} size="small">
+          {row.statusCode}
+        </NTag>
+      )
     },
     {
       title: $t('page.logManagement.duration'),
       key: 'responseTime',
       width: 100,
-      render: (row: Log) => (row.responseTime === null ? '-' : `${row.responseTime}ms`)
+      render: (row: Log) => `${row.responseTime}ms`
     },
     {
       title: $t('page.logManagement.createdAt'),

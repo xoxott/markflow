@@ -1097,6 +1097,15 @@ declare namespace App {
           logTypeAudit: string;
           selectLogsToDelete: string;
           batchDeleteSuccess: string;
+          clearLogsSuccess: string;
+          metadata: string;
+          requestQuery: string;
+          resultStatus: string;
+          resultSuccess: string;
+          resultFailed: string;
+          hasError: string;
+          loadingDetail: string;
+          logDetailNotFound: string;
           getDetailFailed: string;
         };
         knowledgeBase: {
