@@ -1,8 +1,13 @@
-import { NSwitch, NTag } from 'naive-ui';
-import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { NTag } from 'naive-ui';
+import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
+import {
+  createAlertLevelOptions,
+  createAlertStatusOptions,
+  createAlertTypeOptions
+} from './constants';
 
 type Alert = Api.AlertManagement.Alert;
 
@@ -18,15 +23,19 @@ export function createAlertSearchFields(): SearchFieldConfig[] {
     },
     {
       type: 'select',
+      field: 'type',
+      label: $t('page.alertManagement.type'),
+      placeholder: $t('page.alertManagement.typePlaceholder'),
+      width: '140px',
+      options: createAlertTypeOptions()
+    },
+    {
+      type: 'select',
       field: 'level',
       label: $t('page.alertManagement.level'),
       placeholder: $t('page.alertManagement.levelPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.alertManagement.levelCritical'), value: 'critical' },
-        { label: $t('page.alertManagement.levelWarning'), value: 'warning' },
-        { label: $t('page.alertManagement.levelInfo'), value: 'info' }
-      ]
+      options: createAlertLevelOptions()
     },
     {
       type: 'select',
@@ -34,22 +43,7 @@ export function createAlertSearchFields(): SearchFieldConfig[] {
       label: $t('page.alertManagement.status'),
       placeholder: $t('page.alertManagement.statusPlaceholder'),
       width: '120px',
-      options: [
-        { label: $t('page.alertManagement.statusActive'), value: 'active' },
-        { label: $t('page.alertManagement.statusResolved'), value: 'resolved' },
-        { label: $t('page.alertManagement.statusAcknowledged'), value: 'acknowledged' }
-      ]
-    },
-    {
-      type: 'select',
-      field: 'isEnabled',
-      label: $t('page.alertManagement.enabled'),
-      placeholder: $t('page.alertManagement.enabledStatusPlaceholder'),
-      width: '120px',
-      options: createQueryBooleanSelectOptions(
-        $t('page.alertManagement.enabled'),
-        $t('page.alertManagement.disabled')
-      )
+      options: createAlertStatusOptions()
     }
   ];
 }
@@ -57,105 +51,110 @@ export function createAlertSearchFields(): SearchFieldConfig[] {
 export interface AlertTableColumnHandlers {
   onEdit: (row: Alert) => void;
   onDelete: (row: Alert) => void;
-  onToggleStatus: (id: number, isEnabled: boolean) => void;
   onAcknowledge: (row: Alert) => void;
   onResolve: (row: Alert) => void;
+  canWrite: boolean;
+  canDelete: boolean;
+}
+
+function renderLevelTag(level: Api.AlertManagement.AlertLevel | undefined) {
+  if (!level) return '-';
+  const levelMap: Record<
+    Api.AlertManagement.AlertLevel,
+    { label: string; type: 'error' | 'warning' | 'info' | 'default' }
+  > = {
+    critical: { label: $t('page.alertManagement.levelCritical'), type: 'error' },
+    error: { label: $t('page.alertManagement.levelError'), type: 'error' },
+    warning: { label: $t('page.alertManagement.levelWarning'), type: 'warning' },
+    info: { label: $t('page.alertManagement.levelInfo'), type: 'info' }
+  };
+  const item = levelMap[level] ?? { label: level, type: 'default' as const };
+  return <NTag type={item.type}>{item.label}</NTag>;
+}
+
+function renderStatusTag(status: Api.AlertManagement.AlertStatus | undefined) {
+  if (!status) return '-';
+  const statusMap: Record<
+    Api.AlertManagement.AlertStatus,
+    { label: string; type: 'default' | 'success' | 'info' }
+  > = {
+    pending: { label: $t('page.alertManagement.statusPending'), type: 'default' },
+    acknowledged: {
+      label: $t('page.alertManagement.statusAcknowledged'),
+      type: 'info'
+    },
+    resolved: { label: $t('page.alertManagement.statusResolved'), type: 'success' }
+  };
+  const item = statusMap[status];
+  if (!item) return status;
+  return <NTag type={item.type}>{item.label}</NTag>;
+}
+
+function renderTypeTag(type: Api.AlertManagement.AlertType | undefined) {
+  if (!type) return '-';
+  const typeMap = Object.fromEntries(
+    createAlertTypeOptions().map(option => [option.value, option.label])
+  );
+  return <NTag type="info">{typeMap[type] ?? type}</NTag>;
 }
 
 export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColumnConfig<Alert>[] {
   return [
     {
       title: $t('page.alertManagement.name'),
-      key: 'name',
+      key: 'title',
       width: 200
+    },
+    {
+      title: $t('page.alertManagement.message'),
+      key: 'message',
+      width: 280,
+      render: (row: Alert) => {
+        const message = row.message || '-';
+        return message.length > 60 ? `${message.substring(0, 60)}...` : message;
+      }
+    },
+    {
+      title: $t('page.alertManagement.type'),
+      key: 'type',
+      width: 120,
+      render: (row: Alert) => renderTypeTag(row.type)
     },
     {
       title: $t('page.alertManagement.level'),
       key: 'level',
-      width: 120,
-      render: (row: Alert) => {
-        const levelMap: Record<string, { label: string; type: 'error' | 'warning' | 'info' }> = {
-          critical: { label: $t('page.alertManagement.levelCritical'), type: 'error' },
-          warning: { label: $t('page.alertManagement.levelWarning'), type: 'warning' },
-          info: { label: $t('page.alertManagement.levelInfo'), type: 'info' }
-        };
-        const level = levelMap[row.level] || { label: row.level, type: 'info' };
-        return <NTag type={level.type}>{level.label}</NTag>;
-      }
+      width: 110,
+      render: (row: Alert) => renderLevelTag(row.level)
     },
     {
       title: $t('page.alertManagement.status'),
       key: 'status',
+      width: 110,
+      render: (row: Alert) => renderStatusTag(row.status)
+    },
+    {
+      title: $t('page.alertManagement.source'),
+      key: 'source',
       width: 120,
-      render: (row: Alert) => {
-        const statusMap: Record<string, string> = {
-          active: $t('page.alertManagement.statusActive'),
-          resolved: $t('page.alertManagement.statusResolved'),
-          acknowledged: $t('page.alertManagement.statusAcknowledged')
-        };
-        return statusMap[row.status] || row.status;
-      }
+      render: (row: Alert) => row.source || '-'
     },
     {
-      title: $t('page.alertManagement.metric'),
-      key: 'metric',
-      width: 120,
-      render: (row: Alert) => row.metric || '-'
+      title: $t('page.alertManagement.acknowledgedAt'),
+      key: 'acknowledgedAt',
+      width: 170,
+      render: (row: Alert) => formatApiDateTime(row.acknowledgedAt)
     },
     {
-      title: $t('page.alertManagement.threshold'),
-      key: 'threshold',
-      width: 100,
-      render: (row: Alert) => (row.threshold !== null ? row.threshold : '-')
-    },
-    {
-      title: $t('page.alertManagement.triggerCount'),
-      key: 'triggerCount',
-      width: 120,
-      render: (row: Alert) => (row.triggerCount !== null ? row.triggerCount : '-')
-    },
-    {
-      title: $t('page.alertManagement.targetUsers'),
-      key: 'targetUserIds',
-      width: 150,
-      render: (row: Alert) => {
-        if (!row.targetUserIds || row.targetUserIds.length === 0) {
-          return row.targetRoleIds && row.targetRoleIds.length > 0
-            ? $t('page.alertManagement.targetRoles')
-            : $t('page.alertManagement.allUsers');
-        }
-        return `${row.targetUserIds.length} ${$t('page.alertManagement.users')}`;
-      }
-    },
-    {
-      title: $t('page.alertManagement.enabled'),
-      key: 'isEnabled',
-      width: 100,
-      render: (row: Alert) => (
-        <NSwitch
-          value={row.isEnabled}
-          onUpdateValue={value => h.onToggleStatus(row.id, value)}
-          loading={false}
-        />
-      )
-    },
-    {
-      title: $t('page.alertManagement.lastTriggeredAt'),
-      key: 'lastTriggeredAt',
-      width: 180,
-      render: (row: Alert) => {
-        if (!row.lastTriggeredAt) return '-';
-        return new Date(row.lastTriggeredAt).toLocaleString('zh-CN');
-      }
+      title: $t('page.alertManagement.resolvedAt'),
+      key: 'resolvedAt',
+      width: 170,
+      render: (row: Alert) => formatApiDateTime(row.resolvedAt)
     },
     {
       title: $t('page.alertManagement.createdAt'),
       key: 'createdAt',
-      width: 180,
-      render: (row: Alert) => {
-        if (!row.createdAt) return '-';
-        return new Date(row.createdAt).toLocaleString('zh-CN');
-      }
+      width: 170,
+      render: (row: Alert) => formatApiDateTime(row.createdAt)
     },
     createActionColumn({
       mode: 'inline',
@@ -165,6 +164,8 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
           label: $t('common.edit'),
           type: 'primary',
           icon: 'carbon:edit',
+          show: () => h.canWrite,
+          disabled: (row: Alert) => row.status === 'resolved',
           onClick: h.onEdit
         },
         {
@@ -172,7 +173,7 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
           label: $t('page.alertManagement.acknowledge'),
           type: 'info',
           icon: 'carbon:checkmark',
-          show: (row: Alert) => row.status === 'active',
+          show: (row: Alert) => h.canWrite && row.status === 'pending',
           onClick: h.onAcknowledge
         },
         {
@@ -180,13 +181,14 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
           label: $t('page.alertManagement.resolve'),
           type: 'success',
           icon: 'carbon:checkmark-filled',
-          show: (row: Alert) => row.status === 'active',
+          show: (row: Alert) => h.canWrite && row.status === 'pending',
           onClick: h.onResolve
         },
         {
           label: $t('common.delete'),
           type: 'error',
           icon: 'carbon:trash-can',
+          show: () => h.canDelete,
           onClick: h.onDelete
         }
       ]
@@ -194,4 +196,4 @@ export function createAlertTableColumns(h: AlertTableColumnHandlers): TableColum
   ];
 }
 
-export const ALERT_LIST_SCROLL_X = 2192;
+export const ALERT_LIST_SCROLL_X = 1680;

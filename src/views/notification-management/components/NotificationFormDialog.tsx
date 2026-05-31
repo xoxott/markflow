@@ -107,7 +107,7 @@ export default defineComponent({
                 labelPlacement="left"
                 labelWidth="100px"
               >
-                <NFormItem label={$t('page.notificationManagement.title')} path="title">
+                <NFormItem label={$t('page.notificationManagement.name')} path="title">
                   <NInput
                     v-model:value={formModel.title}
                     placeholder={$t('page.notificationManagement.titlePlaceholder')}

@@ -2,11 +2,12 @@ import { computed, defineComponent, getCurrentInstance, ref } from 'vue';
 import { useMessage } from 'naive-ui';
 import {
   fetchBatchDeleteLogs,
-  fetchClearLogs,
   fetchDeleteLog,
+  fetchDeleteOldLogs,
   fetchLogDetail,
   fetchLogList
 } from '@/service/api/log';
+import { useAuthStore } from '@/store/modules/auth';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -21,10 +22,22 @@ import {
 
 type Log = Api.LogManagement.Log;
 
-function fetchLogListForTable(params: Api.LogManagement.LogListParams) {
+const SUPER_ADMIN_ROLE_CODE = 'super_admin';
+const DEFAULT_OLD_LOG_DAYS = 30;
+
+function fetchLogListForTable(
+  params: Api.LogManagement.LogListParams & { logType?: Api.LogManagement.LogType | 'all' }
+) {
+  const serialized = serializeLogListFilters(params as unknown as Record<string, unknown>);
+  const { logType, ...filters } = serialized;
+
   return fetchLogList({
-    ...params,
-    ...serializeLogListFilters(params as unknown as Record<string, unknown>)
+    page: params.page,
+    limit: params.limit,
+    sortBy: params.sortBy,
+    sortOrder: params.sortOrder,
+    ...filters,
+    ...(logType && logType !== 'all' ? { logType } : {})
   });
 }
 
@@ -35,13 +48,19 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const dialog = useDialog(instance?.appContext.app);
     const logDialog = useLogDialog(instance?.appContext.app);
+    const authStore = useAuthStore();
 
     const selectedRowKeys = ref<number[]>([]);
+
+    const isSuperAdmin = computed(() =>
+      authStore.userInfo.roles?.some(role => role.code === SUPER_ADMIN_ROLE_CODE)
+    );
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
         apiFn: fetchLogListForTable,
         listFilters: {
+          logType: 'access' as Api.LogManagement.LogType,
           search: '',
           userId: undefined,
           ip: undefined,
@@ -84,21 +103,55 @@ export default defineComponent({
       await dialog.confirmDelete(
         $t('page.logManagement.confirmBatchDelete', { count: selectedRowKeys.value.length }),
         async () => {
-          await fetchBatchDeleteLogs({ ids: selectedRowKeys.value });
-          message.success($t('page.logManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeleteLogs({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.logManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.logManagement.batchDeleteSuccess'));
+          }
+
           selectedRowKeys.value = [];
           getData();
         }
       );
     }
 
-    async function handleClearLogs() {
-      await dialog.confirmDelete($t('page.logManagement.confirmClearLogs'), async () => {
-        await fetchClearLogs();
-        message.success($t('page.logManagement.clearLogsSuccess'));
-        selectedRowKeys.value = [];
-        getData();
-      });
+    async function handleClearOldLogs() {
+      if (!isSuperAdmin.value) {
+        return;
+      }
+
+      await dialog.confirmDelete(
+        $t('page.logManagement.confirmClearOldLogs', { days: DEFAULT_OLD_LOG_DAYS }),
+        async () => {
+          const { data: deletedCount, error } = await fetchDeleteOldLogs(DEFAULT_OLD_LOG_DAYS);
+          if (error) {
+            return;
+          }
+
+          message.success(
+            $t('page.logManagement.clearOldLogsSuccess', {
+              count: deletedCount ?? 0
+            })
+          );
+          selectedRowKeys.value = [];
+          getData();
+        }
+      );
     }
 
     const searchConfig = computed(() => createLogSearchFields());
@@ -109,6 +162,21 @@ export default defineComponent({
         onDelete: handleDelete
       })
     );
+
+    const actionCustom = computed(() => {
+      if (!isSuperAdmin.value) {
+        return [];
+      }
+
+      return [
+        {
+          label: $t('page.logManagement.clearOldLogs'),
+          icon: 'carbon:clean',
+          type: 'warning' as const,
+          onClick: handleClearOldLogs
+        }
+      ];
+    });
 
     return () => (
       <TablePage
@@ -122,14 +190,7 @@ export default defineComponent({
             batchDelete: { onClick: handleBatchDelete },
             refresh: { onClick: getData }
           },
-          custom: [
-            {
-              label: $t('page.logManagement.clearLogs'),
-              icon: 'carbon:clean',
-              type: 'warning',
-              onClick: handleClearLogs
-            }
-          ]
+          custom: actionCustom.value
         }}
         columns={tableColumns.value}
         data={data.value}

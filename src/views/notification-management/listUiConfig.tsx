@@ -78,7 +78,7 @@ export function createNotificationTableColumns(
 ): TableColumnConfig<Notification>[] {
   return [
     {
-      title: $t('page.notificationManagement.title'),
+      title: $t('page.notificationManagement.name'),
       key: 'title',
       width: 200
     },

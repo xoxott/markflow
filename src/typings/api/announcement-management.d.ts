@@ -54,6 +54,21 @@ declare namespace Api {
     /** Update body (ai-server UpdateAnnouncementDto) */
     type UpdateAnnouncementRequest = Partial<CreateAnnouncementRequest>;
 
+    interface BatchDeleteAnnouncementsRequest {
+      ids: number[];
+    }
+
+    interface BatchDeleteAnnouncementFailure {
+      id: number;
+      reason: string;
+    }
+
+    interface BatchDeleteAnnouncementsResponse {
+      deletedCount: number;
+      failedIds: number[];
+      failures: BatchDeleteAnnouncementFailure[];
+    }
+
     type AnnouncementListResponse = ListData<Announcement>;
     type AnnouncementDetailResponse = Announcement;
     type CreateAnnouncementResponse = Announcement;

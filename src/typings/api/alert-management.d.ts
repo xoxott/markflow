@@ -1,151 +1,87 @@
-/** Alert Management API types */
+/** Alert Management API types (ai-server admin/alerts) */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./common.d.ts" />
 
 declare namespace Api {
-  /**
-   * namespace AlertManagement
-   *
-   * backend api module: "alert-management"
-   */
   namespace AlertManagement {
-    /** Alert information */
+    /** ai-server AlertType */
+    type AlertType = 'system' | 'performance' | 'security' | 'database' | 'custom';
+
+    /** ai-server AlertLevel */
+    type AlertLevel = 'info' | 'warning' | 'error' | 'critical';
+
+    /** ai-server AlertStatus */
+    type AlertStatus = 'pending' | 'acknowledged' | 'resolved';
+
+    /** Alert entity (ai-server AlertOutput) */
     interface Alert {
       id: number;
-      name: string;
-      description: string | null;
-      level: string;
-      status: string;
-      condition: string | null;
-      threshold: number | null;
-      metric: string | null;
-      isEnabled: boolean;
-      targetUserIds: number[] | null;
-      targetRoleIds: number[] | null;
-      /** detail 可选：目标用户名称回显 */
-      targetUsers?: Api.AdminOptionTarget[] | null;
-      /** detail 可选：目标角色名称回显 */
-      targetRoles?: Api.AdminOptionTarget[] | null;
-      triggerCount: number | null;
-      lastTriggeredAt: string | null;
-      resolvedAt: string | null;
+      type: AlertType;
+      level: AlertLevel;
+      status: AlertStatus;
+      title: string;
+      message: string;
+      source: string | null;
+      metadata: Record<string, unknown> | null;
       acknowledgedAt: string | null;
       acknowledgedBy: number | null;
+      resolvedAt: string | null;
+      resolvedBy: number | null;
+      notified: boolean;
+      notificationChannels: string[] | null;
       createdAt: string;
       updatedAt: string;
+      isCritical: boolean;
+      isPending: boolean;
+      isResolved: boolean;
     }
 
-    /** Alert list query parameters */
+    /** List query (ai-server FilterAlertsDto + PaginationDto) */
     interface AlertListParams extends Common.PaginationParams {
-      /** Search keyword (name or description) */
       search?: string;
-      /** Filter by status */
-      status?: string;
-      /** Filter by level */
-      level?: string;
-      /** Filter by enabled status（query: true | false） */
-      isEnabled?: Common.QueryBoolean;
-      /** Filter by target user ID */
-      targetUserId?: number;
-      /** Sort by field */
+      type?: AlertType;
+      level?: AlertLevel;
+      status?: AlertStatus;
+      source?: string;
       sortBy?: string;
-      /** Sort order (asc or desc) */
-      sortOrder?: 'asc' | 'desc';
+      sortOrder?: 'ASC' | 'DESC';
     }
 
-    /** Create alert request */
+    /** Create body (ai-server CreateAlertDto) */
     interface CreateAlertRequest {
-      name: string;
-      description?: string;
-      level: string;
-      condition?: string;
-      threshold?: number;
-      metric?: string;
-      isEnabled?: boolean;
-      targetUserIds?: number[];
-      targetRoleIds?: number[];
+      type: AlertType;
+      level: AlertLevel;
+      title: string;
+      message: string;
+      source?: string;
+      metadata?: Record<string, unknown>;
     }
 
-    /** Update alert request */
-    interface UpdateAlertRequest {
-      name?: string;
-      description?: string;
-      level?: string;
-      condition?: string;
-      threshold?: number;
-      metric?: string;
-      isEnabled?: boolean;
-      targetUserIds?: number[];
-      targetRoleIds?: number[];
-    }
+    /** Update body (ai-server UpdateAlertDto) */
+    type UpdateAlertRequest = Partial<CreateAlertRequest>;
 
-    /** Batch delete alerts request */
     interface BatchDeleteAlertsRequest {
       ids: number[];
     }
 
-    /** Toggle alert status request */
-    interface ToggleAlertStatusRequest {
+    interface BatchDeleteAlertFailure {
       id: number;
-      isEnabled: boolean;
+      reason: string;
     }
 
-    /** Acknowledge alert request */
-    interface AcknowledgeAlertRequest {
-      id: number;
-    }
-
-    /** Resolve alert request */
-    interface ResolveAlertRequest {
-      id: number;
-    }
-
-    /** Alert list response */
-    type AlertListResponse = ListData<Alert>;
-
-    /** Alert detail response */
-    type AlertDetailResponse = Alert;
-
-    /** Create alert response */
-    interface CreateAlertResponse {
-      message: string;
-      alert: Alert;
-    }
-
-    /** Update alert response */
-    interface UpdateAlertResponse {
-      message: string;
-      alert: Alert;
-    }
-
-    /** Delete alert response */
-    interface DeleteAlertResponse {
-      message: string;
-    }
-
-    /** Batch delete alerts response */
     interface BatchDeleteAlertsResponse {
-      message: string;
       deletedCount: number;
+      failedIds: number[];
+      failures: BatchDeleteAlertFailure[];
     }
 
-    /** Toggle alert status response */
-    interface ToggleAlertStatusResponse {
-      message: string;
-      alert: Alert;
-    }
-
-    /** Acknowledge alert response */
-    interface AcknowledgeAlertResponse {
-      message: string;
-      alert: Alert;
-    }
-
-    /** Resolve alert response */
-    interface ResolveAlertResponse {
-      message: string;
-      alert: Alert;
-    }
+    type AlertListResponse = ListData<Alert>;
+    type AlertDetailResponse = Alert;
+    type CreateAlertResponse = Alert;
+    type UpdateAlertResponse = Alert;
+    type DeleteAlertResponse = null;
+    type AcknowledgeAlertResponse = Alert;
+    type ResolveAlertResponse = Alert;
   }
 }

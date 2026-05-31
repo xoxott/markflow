@@ -51,14 +51,14 @@ export function fetchBatchDeleteLogs(data: Api.LogManagement.BatchDeleteLogsRequ
 }
 
 /**
- * Clear logs
+ * Delete logs older than the specified number of days (super_admin only)
  *
- * @param data Clear options
+ * @param days Number of days to keep
  */
-export function fetchClearLogs(data?: Api.LogManagement.ClearLogsRequest) {
-  return request<Api.LogManagement.ClearLogsResponse>({
-    url: '/api/admin/logs/clear',
+export function fetchDeleteOldLogs(days: number) {
+  return request<Api.LogManagement.DeleteOldLogsResponse>({
+    url: '/api/admin/logs/old',
     method: 'delete',
-    data
+    params: { days }
   });
 }

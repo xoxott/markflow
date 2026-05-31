@@ -1,20 +1,10 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
-import {
-  NButton,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSpace,
-  NSwitch
-} from 'naive-ui';
+import { NButton, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
-import { mapTargetsToPresetOptionsIfAny } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
-import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
+import { createAlertLevelOptions, createAlertTypeOptions } from '../constants';
 import type { AlertFormDialogConfig } from './dialog';
 
 export default defineComponent({
@@ -32,37 +22,24 @@ export default defineComponent({
 
     const formModel = useSyncedFormModel(() => props.config.formData);
 
-    // 告警级别选项
-    const levelOptions = [
-      { label: $t('page.alertManagement.levelCritical' as any), value: 'critical' },
-      { label: $t('page.alertManagement.levelWarning' as any), value: 'warning' },
-      { label: $t('page.alertManagement.levelInfo' as any), value: 'info' }
-    ];
+    const typeOptions = createAlertTypeOptions();
+    const levelOptions = createAlertLevelOptions();
 
-    // 指标选项
-    const metricOptions = [
-      { label: $t('page.alertManagement.metricCpu' as any), value: 'cpu' },
-      { label: $t('page.alertManagement.metricMemory' as any), value: 'memory' },
-      { label: $t('page.alertManagement.metricDisk' as any), value: 'disk' },
-      { label: $t('page.alertManagement.metricNetwork' as any), value: 'network' },
-      { label: $t('page.alertManagement.metricResponseTime' as any), value: 'responseTime' }
-    ];
-
-    // 表单验证规则
     const formRules = {
-      name: [
-        { required: true, message: $t('page.alertManagement.nameRequired' as any), trigger: 'blur' }
+      title: [
+        { required: true, message: $t('page.alertManagement.nameRequired'), trigger: 'blur' }
+      ],
+      message: [
+        { required: true, message: $t('page.alertManagement.messageRequired'), trigger: 'blur' }
+      ],
+      type: [
+        { required: true, message: $t('page.alertManagement.typeRequired'), trigger: 'change' }
       ],
       level: [
-        {
-          required: true,
-          message: $t('page.alertManagement.levelRequired' as any),
-          trigger: 'change'
-        }
+        { required: true, message: $t('page.alertManagement.levelRequired'), trigger: 'change' }
       ]
     };
 
-    // 关闭弹窗
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -72,13 +49,12 @@ export default defineComponent({
       ...props.config,
       onClose: handleClose,
       title: props.config.title ?? (props.config.isEdit ? $t('common.edit') : $t('common.add')),
-      width: props.config.width ?? 800,
+      width: props.config.width ?? 720,
       height: props.config.height ?? 'auto',
       draggable: props.config.draggable ?? true,
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
@@ -87,13 +63,11 @@ export default defineComponent({
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -114,84 +88,39 @@ export default defineComponent({
               labelPlacement="left"
               labelWidth="100px"
             >
-              <NFormItem label={$t('page.alertManagement.name' as any)} path="name">
+              <NFormItem label={$t('page.alertManagement.name')} path="title">
                 <NInput
-                  v-model:value={formModel.name}
-                  placeholder={$t('page.alertManagement.namePlaceholder' as any)}
+                  v-model:value={formModel.title}
+                  placeholder={$t('page.alertManagement.namePlaceholder')}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.alertManagement.description' as any)} path="description">
+              <NFormItem label={$t('page.alertManagement.message')} path="message">
                 <NInput
-                  v-model:value={formModel.description}
+                  v-model:value={formModel.message}
                   type="textarea"
-                  placeholder={$t('page.alertManagement.descriptionPlaceholder' as any)}
-                  rows={3}
+                  placeholder={$t('page.alertManagement.messagePlaceholder')}
+                  rows={4}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.alertManagement.level' as any)} path="level">
+              <NFormItem label={$t('page.alertManagement.type')} path="type">
+                <NSelect
+                  v-model:value={formModel.type}
+                  placeholder={$t('page.alertManagement.typePlaceholder')}
+                  options={typeOptions}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.alertManagement.level')} path="level">
                 <NSelect
                   v-model:value={formModel.level}
-                  placeholder={$t('page.alertManagement.levelPlaceholder' as any)}
+                  placeholder={$t('page.alertManagement.levelPlaceholder')}
                   options={levelOptions}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.alertManagement.metric' as any)} path="metric">
-                <NSelect
-                  v-model:value={formModel.metric}
-                  placeholder={$t('page.alertManagement.metricPlaceholder' as any)}
-                  clearable
-                  filterable
-                  options={metricOptions}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.alertManagement.condition' as any)} path="condition">
+              <NFormItem label={$t('page.alertManagement.source')} path="source">
                 <NInput
-                  v-model:value={formModel.condition}
-                  placeholder={$t('page.alertManagement.conditionPlaceholder' as any)}
+                  v-model:value={formModel.source}
+                  placeholder={$t('page.alertManagement.sourcePlaceholder')}
                 />
-              </NFormItem>
-              <NFormItem label={$t('page.alertManagement.threshold' as any)} path="threshold">
-                <NInputNumber
-                  v-model:value={formModel.threshold}
-                  placeholder={$t('page.alertManagement.thresholdPlaceholder' as any)}
-                  min={0}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.alertManagement.targetUsers' as any)} path="targetUserIds">
-                <AdminRemoteSelect
-                  resource="users"
-                  value={formModel.targetUserIds}
-                  presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetUsers)}
-                  multiple
-                  placeholder={$t('page.alertManagement.targetUsersPlaceholder' as any)}
-                  style={{ width: '100%' }}
-                  onUpdate:value={value => {
-                    formModel.targetUserIds = (value as number[]) ?? [];
-                  }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.alertManagement.targetRoles' as any)} path="targetRoleIds">
-                <AdminRemoteSelect
-                  resource="roles"
-                  value={formModel.targetRoleIds}
-                  presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetRoles)}
-                  multiple
-                  placeholder={$t('page.alertManagement.targetRolesPlaceholder' as any)}
-                  style={{ width: '100%' }}
-                  onUpdate:value={value => {
-                    formModel.targetRoleIds = (value as number[]) ?? [];
-                  }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.alertManagement.status' as any)} path="isEnabled">
-                <NSwitch v-model:value={formModel.isEnabled} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isEnabled
-                    ? $t('page.alertManagement.enabled' as any)
-                    : $t('page.alertManagement.disabled' as any)}
-                </span>
               </NFormItem>
             </NForm>
           ),

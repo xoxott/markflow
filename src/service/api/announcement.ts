@@ -50,6 +50,17 @@ export function fetchDeleteAnnouncement(id: number) {
   });
 }
 
+/** 批量删除 */
+export function fetchBatchDeleteAnnouncements(
+  data: Api.AnnouncementManagement.BatchDeleteAnnouncementsRequest
+) {
+  return request<Api.AnnouncementManagement.BatchDeleteAnnouncementsResponse>({
+    url: `${API_PREFIX}/batch`,
+    method: 'delete',
+    data
+  });
+}
+
 /** 发布 */
 export function fetchPublishAnnouncement(id: number) {
   return request<Api.AnnouncementManagement.PublishAnnouncementResponse>({

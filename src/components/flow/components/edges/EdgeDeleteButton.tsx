@@ -4,8 +4,9 @@
  * 渲染在路径中点，点击后触发 onDelete；样式由 .flow-edge-delete-button + CSS 变量控制。
  */
 
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { EDGE_CLASS_NAMES } from '../../constants/edge-constants';
+import { useFlowI18n } from '../../hooks/useFlowI18n';
 
 export default defineComponent({
   name: 'EdgeDeleteButton',
@@ -22,13 +23,17 @@ export default defineComponent({
       type: Number,
       default: 20
     },
+    /** 覆盖默认无障碍文案 */
     ariaLabel: {
       type: String,
-      default: '删除连接线'
+      default: undefined
     }
   },
   emits: ['delete'],
   setup(props, { emit }) {
+    const { t } = useFlowI18n();
+    const resolvedAriaLabel = computed(() => props.ariaLabel ?? t('contextMenu.deleteEdge'));
+
     const handlePointerDown = (event: MouseEvent) => {
       event.stopPropagation();
     };
@@ -52,7 +57,7 @@ export default defineComponent({
           onMousedown={handlePointerDown}
           onClick={handleClick}
         >
-          <title>{props.ariaLabel}</title>
+          <title>{resolvedAriaLabel.value}</title>
           <circle class={`${EDGE_CLASS_NAMES.DELETE_BUTTON}__bg`} cx={half} cy={half} r={half} />
           <path
             class={`${EDGE_CLASS_NAMES.DELETE_BUTTON}__icon`}

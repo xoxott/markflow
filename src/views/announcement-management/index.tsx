@@ -4,6 +4,7 @@ import {
   fetchAnnouncementDetail,
   fetchAnnouncementList,
   fetchArchiveAnnouncement,
+  fetchBatchDeleteAnnouncements,
   fetchCreateAnnouncement,
   fetchDeleteAnnouncement,
   fetchPublishAnnouncement,
@@ -18,12 +19,12 @@ import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import type { AnnouncementFormData } from './components/dialog';
 import { useAnnouncementDialog } from './components/useAnnouncementDialog';
-import { buildWritePayload, createEmptyForm } from './utils/announcement-form';
 import {
   ANNOUNCEMENT_LIST_SCROLL_X,
   createAnnouncementSearchFields,
   createAnnouncementTableColumns
 } from './listUiConfig';
+import { buildWritePayload, createEmptyForm } from './utils/announcement-form';
 
 type Announcement = Api.AnnouncementManagement.Announcement;
 
@@ -38,6 +39,9 @@ export default defineComponent({
 
     const canWrite = computed(() =>
       hasPermissionAccess(authStore.permissionCodes, ['announcement:write'])
+    );
+    const canDelete = computed(() =>
+      hasPermissionAccess(authStore.permissionCodes, ['announcement:delete'])
     );
 
     const selectedRowKeys = ref<number[]>([]);
@@ -152,7 +156,7 @@ export default defineComponent({
     }
 
     async function handleDelete(row: Announcement) {
-      if (!canWrite.value || row.status !== 'draft') return;
+      if (!canDelete.value || row.status !== 'draft') return;
 
       await dialog.confirmDelete(row.title, async () => {
         await fetchDeleteAnnouncement(row.id);
@@ -162,29 +166,38 @@ export default defineComponent({
     }
 
     async function handleBatchDelete() {
-      if (!canWrite.value) return;
+      if (!canDelete.value) return;
 
       if (selectedRowKeys.value.length === 0) {
         message.warning($t('page.announcementManagement.selectAnnouncementsToDelete'));
         return;
       }
-
-      const hasNonDraft = selectedRowKeys.value.some(id => {
-        const row = data.value.find(item => item.id === id);
-        return row?.status !== 'draft';
-      });
-      if (hasNonDraft) {
-        message.warning($t('page.announcementManagement.draftOnlyDelete'));
-        return;
-      }
-
       await dialog.confirmDelete(
         $t('page.announcementManagement.confirmBatchDelete', {
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await Promise.all(selectedRowKeys.value.map(id => fetchDeleteAnnouncement(id)));
-          message.success($t('page.announcementManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeleteAnnouncements({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.announcementManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.announcementManagement.batchDeleteSuccess'));
+          }
+
           selectedRowKeys.value = [];
           getData();
         }
@@ -196,6 +209,7 @@ export default defineComponent({
     const tableColumns = computed(() =>
       createAnnouncementTableColumns({
         canWrite: canWrite.value,
+        canDelete: canDelete.value,
         onEdit: handleEdit,
         onDelete: handleDelete,
         onPublish: row => confirmPublish(row, false),
@@ -216,7 +230,7 @@ export default defineComponent({
         actionConfig={{
           preset: {
             add: canWrite.value ? { onClick: handleAdd } : undefined,
-            batchDelete: canWrite.value ? { onClick: handleBatchDelete } : undefined,
+            batchDelete: canDelete.value ? { onClick: handleBatchDelete } : undefined,
             refresh: { onClick: getData }
           }
         }}
@@ -224,9 +238,9 @@ export default defineComponent({
         data={data.value}
         loading={loading.value}
         pagination={pagination}
-        selectedKeys={canWrite.value ? selectedRowKeys.value : []}
+        selectedKeys={canDelete.value ? selectedRowKeys.value : []}
         onUpdateSelectedKeys={keys => {
-          if (canWrite.value) {
+          if (canDelete.value) {
             selectedRowKeys.value = keys as number[];
           }
         }}

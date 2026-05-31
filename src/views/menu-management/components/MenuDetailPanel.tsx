@@ -1,15 +1,7 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, nextTick, onActivated, ref, watch } from 'vue';
 import { useElementSize } from '@vueuse/core';
-import {
-  NBreadcrumb,
-  NBreadcrumbItem,
-  NButton,
-  NCard,
-  NScrollbar,
-  NSpace,
-  NTag
-} from 'naive-ui';
+import { NBreadcrumb, NBreadcrumbItem, NButton, NCard, NScrollbar, NSpace, NTag } from 'naive-ui';
 import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
 import { MENU_TYPE_META } from '../constants';
@@ -134,11 +126,7 @@ export default defineComponent({
               <div class="min-w-0">
                 <h3 class="menu-management__detail-name">{resolveMenuNodeLabel(props.node)}</h3>
                 <div class="menu-management__detail-meta">
-                  <NTag
-                    size="small"
-                    type={typeMeta.value?.tagType ?? 'default'}
-                    bordered={false}
-                  >
+                  <NTag size="small" type={typeMeta.value?.tagType ?? 'default'} bordered={false}>
                     {typeMeta.value?.label()}
                   </NTag>
                   <NTag
@@ -197,7 +185,10 @@ export default defineComponent({
     };
 
     return () => (
-      <NCard bordered={false} class="menu-management__panel menu-management__panel--detail h-full card-wrapper">
+      <NCard
+        bordered={false}
+        class="menu-management__panel menu-management__panel--detail h-full card-wrapper"
+      >
         {{
           header: () => (
             <span class="menu-management__panel-title">

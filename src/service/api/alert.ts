@@ -1,116 +1,71 @@
 import { request } from '../request';
 
-/**
- * Get alert list
- *
- * @param params Query parameters
- */
+const API_PREFIX = '/api/admin/alerts';
+
+/** 分页列表 */
 export function fetchAlertList(params: Api.AlertManagement.AlertListParams) {
   return request<Api.AlertManagement.AlertListResponse>({
-    url: '/api/admin/alerts',
+    url: API_PREFIX,
     method: 'get',
     params
   });
 }
 
-/**
- * Get alert detail
- *
- * @param id Alert ID
- */
+/** 详情 */
 export function fetchAlertDetail(id: number) {
   return request<Api.AlertManagement.AlertDetailResponse>({
-    url: `/api/admin/alerts/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'get'
   });
 }
 
-/**
- * Create alert
- *
- * @param data Alert data
- */
+/** 创建 */
 export function fetchCreateAlert(data: Api.AlertManagement.CreateAlertRequest) {
   return request<Api.AlertManagement.CreateAlertResponse>({
-    url: '/api/admin/alerts',
+    url: API_PREFIX,
     method: 'post',
     data
   });
 }
 
-/**
- * Update alert
- *
- * @param id Alert ID
- * @param data Alert data
- */
+/** 更新 */
 export function fetchUpdateAlert(id: number, data: Api.AlertManagement.UpdateAlertRequest) {
   return request<Api.AlertManagement.UpdateAlertResponse>({
-    url: `/api/admin/alerts/${id}`,
-    method: 'put',
+    url: `${API_PREFIX}/${id}`,
+    method: 'patch',
     data
   });
 }
 
-/**
- * Delete alert
- *
- * @param id Alert ID
- */
+/** 删除 */
 export function fetchDeleteAlert(id: number) {
   return request<Api.AlertManagement.DeleteAlertResponse>({
-    url: `/api/admin/alerts/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'delete'
   });
 }
 
-/**
- * Batch delete alerts
- *
- * @param data Alert IDs
- */
+/** 批量删除 */
 export function fetchBatchDeleteAlerts(data: Api.AlertManagement.BatchDeleteAlertsRequest) {
   return request<Api.AlertManagement.BatchDeleteAlertsResponse>({
-    url: '/api/admin/alerts/batch',
+    url: `${API_PREFIX}/batch`,
     method: 'delete',
     data
   });
 }
 
-/**
- * Toggle alert status (enable/disable)
- *
- * @param id Alert ID
- * @param isEnabled Status
- */
-export function fetchToggleAlertStatus(id: number, isEnabled: boolean) {
-  return request<Api.AlertManagement.ToggleAlertStatusResponse>({
-    url: `/api/admin/alerts/${id}/status`,
-    method: 'patch',
-    data: { isEnabled }
-  });
-}
-
-/**
- * Acknowledge alert
- *
- * @param id Alert ID
- */
+/** 确认告警 */
 export function fetchAcknowledgeAlert(id: number) {
   return request<Api.AlertManagement.AcknowledgeAlertResponse>({
-    url: `/api/admin/alerts/${id}/acknowledge`,
-    method: 'patch'
+    url: `${API_PREFIX}/${id}/acknowledge`,
+    method: 'post'
   });
 }
 
-/**
- * Resolve alert
- *
- * @param id Alert ID
- */
+/** 解决告警 */
 export function fetchResolveAlert(id: number) {
   return request<Api.AlertManagement.ResolveAlertResponse>({
-    url: `/api/admin/alerts/${id}/resolve`,
-    method: 'patch'
+    url: `${API_PREFIX}/${id}/resolve`,
+    method: 'post'
   });
 }

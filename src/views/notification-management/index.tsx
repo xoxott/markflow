@@ -178,8 +178,27 @@ export default defineComponent({
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await fetchBatchDeleteNotifications({ ids: selectedRowKeys.value });
-          message.success($t('page.notificationManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeleteNotifications({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.notificationManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.notificationManagement.batchDeleteSuccess'));
+          }
+
           selectedRowKeys.value = [];
           getData();
         }

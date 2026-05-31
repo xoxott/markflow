@@ -28,8 +28,8 @@ declare namespace Api {
       targetRoleIds: number[] | null;
       targetUsers?: Api.AdminOptionTarget[] | null;
       targetRoles?: Api.AdminOptionTarget[] | null;
-      readCount: number | null;
-      totalCount: number | null;
+      readCount: number;
+      totalCount: number;
       createdAt: string;
       updatedAt: string;
     }
@@ -59,12 +59,22 @@ declare namespace Api {
       ids: number[];
     }
 
+    interface BatchDeleteNotificationFailure {
+      id: number;
+      reason: string;
+    }
+
+    interface BatchDeleteNotificationsResponse {
+      deletedCount: number;
+      failedIds: number[];
+      failures: BatchDeleteNotificationFailure[];
+    }
+
     type NotificationListResponse = ListData<Notification>;
     type NotificationDetailResponse = Notification;
     type CreateNotificationResponse = Notification;
     type UpdateNotificationResponse = Notification;
     type DeleteNotificationResponse = null;
-    type BatchDeleteNotificationsResponse = { deletedCount: number };
     type PublishNotificationResponse = Notification;
     type RevertNotificationToDraftResponse = Notification;
     type ArchiveNotificationResponse = Notification;

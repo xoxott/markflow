@@ -1,92 +1,64 @@
-/** Log Management API types */
+/** Log Management API types (ai-server admin/logs) */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./common.d.ts" />
 
 declare namespace Api {
-  /**
-   * namespace LogManagement
-   *
-   * backend api module: "log-management"
-   */
   namespace LogManagement {
-    /** Log information */
+    /** ai-server log type */
+    type LogType = 'access' | 'audit';
+
+    /** Access log entity (ai-server AccessLogOutput) */
     interface Log {
       id: number;
-      isActive: boolean;
-      createdAt: string;
-      updatedAt: string;
-      deletedAt: string | null;
-      domainEvents: any[];
-      version: number;
+      logType: LogType;
+      username?: string | null;
       userId: number | null;
-      method: string | null;
-      path: string | null;
-      statusCode: number | null;
-      ip: string | null;
-      responseTime: number | null;
+      method: string;
+      path: string;
+      statusCode: number;
+      ip: string;
+      responseTime: number;
       error: string | null;
+      metadata: Record<string, unknown> | null;
+      createdAt: string;
+      isSuccessful: boolean;
+      hasError: boolean;
     }
 
-    /** Log list query parameters */
+    /** List query (ai-server LogQueryDto + PaginationDto) */
     interface LogListParams extends Common.PaginationParams {
-      /** Search keyword (path, method) */
+      logType?: LogType;
       search?: string;
-      /** Filter by user ID */
       userId?: number;
-      /** Filter by IP */
       ip?: string;
-      /** Filter by status code */
       statusCode?: number;
-      /** Filter by method */
       method?: string;
-      /** Filter by start date */
       startDate?: string;
-      /** Filter by end date */
       endDate?: string;
-      /** Sort by field */
       sortBy?: string;
-      /** Sort order (asc or desc) */
-      sortOrder?: 'asc' | 'desc';
+      sortOrder?: 'ASC' | 'DESC';
     }
 
-    /** Delete log request */
-    interface DeleteLogRequest {
-      id: number;
-    }
-
-    /** Batch delete logs request */
     interface BatchDeleteLogsRequest {
       ids: number[];
     }
 
-    /** Clear logs request */
-    interface ClearLogsRequest {
-      /** Optional: clear logs before this date */
-      beforeDate?: string;
+    interface BatchDeleteLogFailure {
+      id: number;
+      reason: string;
     }
 
-    /** Log list response */
-    type LogListResponse = ListData<Log>;
-
-    /** Log detail response */
-    type LogDetailResponse = Log;
-
-    /** Delete log response */
-    interface DeleteLogResponse {
-      message: string;
-    }
-
-    /** Batch delete logs response */
     interface BatchDeleteLogsResponse {
-      message: string;
       deletedCount: number;
+      failedIds: number[];
+      failures: BatchDeleteLogFailure[];
     }
 
-    /** Clear logs response */
-    interface ClearLogsResponse {
-      message: string;
-      deletedCount: number;
-    }
+    type DeleteOldLogsResponse = number;
+
+    type LogListResponse = ListData<Log>;
+    type LogDetailResponse = Log;
+    type DeleteLogResponse = null;
   }
 }

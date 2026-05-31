@@ -44,6 +44,7 @@ export interface AnnouncementTableColumnHandlers {
   onRevertToDraft: (row: Announcement) => void;
   onArchive: (row: Announcement) => void;
   canWrite: boolean;
+  canDelete: boolean;
 }
 
 function renderTypeTag(type: Api.AnnouncementManagement.AnnouncementType | undefined) {
@@ -78,7 +79,7 @@ export function createAnnouncementTableColumns(
 ): TableColumnConfig<Announcement>[] {
   return [
     {
-      title: $t('page.announcementManagement.title'),
+      title: $t('page.announcementManagement.name'),
       key: 'title',
       width: 200
     },
@@ -115,6 +116,12 @@ export function createAnnouncementTableColumns(
       key: 'status',
       width: 110,
       render: (row: Announcement) => renderStatusTag(row.status)
+    },
+    {
+      title: $t('page.announcementManagement.viewCount'),
+      key: 'viewCount',
+      width: 100,
+      render: (row: Announcement) => row.viewCount ?? 0
     },
     {
       title: $t('page.announcementManagement.publishedAt'),
@@ -182,7 +189,7 @@ export function createAnnouncementTableColumns(
             label: $t('common.delete'),
             type: 'error',
             icon: 'carbon:trash-can',
-            show: (row: Announcement) => h.canWrite && row.status === 'draft',
+            show: (row: Announcement) => h.canDelete && row.status === 'draft',
             onClick: h.onDelete
           }
         ]
@@ -192,4 +199,4 @@ export function createAnnouncementTableColumns(
   ];
 }
 
-export const ANNOUNCEMENT_LIST_SCROLL_X = 1980;
+export const ANNOUNCEMENT_LIST_SCROLL_X = 2080;

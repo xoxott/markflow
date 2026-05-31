@@ -45,7 +45,8 @@ export default defineComponent({
                       <strong>{$t('page.logManagement.id')}:</strong> {log.id}
                     </div>
                     <div>
-                      <strong>{$t('page.logManagement.userId')}:</strong> {log.userId ?? '-'}
+                      <strong>{$t('page.logManagement.username')}:</strong>{' '}
+                      {log.username ?? (log.userId !== null ? String(log.userId) : '-')}
                     </div>
                     <div>
                       <strong>{$t('page.logManagement.ip')}:</strong> {log.ip ?? '-'}
@@ -55,8 +56,7 @@ export default defineComponent({
                       {formatApiDateTime(log.createdAt)}
                     </div>
                     <div>
-                      <strong>{$t('page.logManagement.updatedAt')}:</strong>{' '}
-                      {formatApiDateTime(log.updatedAt)}
+                      <strong>{$t('page.logManagement.logType')}:</strong> {log.logType}
                     </div>
                   </NSpace>
                 </NCard>

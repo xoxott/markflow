@@ -124,7 +124,7 @@ export default defineComponent({
                 labelPlacement="left"
                 labelWidth="100px"
               >
-                <NFormItem label={$t('page.announcementManagement.title')} path="title">
+                <NFormItem label={$t('page.announcementManagement.name')} path="title">
                   <NInput
                     v-model:value={formModel.title}
                     placeholder={$t('page.announcementManagement.titlePlaceholder')}
@@ -154,7 +154,11 @@ export default defineComponent({
                     style={{ width: '100%' }}
                   />
                 </NFormItem>
-                <NFormItem label={$t('page.announcementManagement.sticky')} path="sticky">
+                <NFormItem
+                  label={$t('page.announcementManagement.sticky')}
+                  path="sticky"
+                  feedback={$t('page.announcementManagement.stickyPlaceholder')}
+                >
                   <NSwitch v-model:value={formModel.sticky} />
                 </NFormItem>
                 <NFormItem label={$t('page.announcementManagement.expiresAt')} path="expiresAt">

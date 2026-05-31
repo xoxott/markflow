@@ -30,8 +30,10 @@ export function serializeLogListFilters(
 ): Partial<Api.LogManagement.LogListParams> {
   const startDate = params.startDate;
   const endDate = params.endDate;
+  const logType = params.logType as Api.LogManagement.LogType | 'all' | undefined;
 
   return {
+    logType: logType ?? 'access',
     search: (params.search as string) || undefined,
     userId: params.userId as number | undefined,
     ip: (params.ip as string) || undefined,
@@ -40,12 +42,25 @@ export function serializeLogListFilters(
     startDate: typeof startDate === 'number' ? new Date(startDate).toISOString() : undefined,
     endDate: typeof endDate === 'number' ? new Date(endDate).toISOString() : undefined,
     sortBy: params.sortBy as string | undefined,
-    sortOrder: params.sortOrder as 'asc' | 'desc' | undefined
+    sortOrder: params.sortOrder as 'ASC' | 'DESC' | undefined
   };
 }
 
 export function createLogSearchFields(): SearchFieldConfig[] {
   return [
+    {
+      type: 'select',
+      field: 'logType',
+      label: $t('page.logManagement.logType'),
+      placeholder: $t('page.logManagement.logTypePlaceholder'),
+      width: '140px',
+      clearable: true,
+      options: [
+        { label: $t('page.logManagement.logTypeAccess'), value: 'access' },
+        { label: $t('page.logManagement.logTypeAudit'), value: 'audit' },
+        { label: $t('page.logManagement.all'), value: 'all' }
+      ]
+    },
     {
       type: 'input',
       field: 'search',
@@ -126,10 +141,10 @@ export interface LogTableColumnHandlers {
 export function createLogTableColumns(h: LogTableColumnHandlers): TableColumnConfig<Log>[] {
   return [
     {
-      title: $t('page.logManagement.userId'),
-      key: 'userId',
-      width: 100,
-      render: (row: Log) => row.userId ?? '-'
+      title: $t('page.logManagement.username'),
+      key: 'username',
+      width: 120,
+      render: (row: Log) => row.username ?? (row.userId !== null ? String(row.userId) : '-')
     },
     {
       title: $t('page.logManagement.ip'),

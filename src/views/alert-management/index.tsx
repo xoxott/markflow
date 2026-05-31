@@ -8,20 +8,21 @@ import {
   fetchCreateAlert,
   fetchDeleteAlert,
   fetchResolveAlert,
-  fetchToggleAlertStatus,
   fetchUpdateAlert
 } from '@/service/api/alert';
+import { useAuthStore } from '@/store/modules/auth';
+import { hasPermissionAccess } from '@/utils/rbac/permission-access';
 import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { useAlertDialog } from './components/useAlertDialog';
-import type { AlertFormData } from './components/dialog';
 import {
   ALERT_LIST_SCROLL_X,
   createAlertSearchFields,
   createAlertTableColumns
 } from './listUiConfig';
+import { buildWritePayload, createEmptyForm } from './utils/alert-form';
 
 type Alert = Api.AlertManagement.Alert;
 
@@ -32,6 +33,14 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const alertDialog = useAlertDialog();
     const dialog = useDialog(instance?.appContext.app);
+    const authStore = useAuthStore();
+
+    const canWrite = computed(() =>
+      hasPermissionAccess(authStore.permissionCodes, ['alert:write'])
+    );
+    const canDelete = computed(() =>
+      hasPermissionAccess(authStore.permissionCodes, ['alert:delete'])
+    );
 
     const selectedRowKeys = ref<number[]>([]);
 
@@ -40,44 +49,24 @@ export default defineComponent({
         apiFn: fetchAlertList,
         listFilters: {
           search: '',
-          status: undefined as string | undefined,
-          level: undefined as string | undefined,
-          isEnabled: undefined,
+          type: undefined as Api.AlertManagement.AlertType | undefined,
+          level: undefined as Api.AlertManagement.AlertLevel | undefined,
+          status: undefined as Api.AlertManagement.AlertStatus | undefined,
           sortBy: undefined as string | undefined,
-          sortOrder: undefined as 'asc' | 'desc' | undefined
+          sortOrder: undefined as 'ASC' | 'DESC' | undefined
         },
         showTotal: true,
         immediate: true
       });
 
     async function handleAdd() {
-      const formData: AlertFormData = {
-        name: '',
-        description: '',
-        level: 'warning',
-        condition: '',
-        threshold: null,
-        metric: '',
-        isEnabled: true,
-        targetUserIds: [],
-        targetRoleIds: []
-      };
+      if (!canWrite.value) return;
 
       await alertDialog.showAlertForm({
         isEdit: false,
-        formData,
-        onConfirm: async (form: AlertFormData) => {
-          await fetchCreateAlert({
-            name: form.name,
-            description: form.description || undefined,
-            level: form.level,
-            condition: form.condition || undefined,
-            threshold: form.threshold || undefined,
-            metric: form.metric || undefined,
-            isEnabled: form.isEnabled,
-            targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
-          });
+        formData: createEmptyForm(),
+        onConfirm: async form => {
+          await fetchCreateAlert(buildWritePayload(form));
           message.success($t('common.addSuccess'));
           getData();
         }
@@ -85,72 +74,51 @@ export default defineComponent({
     }
 
     async function handleEdit(row: Alert) {
-      const { data: alertDetail } = await fetchAlertDetail(row.id);
-      if (!alertDetail) {
+      if (!canWrite.value || row.status === 'resolved') return;
+
+      const { data: alertDetail, error } = await fetchAlertDetail(row.id);
+      if (error || !alertDetail) {
         message.error($t('page.alertManagement.getDetailFailed'));
         return;
       }
 
-      const formData: AlertFormData = {
-        name: alertDetail.name,
-        description: alertDetail.description || '',
-        level: alertDetail.level,
-        condition: alertDetail.condition || '',
-        threshold: alertDetail.threshold,
-        metric: alertDetail.metric || '',
-        isEnabled: alertDetail.isEnabled,
-        targetUserIds: alertDetail.targetUserIds || [],
-        targetRoleIds: alertDetail.targetRoleIds || []
-      };
-
       await alertDialog.showAlertForm({
         isEdit: true,
-        formData,
-        targetUsers: alertDetail.targetUsers ?? undefined,
-        targetRoles: alertDetail.targetRoles ?? undefined,
-        onConfirm: async (form: AlertFormData) => {
-          const updateData: Api.AlertManagement.UpdateAlertRequest = {
-            name: form.name,
-            description: form.description || undefined,
-            level: form.level,
-            condition: form.condition || undefined,
-            threshold: form.threshold || undefined,
-            metric: form.metric || undefined,
-            isEnabled: form.isEnabled,
-            targetUserIds: form.targetUserIds.length > 0 ? form.targetUserIds : undefined,
-            targetRoleIds: form.targetRoleIds.length > 0 ? form.targetRoleIds : undefined
-          };
-          await fetchUpdateAlert(row.id, updateData);
+        formData: {
+          type: alertDetail.type,
+          level: alertDetail.level,
+          title: alertDetail.title,
+          message: alertDetail.message,
+          source: alertDetail.source || ''
+        },
+        onConfirm: async form => {
+          await fetchUpdateAlert(row.id, buildWritePayload(form));
           message.success($t('common.updateSuccess'));
           getData();
         }
       });
     }
 
-    async function handleToggleStatus(alertId: number, isEnabled: boolean) {
-      try {
-        await fetchToggleAlertStatus(alertId, isEnabled);
-        message.success($t('page.alertManagement.toggleStatusSuccess'));
-        getData();
-      } catch {
-        getData();
-      }
-    }
-
     async function handleAcknowledge(row: Alert) {
+      if (!canWrite.value) return;
+
       await fetchAcknowledgeAlert(row.id);
       message.success($t('page.alertManagement.acknowledgeSuccess'));
       getData();
     }
 
     async function handleResolve(row: Alert) {
+      if (!canWrite.value) return;
+
       await fetchResolveAlert(row.id);
       message.success($t('page.alertManagement.resolveSuccess'));
       getData();
     }
 
     async function handleDelete(row: Alert) {
-      await dialog.confirmDelete(row.name, async () => {
+      if (!canDelete.value) return;
+
+      await dialog.confirmDelete(row.title, async () => {
         await fetchDeleteAlert(row.id);
         message.success($t('common.deleteSuccess'));
         getData();
@@ -158,6 +126,8 @@ export default defineComponent({
     }
 
     async function handleBatchDelete() {
+      if (!canDelete.value) return;
+
       if (selectedRowKeys.value.length === 0) {
         message.warning($t('page.alertManagement.selectAlertsToDelete'));
         return;
@@ -167,8 +137,27 @@ export default defineComponent({
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await fetchBatchDeleteAlerts({ ids: selectedRowKeys.value });
-          message.success($t('page.alertManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeleteAlerts({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.alertManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.alertManagement.batchDeleteSuccess'));
+          }
+
           selectedRowKeys.value = [];
           getData();
         }
@@ -179,9 +168,10 @@ export default defineComponent({
 
     const tableColumns = computed(() =>
       createAlertTableColumns({
+        canWrite: canWrite.value,
+        canDelete: canDelete.value,
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onToggleStatus: handleToggleStatus,
         onAcknowledge: handleAcknowledge,
         onResolve: handleResolve
       })
@@ -197,8 +187,8 @@ export default defineComponent({
         onReset={onReset}
         actionConfig={{
           preset: {
-            add: { onClick: handleAdd },
-            batchDelete: { onClick: handleBatchDelete },
+            add: canWrite.value ? { onClick: handleAdd } : undefined,
+            batchDelete: canDelete.value ? { onClick: handleBatchDelete } : undefined,
             refresh: { onClick: getData }
           }
         }}
@@ -206,9 +196,11 @@ export default defineComponent({
         data={data.value}
         loading={loading.value}
         pagination={pagination}
-        selectedKeys={selectedRowKeys.value}
+        selectedKeys={canDelete.value ? selectedRowKeys.value : []}
         onUpdateSelectedKeys={keys => {
-          selectedRowKeys.value = keys as number[];
+          if (canDelete.value) {
+            selectedRowKeys.value = keys as number[];
+          }
         }}
         rowKey="id"
         scrollX={ALERT_LIST_SCROLL_X}

@@ -16,13 +16,10 @@ export interface FlowI18nMessages {
     layoutUnlock: string;
     layoutLockTitle: string;
     layoutUnlockTitle: string;
-    ruler: string;
     rulerShowTitle: string;
     rulerHideTitle: string;
-    dragSnapGuides: string;
     dragSnapGuidesEnableTitle: string;
     dragSnapGuidesDisableTitle: string;
-    minimap: string;
     minimapShowTitle: string;
     minimapHideTitle: string;
     fitView: string;
