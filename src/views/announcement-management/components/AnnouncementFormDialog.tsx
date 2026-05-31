@@ -1,6 +1,7 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
 import {
+  NAlert,
   NButton,
   NDatePicker,
   NForm,
@@ -14,6 +15,7 @@ import {
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
+import { createAnnouncementTypeOptions } from '../constants';
 import type { AnnouncementFormDialogConfig } from './dialog';
 
 export default defineComponent({
@@ -29,45 +31,40 @@ export default defineComponent({
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
 
-    const publishedAtTimestamp = ref<number | null>(null);
     const expiresAtTimestamp = ref<number | null>(null);
 
     const formModel = useSyncedFormModel(() => props.config.formData, {
       afterSync(_, source) {
-        publishedAtTimestamp.value = source.publishedAt
-          ? new Date(source.publishedAt).getTime()
-          : null;
         expiresAtTimestamp.value = source.expiresAt ? new Date(source.expiresAt).getTime() : null;
       }
     });
 
-    // 公告类型选项
-    const typeOptions = [
-      { label: $t('page.announcementManagement.typeNotice' as any), value: 'notice' },
-      { label: $t('page.announcementManagement.typeAnnouncement' as any), value: 'announcement' },
-      { label: $t('page.announcementManagement.typeWarning' as any), value: 'warning' },
-      { label: $t('page.announcementManagement.typeInfo' as any), value: 'info' }
-    ];
-
-    // 表单验证规则
     const formRules = {
       title: [
         {
           required: true,
-          message: $t('page.announcementManagement.titleRequired' as any),
+          message: $t('page.announcementManagement.titleRequired'),
           trigger: 'blur'
         }
       ],
       content: [
         {
           required: true,
-          message: $t('page.announcementManagement.contentRequired' as any),
+          message: $t('page.announcementManagement.contentRequired'),
           trigger: 'blur'
+        }
+      ],
+      type: [
+        {
+          required: true,
+          message: $t('page.announcementManagement.typeRequired'),
+          trigger: 'change'
         }
       ]
     };
 
-    // 关闭弹窗
+    const typeOptions = computed(() => createAnnouncementTypeOptions());
+
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -83,30 +80,24 @@ export default defineComponent({
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
 
-      // 将时间戳转换为 ISO 字符串
       const submitData = {
         ...formModel,
-        publishedAt: publishedAtTimestamp.value
-          ? new Date(publishedAtTimestamp.value).toISOString()
-          : '',
-        expiresAt: expiresAtTimestamp.value ? new Date(expiresAtTimestamp.value).toISOString() : ''
+        expiresAt: expiresAtTimestamp.value ? new Date(expiresAtTimestamp.value).toISOString() : '',
+        targetAudience: formModel.targetAudience.trim()
       };
       await props.config.onConfirm(submitData);
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -120,78 +111,72 @@ export default defineComponent({
       <BaseDialog show={props.show} config={dialogConfig.value}>
         {{
           default: () => (
-            <NForm
-              ref={formRef}
-              model={formModel}
-              rules={formRules}
-              labelPlacement="left"
-              labelWidth="100px"
-            >
-              <NFormItem label={$t('page.announcementManagement.title' as any)} path="title">
-                <NInput
-                  v-model:value={formModel.title}
-                  placeholder={$t('page.announcementManagement.titlePlaceholder' as any)}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.announcementManagement.content' as any)} path="content">
-                <NInput
-                  v-model:value={formModel.content}
-                  type="textarea"
-                  placeholder={$t('page.announcementManagement.contentPlaceholder' as any)}
-                  rows={6}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.announcementManagement.type' as any)} path="type">
-                <NSelect
-                  v-model:value={formModel.type}
-                  placeholder={$t('page.announcementManagement.typePlaceholder' as any)}
-                  clearable
-                  options={typeOptions}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.announcementManagement.priority' as any)} path="priority">
-                <NInputNumber
-                  v-model:value={formModel.priority}
-                  placeholder={$t('page.announcementManagement.priorityPlaceholder' as any)}
-                  min={1}
-                  max={10}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem
-                label={$t('page.announcementManagement.publishedAt' as any)}
-                path="publishedAt"
+            <>
+              {!props.config.isEdit ? (
+                <NAlert type="info" class="mb-16px" showIcon={false}>
+                  {$t('page.announcementManagement.createDraftHint')}
+                </NAlert>
+              ) : null}
+              <NForm
+                ref={formRef}
+                model={formModel}
+                rules={formRules}
+                labelPlacement="left"
+                labelWidth="100px"
               >
-                <NDatePicker
-                  v-model:value={publishedAtTimestamp.value}
-                  type="datetime"
-                  placeholder={$t('page.announcementManagement.publishedAtPlaceholder' as any)}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem
-                label={$t('page.announcementManagement.expiresAt' as any)}
-                path="expiresAt"
-              >
-                <NDatePicker
-                  v-model:value={expiresAtTimestamp.value}
-                  type="datetime"
-                  placeholder={$t('page.announcementManagement.expiresAtPlaceholder' as any)}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.announcementManagement.status' as any)} path="isPublished">
-                <NSwitch v-model:value={formModel.isPublished} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isPublished
-                    ? $t('page.announcementManagement.published' as any)
-                    : $t('page.announcementManagement.unpublished' as any)}
-                </span>
-              </NFormItem>
-            </NForm>
+                <NFormItem label={$t('page.announcementManagement.title')} path="title">
+                  <NInput
+                    v-model:value={formModel.title}
+                    placeholder={$t('page.announcementManagement.titlePlaceholder')}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.announcementManagement.content')} path="content">
+                  <NInput
+                    v-model:value={formModel.content}
+                    type="textarea"
+                    placeholder={$t('page.announcementManagement.contentPlaceholder')}
+                    rows={6}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.announcementManagement.type')} path="type">
+                  <NSelect
+                    v-model:value={formModel.type}
+                    placeholder={$t('page.announcementManagement.typePlaceholder')}
+                    options={typeOptions.value}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.announcementManagement.priority')} path="priority">
+                  <NInputNumber
+                    v-model:value={formModel.priority}
+                    placeholder={$t('page.announcementManagement.priorityPlaceholder')}
+                    min={0}
+                    clearable
+                    style={{ width: '100%' }}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.announcementManagement.sticky')} path="sticky">
+                  <NSwitch v-model:value={formModel.sticky} />
+                </NFormItem>
+                <NFormItem label={$t('page.announcementManagement.expiresAt')} path="expiresAt">
+                  <NDatePicker
+                    v-model:value={expiresAtTimestamp.value}
+                    type="datetime"
+                    placeholder={$t('page.announcementManagement.expiresAtPlaceholder')}
+                    clearable
+                    style={{ width: '100%' }}
+                  />
+                </NFormItem>
+                <NFormItem
+                  label={$t('page.announcementManagement.targetAudience')}
+                  path="targetAudience"
+                >
+                  <NInput
+                    v-model:value={formModel.targetAudience}
+                    placeholder={$t('page.announcementManagement.targetAudiencePlaceholder')}
+                  />
+                </NFormItem>
+              </NForm>
+            </>
           ),
           footer: () => (
             <NSpace justify="end">

@@ -1,8 +1,8 @@
-import { NSwitch, NTag } from 'naive-ui';
-import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { NTag } from 'naive-ui';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
+import { createAnnouncementStatusOptions, createAnnouncementTypeOptions } from './constants';
 
 type Announcement = Api.AnnouncementManagement.Announcement;
 
@@ -21,24 +21,16 @@ export function createAnnouncementSearchFields(): SearchFieldConfig[] {
       field: 'type',
       label: $t('page.announcementManagement.type'),
       placeholder: $t('page.announcementManagement.typePlaceholder'),
-      width: '120px',
-      options: [
-        { label: $t('page.announcementManagement.typeNotice'), value: 'notice' },
-        { label: $t('page.announcementManagement.typeAnnouncement'), value: 'announcement' },
-        { label: $t('page.announcementManagement.typeWarning'), value: 'warning' },
-        { label: $t('page.announcementManagement.typeInfo'), value: 'info' }
-      ]
+      width: '140px',
+      options: createAnnouncementTypeOptions()
     },
     {
       type: 'select',
-      field: 'isPublished',
+      field: 'status',
       label: $t('page.announcementManagement.status'),
       placeholder: $t('page.announcementManagement.statusPlaceholder'),
       width: '120px',
-      options: createQueryBooleanSelectOptions(
-        $t('page.announcementManagement.published'),
-        $t('page.announcementManagement.unpublished')
-      )
+      options: createAnnouncementStatusOptions()
     }
   ];
 }
@@ -46,7 +38,37 @@ export function createAnnouncementSearchFields(): SearchFieldConfig[] {
 export interface AnnouncementTableColumnHandlers {
   onEdit: (row: Announcement) => void;
   onDelete: (row: Announcement) => void;
-  onToggleStatus: (id: number, isPublished: boolean) => void;
+  onPublish: (row: Announcement) => void;
+  onRepublish: (row: Announcement) => void;
+  onRevertToDraft: (row: Announcement) => void;
+  onArchive: (row: Announcement) => void;
+}
+
+function renderTypeTag(type: Api.AnnouncementManagement.AnnouncementType | undefined) {
+  if (!type) return '-';
+  const typeMap: Record<Api.AnnouncementManagement.AnnouncementType, string> = {
+    system: $t('page.announcementManagement.typeSystem'),
+    maintenance: $t('page.announcementManagement.typeMaintenance'),
+    feature: $t('page.announcementManagement.typeFeature'),
+    warning: $t('page.announcementManagement.typeWarning'),
+    info: $t('page.announcementManagement.typeInfo')
+  };
+  return <NTag type="info">{typeMap[type] ?? type}</NTag>;
+}
+
+function renderStatusTag(status: Api.AnnouncementManagement.AnnouncementStatus | undefined) {
+  if (!status) return '-';
+  const statusMap: Record<
+    Api.AnnouncementManagement.AnnouncementStatus,
+    { label: string; type: 'default' | 'success' | 'warning' }
+  > = {
+    draft: { label: $t('page.announcementManagement.statusDraft'), type: 'default' },
+    published: { label: $t('page.announcementManagement.statusPublished'), type: 'success' },
+    archived: { label: $t('page.announcementManagement.statusArchived'), type: 'warning' }
+  };
+  const item = statusMap[status];
+  if (!item) return status;
+  return <NTag type={item.type}>{item.label}</NTag>;
 }
 
 export function createAnnouncementTableColumns(
@@ -71,16 +93,7 @@ export function createAnnouncementTableColumns(
       title: $t('page.announcementManagement.type'),
       key: 'type',
       width: 120,
-      render: (row: Announcement) => {
-        if (!row.type) return '-';
-        const typeMap: Record<string, string> = {
-          notice: $t('page.announcementManagement.typeNotice'),
-          announcement: $t('page.announcementManagement.typeAnnouncement'),
-          warning: $t('page.announcementManagement.typeWarning'),
-          info: $t('page.announcementManagement.typeInfo')
-        };
-        return <NTag type="info">{typeMap[row.type] || row.type}</NTag>;
-      }
+      render: (row: Announcement) => renderTypeTag(row.type)
     },
     {
       title: $t('page.announcementManagement.priority'),
@@ -89,15 +102,17 @@ export function createAnnouncementTableColumns(
       render: (row: Announcement) => row.priority ?? '-'
     },
     {
+      title: $t('page.announcementManagement.sticky'),
+      key: 'sticky',
+      width: 90,
+      render: (row: Announcement) =>
+        row.sticky ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no')
+    },
+    {
       title: $t('page.announcementManagement.status'),
-      key: 'isPublished',
-      width: 120,
-      render: (row: Announcement) => (
-        <NSwitch
-          value={row.isPublished}
-          onUpdateValue={(v: boolean) => h.onToggleStatus(row.id, v)}
-        />
-      )
+      key: 'status',
+      width: 110,
+      render: (row: Announcement) => renderStatusTag(row.status)
     },
     {
       title: $t('page.announcementManagement.publishedAt'),
@@ -120,24 +135,59 @@ export function createAnnouncementTableColumns(
       render: (row: Announcement) =>
         row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-'
     },
-    createActionColumn({
-      mode: 'inline',
-      buttons: [
-        {
-          label: $t('common.edit'),
-          type: 'primary',
-          icon: 'carbon:edit',
-          onClick: h.onEdit
-        },
-        {
-          label: $t('common.delete'),
-          type: 'error',
-          icon: 'carbon:trash-can',
-          onClick: h.onDelete
-        }
-      ]
-    })
+    createActionColumn(
+      {
+        mode: 'menu',
+        buttons: [
+          {
+            label: $t('common.edit'),
+            type: 'primary',
+            icon: 'carbon:edit',
+            onClick: h.onEdit
+          },
+          {
+            key: 'publish',
+            label: $t('page.announcementManagement.publish'),
+            type: 'success',
+            icon: 'carbon:send',
+            show: (row: Announcement) => row.status === 'draft',
+            onClick: h.onPublish
+          },
+          {
+            key: 'republish',
+            label: $t('page.announcementManagement.republish'),
+            type: 'success',
+            icon: 'carbon:reset',
+            show: (row: Announcement) => row.status === 'archived',
+            onClick: h.onRepublish
+          },
+          {
+            key: 'revertToDraft',
+            label: $t('page.announcementManagement.revertToDraft'),
+            type: 'warning',
+            icon: 'carbon:undo',
+            show: (row: Announcement) => row.status === 'published',
+            onClick: h.onRevertToDraft
+          },
+          {
+            key: 'archive',
+            label: $t('page.announcementManagement.archive'),
+            type: 'warning',
+            icon: 'carbon:archive',
+            show: (row: Announcement) => row.status === 'published',
+            onClick: h.onArchive
+          },
+          {
+            label: $t('common.delete'),
+            type: 'error',
+            icon: 'carbon:trash-can',
+            onClick: h.onDelete
+          }
+        ]
+      },
+      { width: 120 }
+    )
   ];
 }
 
-export const ANNOUNCEMENT_LIST_SCROLL_X = 1960;
+export const ANNOUNCEMENT_LIST_SCROLL_X = 1980;

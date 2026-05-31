@@ -1,109 +1,65 @@
-/** Announcement Management API types */
+/** Announcement Management API types (ai-server admin/announcements) */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./common.d.ts" />
 
 declare namespace Api {
-  /**
-   * namespace AnnouncementManagement
-   *
-   * backend api module: "announcement-management"
-   */
   namespace AnnouncementManagement {
-    /** Announcement information */
+    /** ai-server AnnouncementType */
+    type AnnouncementType = 'system' | 'maintenance' | 'feature' | 'warning' | 'info';
+
+    /** ai-server AnnouncementStatus */
+    type AnnouncementStatus = 'draft' | 'published' | 'archived';
+
+    /** Announcement entity (ai-server AnnouncementEntity) */
     interface Announcement {
       id: number;
       title: string;
       content: string;
-      type: string | null;
-      priority: number | null;
-      isPublished: boolean;
+      type: AnnouncementType;
+      status: AnnouncementStatus;
+      priority: number;
       publishedAt: string | null;
       expiresAt: string | null;
+      createdBy: number | null;
+      sticky: boolean;
+      targetAudience: string[] | null;
+      viewCount: number;
       createdAt: string;
       updatedAt: string;
     }
 
-    /** Announcement list query parameters */
+    /** List query (ai-server FilterAnnouncementsDto + PaginationDto) */
     interface AnnouncementListParams extends Common.PaginationParams {
-      /** Search keyword (title or content) */
       search?: string;
-      /** Filter by status（query: true | false，不传表示不限） */
-      isPublished?: Common.QueryBoolean;
-      /** Filter by type */
-      type?: string;
-      /** Sort by field */
+      type?: AnnouncementType;
+      status?: AnnouncementStatus;
+      /** Query boolean sticky filter */
+      sticky?: Common.QueryBoolean;
       sortBy?: string;
-      /** Sort order (asc or desc) */
-      sortOrder?: 'asc' | 'desc';
+      sortOrder?: 'ASC' | 'DESC';
     }
 
-    /** Create announcement request */
+    /** Create body (ai-server CreateAnnouncementDto) */
     interface CreateAnnouncementRequest {
       title: string;
       content: string;
-      type?: string;
+      type: AnnouncementType;
       priority?: number;
-      isPublished?: boolean;
-      publishedAt?: string;
       expiresAt?: string;
+      sticky?: boolean;
+      targetAudience?: string[];
     }
 
-    /** Update announcement request */
-    interface UpdateAnnouncementRequest {
-      title?: string;
-      content?: string;
-      type?: string;
-      priority?: number;
-      isPublished?: boolean;
-      publishedAt?: string;
-      expiresAt?: string;
-    }
+    /** Update body (ai-server UpdateAnnouncementDto) */
+    type UpdateAnnouncementRequest = Partial<CreateAnnouncementRequest>;
 
-    /** Batch delete announcements request */
-    interface BatchDeleteAnnouncementsRequest {
-      ids: number[];
-    }
-
-    /** Toggle announcement status request */
-    interface ToggleAnnouncementStatusRequest {
-      id: number;
-      isPublished: boolean;
-    }
-
-    /** Announcement list response */
     type AnnouncementListResponse = ListData<Announcement>;
-
-    /** Announcement detail response */
     type AnnouncementDetailResponse = Announcement;
-
-    /** Create announcement response */
-    interface CreateAnnouncementResponse {
-      message: string;
-      announcement: Announcement;
-    }
-
-    /** Update announcement response */
-    interface UpdateAnnouncementResponse {
-      message: string;
-      announcement: Announcement;
-    }
-
-    /** Delete announcement response */
-    interface DeleteAnnouncementResponse {
-      message: string;
-    }
-
-    /** Batch delete announcements response */
-    interface BatchDeleteAnnouncementsResponse {
-      message: string;
-      deletedCount: number;
-    }
-
-    /** Toggle announcement status response */
-    interface ToggleAnnouncementStatusResponse {
-      message: string;
-      announcement: Announcement;
-    }
+    type CreateAnnouncementResponse = Announcement;
+    type UpdateAnnouncementResponse = Announcement;
+    type PublishAnnouncementResponse = Announcement;
+    type RevertAnnouncementToDraftResponse = Announcement;
+    type ArchiveAnnouncementResponse = Announcement;
   }
 }

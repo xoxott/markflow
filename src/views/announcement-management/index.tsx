@@ -3,10 +3,11 @@ import { useMessage } from 'naive-ui';
 import {
   fetchAnnouncementDetail,
   fetchAnnouncementList,
-  fetchBatchDeleteAnnouncements,
+  fetchArchiveAnnouncement,
   fetchCreateAnnouncement,
   fetchDeleteAnnouncement,
-  fetchToggleAnnouncementStatus,
+  fetchPublishAnnouncement,
+  fetchRevertAnnouncementToDraft,
   fetchUpdateAnnouncement
 } from '@/service/api/announcement';
 import TablePage from '@/components/table-page/TablePage';
@@ -15,6 +16,7 @@ import { $t } from '@/locales';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import type { AnnouncementFormData } from './components/dialog';
 import { useAnnouncementDialog } from './components/useAnnouncementDialog';
+import { buildWritePayload, createEmptyForm } from './utils/announcement-form';
 import {
   ANNOUNCEMENT_LIST_SCROLL_X,
   createAnnouncementSearchFields,
@@ -38,39 +40,19 @@ export default defineComponent({
         apiFn: fetchAnnouncementList,
         listFilters: {
           search: '',
-          isPublished: undefined,
-          type: undefined as string | undefined,
-          sortBy: undefined as string | undefined,
-          sortOrder: undefined as 'asc' | 'desc' | undefined
+          status: undefined as Api.AnnouncementManagement.AnnouncementStatus | undefined,
+          type: undefined as Api.AnnouncementManagement.AnnouncementType | undefined
         },
         showTotal: true,
         immediate: true
       });
 
     async function handleAdd() {
-      const formData: AnnouncementFormData = {
-        title: '',
-        content: '',
-        type: '',
-        priority: null,
-        isPublished: false,
-        publishedAt: '',
-        expiresAt: ''
-      };
-
       await announcementDialog.showAnnouncementForm({
         isEdit: false,
-        formData,
-        onConfirm: async (form: AnnouncementFormData) => {
-          await fetchCreateAnnouncement({
-            title: form.title,
-            content: form.content,
-            type: form.type || undefined,
-            priority: form.priority || undefined,
-            isPublished: form.isPublished,
-            publishedAt: form.publishedAt || undefined,
-            expiresAt: form.expiresAt || undefined
-          });
+        formData: createEmptyForm(),
+        onConfirm: async form => {
+          await fetchCreateAnnouncement(buildWritePayload(form));
           message.success($t('common.addSuccess'));
           getData();
         }
@@ -78,8 +60,8 @@ export default defineComponent({
     }
 
     async function handleEdit(row: Announcement) {
-      const { data: announcementDetail } = await fetchAnnouncementDetail(row.id);
-      if (!announcementDetail) {
+      const { data: announcementDetail, error } = await fetchAnnouncementDetail(row.id);
+      if (error || !announcementDetail) {
         message.error($t('page.announcementManagement.getDetailFailed'));
         return;
       }
@@ -87,41 +69,69 @@ export default defineComponent({
       const formData: AnnouncementFormData = {
         title: announcementDetail.title,
         content: announcementDetail.content,
-        type: announcementDetail.type || '',
+        type: announcementDetail.type,
         priority: announcementDetail.priority,
-        isPublished: announcementDetail.isPublished,
-        publishedAt: announcementDetail.publishedAt || '',
-        expiresAt: announcementDetail.expiresAt || ''
+        sticky: announcementDetail.sticky,
+        expiresAt: announcementDetail.expiresAt || '',
+        targetAudience: announcementDetail.targetAudience?.join(', ') || ''
       };
 
       await announcementDialog.showAnnouncementForm({
         isEdit: true,
         formData,
-        onConfirm: async (form: AnnouncementFormData) => {
-          const updateData: Api.AnnouncementManagement.UpdateAnnouncementRequest = {
-            title: form.title,
-            content: form.content,
-            type: form.type || undefined,
-            priority: form.priority || undefined,
-            isPublished: form.isPublished,
-            publishedAt: form.publishedAt || undefined,
-            expiresAt: form.expiresAt || undefined
-          };
-          await fetchUpdateAnnouncement(row.id, updateData);
+        onConfirm: async form => {
+          await fetchUpdateAnnouncement(row.id, buildWritePayload(form));
           message.success($t('common.updateSuccess'));
           getData();
         }
       });
     }
 
-    async function handleToggleStatus(announcementId: number, isPublished: boolean) {
-      try {
-        await fetchToggleAnnouncementStatus(announcementId, isPublished);
-        message.success($t('page.announcementManagement.toggleStatusSuccess'));
-        getData();
-      } catch {
-        getData();
-      }
+    async function confirmPublish(row: Announcement, republish: boolean) {
+      await dialog.confirm({
+        title: republish
+          ? $t('page.announcementManagement.confirmRepublishTitle')
+          : $t('page.announcementManagement.confirmPublishTitle'),
+        content: republish
+          ? $t('page.announcementManagement.confirmRepublish', { title: row.title })
+          : $t('page.announcementManagement.confirmPublish', { title: row.title }),
+        type: 'info',
+        onConfirm: async () => {
+          await fetchPublishAnnouncement(row.id);
+          message.success(
+            republish
+              ? $t('page.announcementManagement.republishSuccess')
+              : $t('page.announcementManagement.publishSuccess')
+          );
+          getData();
+        }
+      });
+    }
+
+    async function confirmRevertToDraft(row: Announcement) {
+      await dialog.confirm({
+        title: $t('page.announcementManagement.confirmRevertToDraftTitle'),
+        content: $t('page.announcementManagement.confirmRevertToDraft', { title: row.title }),
+        type: 'warning',
+        onConfirm: async () => {
+          await fetchRevertAnnouncementToDraft(row.id);
+          message.success($t('page.announcementManagement.revertToDraftSuccess'));
+          getData();
+        }
+      });
+    }
+
+    async function confirmArchive(row: Announcement) {
+      await dialog.confirm({
+        title: $t('page.announcementManagement.confirmArchiveTitle'),
+        content: $t('page.announcementManagement.confirmArchive', { title: row.title }),
+        type: 'warning',
+        onConfirm: async () => {
+          await fetchArchiveAnnouncement(row.id);
+          message.success($t('page.announcementManagement.archiveSuccess'));
+          getData();
+        }
+      });
     }
 
     async function handleDelete(row: Announcement) {
@@ -142,7 +152,7 @@ export default defineComponent({
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await fetchBatchDeleteAnnouncements({ ids: selectedRowKeys.value });
+          await Promise.all(selectedRowKeys.value.map(id => fetchDeleteAnnouncement(id)));
           message.success($t('page.announcementManagement.batchDeleteSuccess'));
           selectedRowKeys.value = [];
           getData();
@@ -156,7 +166,10 @@ export default defineComponent({
       createAnnouncementTableColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
-        onToggleStatus: handleToggleStatus
+        onPublish: row => confirmPublish(row, false),
+        onRepublish: row => confirmPublish(row, true),
+        onRevertToDraft: confirmRevertToDraft,
+        onArchive: confirmArchive
       })
     );
 

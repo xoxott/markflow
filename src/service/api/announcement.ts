@@ -1,99 +1,75 @@
 import { request } from '../request';
 
-/**
- * Get announcement list
- *
- * @param params Query parameters
- */
+const API_PREFIX = '/api/admin/announcements';
+
+/** 分页列表 */
 export function fetchAnnouncementList(params: Api.AnnouncementManagement.AnnouncementListParams) {
   return request<Api.AnnouncementManagement.AnnouncementListResponse>({
-    url: '/api/admin/announcements',
+    url: API_PREFIX,
     method: 'get',
     params
   });
 }
 
-/**
- * Get announcement detail
- *
- * @param id Announcement ID
- */
+/** 详情 */
 export function fetchAnnouncementDetail(id: number) {
   return request<Api.AnnouncementManagement.AnnouncementDetailResponse>({
-    url: `/api/admin/announcements/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'get'
   });
 }
 
-/**
- * Create announcement
- *
- * @param data Announcement data
- */
+/** 创建 */
 export function fetchCreateAnnouncement(
   data: Api.AnnouncementManagement.CreateAnnouncementRequest
 ) {
   return request<Api.AnnouncementManagement.CreateAnnouncementResponse>({
-    url: '/api/admin/announcements',
+    url: API_PREFIX,
     method: 'post',
     data
   });
 }
 
-/**
- * Update announcement
- *
- * @param id Announcement ID
- * @param data Announcement data
- */
+/** 更新 */
 export function fetchUpdateAnnouncement(
   id: number,
   data: Api.AnnouncementManagement.UpdateAnnouncementRequest
 ) {
   return request<Api.AnnouncementManagement.UpdateAnnouncementResponse>({
-    url: `/api/admin/announcements/${id}`,
-    method: 'put',
+    url: `${API_PREFIX}/${id}`,
+    method: 'patch',
     data
   });
 }
 
-/**
- * Delete announcement
- *
- * @param id Announcement ID
- */
+/** 删除 */
 export function fetchDeleteAnnouncement(id: number) {
-  return request<Api.AnnouncementManagement.DeleteAnnouncementResponse>({
-    url: `/api/admin/announcements/${id}`,
+  return request<null>({
+    url: `${API_PREFIX}/${id}`,
     method: 'delete'
   });
 }
 
-/**
- * Batch delete announcements
- *
- * @param data Announcement IDs
- */
-export function fetchBatchDeleteAnnouncements(
-  data: Api.AnnouncementManagement.BatchDeleteAnnouncementsRequest
-) {
-  return request<Api.AnnouncementManagement.BatchDeleteAnnouncementsResponse>({
-    url: '/api/admin/announcements/batch',
-    method: 'delete',
-    data
+/** 发布 */
+export function fetchPublishAnnouncement(id: number) {
+  return request<Api.AnnouncementManagement.PublishAnnouncementResponse>({
+    url: `${API_PREFIX}/${id}/publish`,
+    method: 'post'
   });
 }
 
-/**
- * Toggle announcement status (publish/unpublish)
- *
- * @param id Announcement ID
- * @param isPublished Status
- */
-export function fetchToggleAnnouncementStatus(id: number, isPublished: boolean) {
-  return request<Api.AnnouncementManagement.ToggleAnnouncementStatusResponse>({
-    url: `/api/admin/announcements/${id}/status`,
-    method: 'patch',
-    data: { isPublished }
+/** 取消发布并回到草稿 */
+export function fetchRevertAnnouncementToDraft(id: number) {
+  return request<Api.AnnouncementManagement.RevertAnnouncementToDraftResponse>({
+    url: `${API_PREFIX}/${id}/revert-to-draft`,
+    method: 'post'
+  });
+}
+
+/** 归档（原 unpublish，status → archived） */
+export function fetchArchiveAnnouncement(id: number) {
+  return request<Api.AnnouncementManagement.ArchiveAnnouncementResponse>({
+    url: `${API_PREFIX}/${id}/unpublish`,
+    method: 'post'
   });
 }
