@@ -23,7 +23,7 @@ import {
   menuTypeShowsRouteFields,
   menuTypeUsesExternalUrl
 } from '../utils/menu-type';
-import { findMenuNode } from '../utils/menu-tree';
+import { collectMenuIcons, findMenuNode } from '../utils/menu-tree';
 import type { MenuFormDialogConfig } from './dialog';
 import RouteKeySelect from './RouteKeySelect';
 import ActiveMenuTreeSelect from './ActiveMenuTreeSelect';
@@ -146,6 +146,8 @@ export default defineComponent({
       <div class="menu-management__form-section">{title}</div>
     );
 
+    const menuUsedIcons = computed(() => collectMenuIcons(props.config.menuTreeData));
+
     return () => (
       <BaseDialog show={props.show} config={dialogConfig.value}>
         {{
@@ -221,7 +223,7 @@ export default defineComponent({
                 ) : null}
                 <NGi span={2}>
                   <NFormItem label={$t('page.menuManagement.icon')} path="icon">
-                    <IconSelect v-model:value={formModel.icon} />
+                    <IconSelect v-model:value={formModel.icon} usedIcons={menuUsedIcons.value} />
                   </NFormItem>
                 </NGi>
                 <NGi>

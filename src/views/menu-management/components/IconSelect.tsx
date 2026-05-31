@@ -1,5 +1,5 @@
 import { computed, defineComponent, ref } from 'vue';
-import { NButton, NInput, NSpace } from 'naive-ui';
+import { NButton, NInput, NInputGroup } from 'naive-ui';
 import SvgIcon from '@/components/custom/svg-icon';
 import IconPickerDialog from './IconPickerDialog';
 
@@ -8,7 +8,8 @@ export default defineComponent({
   props: {
     value: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
-    placeholder: { type: String, default: 'mdi:home-outline' }
+    placeholder: { type: String, default: 'mdi:home-outline' },
+    usedIcons: { type: Array as () => string[], default: () => [] }
   },
   emits: ['update:value'],
   setup(props, { emit }) {
@@ -24,43 +25,34 @@ export default defineComponent({
       pickerVisible.value = true;
     };
 
+    const renderPrefix = () => {
+      if (innerValue.value) {
+        return <SvgIcon icon={innerValue.value} class="text-18px" />;
+      }
+      return <SvgIcon icon="mdi:image-outline" class="text-18px opacity-40" />;
+    };
+
     return () => (
       <>
-        <NSpace align="center" wrap={false} class="w-full">
-          <button
-            type="button"
-            class={[
-              'flex h-34px w-34px shrink-0 items-center justify-center border rounded-6px transition-colors',
-              props.disabled
-                ? 'cursor-not-allowed opacity-50'
-                : 'cursor-pointer hover:border-primary hover:bg-primary/5'
-            ]}
-            disabled={props.disabled}
-            title={innerValue.value || '选择图标'}
-            onClick={openPicker}
-          >
-            {innerValue.value ? (
-              <SvgIcon icon={innerValue.value} class="text-20px" />
-            ) : (
-              <span class="text-12px text-gray-400">?</span>
-            )}
-          </button>
+        <NInputGroup class="w-full">
           <NInput
             v-model:value={innerValue.value}
-            class="min-w-0 flex-1"
             disabled={props.disabled}
             placeholder={props.placeholder}
             clearable
-          />
+          >
+            {{ prefix: renderPrefix }}
+          </NInput>
           <NButton disabled={props.disabled} onClick={openPicker}>
             选择
           </NButton>
-        </NSpace>
+        </NInputGroup>
 
         <IconPickerDialog
           show={pickerVisible.value}
           config={{
             value: innerValue.value,
+            usedIcons: props.usedIcons,
             onSelect: (icon: string) => {
               innerValue.value = icon;
             },

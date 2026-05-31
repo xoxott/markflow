@@ -30,7 +30,7 @@ export default defineComponent({
     } = useMenuManagement();
 
     return () => (
-      <div class="menu-management h-full min-h-0 flex flex-col gap-16px">
+      <div class="menu-management min-h-0 flex flex-col flex-1 gap-12px">
         <MenuPageHeader stats={stats.value} />
 
         <div class="menu-management__layout">

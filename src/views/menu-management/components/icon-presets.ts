@@ -4,6 +4,34 @@ export interface IconPresetGroup {
   icons: string[];
 }
 
+/** 项目路由与菜单分组中实际使用的图标 */
+export const PROJECT_ROUTE_ICONS = [
+  'mdi:home-outline',
+  'mdi:workflow',
+  'mdi:book-open-page-variant',
+  'mdi:monitor-dashboard',
+  'mdi:chat',
+  'mdi:markdown',
+  'mdi:menu',
+  'mdi:upload-multiple',
+  'mdi:account-group',
+  'mdi:account-key',
+  'mdi:shield-key',
+  'mdi:folder-key',
+  'mdi:bullhorn',
+  'mdi:bell',
+  'mdi:alert',
+  'mdi:file-document-outline',
+  'mdi:file-document-multiple-outline',
+  'mdi:history',
+  'mdi:robot-outline',
+  'mdi:brain',
+  'mdi:account-group-outline',
+  'mdi:chart-timeline-variant',
+  'mdi:cog-outline',
+  'mdi:toolbox-outline'
+] as const;
+
 /** 菜单管理常用 Iconify 图标预设（mdi 系列） */
 export const ICON_PRESET_GROUPS: IconPresetGroup[] = [
   {
@@ -101,14 +129,50 @@ export const ICON_PRESET_GROUPS: IconPresetGroup[] = [
   }
 ];
 
-export const ALL_PRESET_ICONS = ICON_PRESET_GROUPS.flatMap(group => group.icons);
+export const ALL_PRESET_ICONS = [
+  ...new Set([...PROJECT_ROUTE_ICONS, ...ICON_PRESET_GROUPS.flatMap(group => group.icons)])
+];
 
-export function filterPresetIcons(keyword: string): IconPresetGroup[] {
+const IN_USE_GROUP_KEY = 'in-use';
+
+export function isIconifyName(value: string): boolean {
+  return /^[\w-]+:[\w-]+$/.test(value.trim());
+}
+
+export function buildIconPresetGroups(usedIcons: string[] = []): IconPresetGroup[] {
+  const used = [...new Set(usedIcons.map(icon => icon.trim()).filter(Boolean))].sort();
+  if (!used.length) return ICON_PRESET_GROUPS;
+
+  return [
+    {
+      key: IN_USE_GROUP_KEY,
+      label: '已使用',
+      icons: used
+    },
+    ...ICON_PRESET_GROUPS
+  ];
+}
+
+export function filterPresetIcons(
+  keyword: string,
+  groups: IconPresetGroup[] = ICON_PRESET_GROUPS
+): IconPresetGroup[] {
   const query = keyword.trim().toLowerCase();
-  if (!query) return ICON_PRESET_GROUPS;
+  if (!query) return groups;
 
-  return ICON_PRESET_GROUPS.map(group => ({
-    ...group,
-    icons: group.icons.filter(icon => icon.toLowerCase().includes(query))
-  })).filter(group => group.icons.length > 0);
+  return groups
+    .map(group => ({
+      ...group,
+      icons: group.icons.filter(icon => icon.toLowerCase().includes(query))
+    }))
+    .filter(group => group.icons.length > 0);
+}
+
+export function resolveSearchIcons(keyword: string, groups: IconPresetGroup[]): string[] {
+  const matched = filterPresetIcons(keyword, groups).flatMap(group => group.icons);
+  const normalized = keyword.trim();
+  if (isIconifyName(normalized) && !matched.includes(normalized)) {
+    return [normalized, ...matched];
+  }
+  return matched;
 }

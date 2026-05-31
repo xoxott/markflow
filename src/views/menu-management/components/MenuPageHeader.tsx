@@ -56,34 +56,27 @@ export default defineComponent({
       <NCard
         bordered={false}
         class="menu-management__header card-wrapper"
-        contentStyle="padding: 16px 20px"
+        contentStyle="padding: 10px 16px"
       >
         <div class="menu-management__header-inner">
-          <div class="menu-management__header-main">
-            <div class="menu-management__header-brand">
-              <div class="menu-management__header-icon">
-                <SvgIcon icon="mdi:file-tree-outline" />
+          <div class="menu-management__header-brand">
+            <SvgIcon icon="mdi:file-tree-outline" class="menu-management__header-icon" />
+            <h2 class="menu-management__title">{$t('page.menuManagement.title')}</h2>
+          </div>
+
+          <div class="menu-management__header-stats">
+            {statItems().map(item => (
+              <div
+                key={item.key}
+                class={[
+                  'menu-management__stat',
+                  item.tone === 'warning' ? 'menu-management__stat--warning' : ''
+                ]}
+              >
+                <span class="menu-management__stat-value">{item.value}</span>
+                <span class="menu-management__stat-label">{item.label}</span>
               </div>
-              <div class="menu-management__header-copy">
-                <div class="menu-management__header-title-row">
-                  <h2 class="menu-management__title">{$t('page.menuManagement.title')}</h2>
-                  <div class="menu-management__header-stats">
-                    {statItems().map(item => (
-                      <div
-                        key={item.key}
-                        class={[
-                          'menu-management__stat',
-                          item.tone === 'warning' ? 'menu-management__stat--warning' : ''
-                        ]}
-                      >
-                        <span class="menu-management__stat-value">{item.value}</span>
-                        <span class="menu-management__stat-label">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </NCard>

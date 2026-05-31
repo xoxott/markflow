@@ -1,5 +1,5 @@
 import type { PropType } from 'vue';
-import { computed, defineComponent, ref, watch } from 'vue';
+import { computed, defineComponent, nextTick, onActivated, ref, watch } from 'vue';
 import { useElementSize } from '@vueuse/core';
 import {
   NButton,
@@ -42,15 +42,24 @@ export default defineComponent({
     'update:searchKeyword'
   ],
   setup(props, { emit }) {
-    const panelBodyRef = ref<HTMLElement | null>(null);
-    const toolbarRef = ref<HTMLElement | null>(null);
-    const { height: panelBodyHeight } = useElementSize(panelBodyRef);
-    const { height: toolbarHeight } = useElementSize(toolbarRef);
+    const scrollHostRef = ref<HTMLElement | null>(null);
+    const scrollbarRef = ref<{ sync?: () => void } | null>(null);
+    // NScrollbar 需要明确像素高度；测量 flex 约束的 host，避免 panel-body 被树撑高后算错高度。
+    const { height: scrollHostHeight } = useElementSize(scrollHostRef);
     const scrollStyle = computed(() => {
-      const gap = 12;
-      const height = panelBodyHeight.value - toolbarHeight.value - gap;
+      const height = scrollHostHeight.value;
       return height > 0 ? { height: `${height}px` } : undefined;
     });
+
+    const syncScrollbar = () => {
+      nextTick(() => scrollbarRef.value?.sync?.());
+    };
+
+    watch([scrollHostHeight, () => props.loading, () => props.treeData.length], ([height]) => {
+      if (height > 0) syncScrollbar();
+    });
+
+    onActivated(syncScrollbar);
 
     const expandedKeys = ref<string[]>([]);
 
@@ -168,8 +177,8 @@ export default defineComponent({
     );
 
     return () => (
-      <div ref={panelBodyRef} class="menu-management__panel-body">
-        <div ref={toolbarRef} class="menu-management__tree-toolbar">
+      <div class="menu-management__panel-body">
+        <div class="menu-management__tree-toolbar">
           <NInput
             value={props.searchKeyword}
             clearable
@@ -209,32 +218,39 @@ export default defineComponent({
           </div>
         </div>
 
-        <NScrollbar
-          class="menu-management__tree-scroll"
-          style={scrollStyle.value}
-          yPlacement="right"
-        >
-          <NSpin show={props.loading}>
-            {props.treeData.length === 0 ? (
-              <MenuEmptyState variant="tree" syncing={props.syncing} onSync={() => emit('sync')} />
-            ) : (
-              <NTree
-                blockLine
-                selectable
-                draggable
-                expandOnClick
-                data={treeOptions.value}
-                expandedKeys={expandedKeys.value}
-                selectedKeys={props.selectedKey ? [props.selectedKey] : []}
-                onUpdateExpandedKeys={(keys: string[]) => {
-                  expandedKeys.value = keys;
-                }}
-                onUpdateSelectedKeys={(keys: string[]) => emit('select', keys[0] ?? null)}
-                onDrop={handleDrop}
-              />
-            )}
-          </NSpin>
-        </NScrollbar>
+        <div ref={scrollHostRef} class="menu-management__tree-scroll-host">
+          <NScrollbar
+            ref={scrollbarRef}
+            class="menu-management__tree-scroll"
+            style={scrollStyle.value}
+            yPlacement="right"
+          >
+            <NSpin show={props.loading}>
+              {props.treeData.length === 0 ? (
+                <MenuEmptyState
+                  variant="tree"
+                  syncing={props.syncing}
+                  onSync={() => emit('sync')}
+                />
+              ) : (
+                <NTree
+                  blockLine
+                  selectable
+                  draggable
+                  expandOnClick
+                  data={treeOptions.value}
+                  expandedKeys={expandedKeys.value}
+                  selectedKeys={props.selectedKey ? [props.selectedKey] : []}
+                  onUpdateExpandedKeys={(keys: string[]) => {
+                    expandedKeys.value = keys;
+                  }}
+                  onUpdateSelectedKeys={(keys: string[]) => emit('select', keys[0] ?? null)}
+                  onDrop={handleDrop}
+                />
+              )}
+            </NSpin>
+          </NScrollbar>
+        </div>
       </div>
     );
   }

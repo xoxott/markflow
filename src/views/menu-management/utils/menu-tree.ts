@@ -44,6 +44,15 @@ export function walkMenuTree(
   });
 }
 
+export function collectMenuIcons(nodes: MenuTreeNode[]): string[] {
+  const icons = new Set<string>();
+  walkMenuTree(nodes, node => {
+    const icon = node.icon?.trim();
+    if (icon) icons.add(icon);
+  });
+  return [...icons].sort();
+}
+
 export function collectTreeStats(nodes: MenuTreeNode[]): MenuTreeStats {
   const stats: MenuTreeStats = { total: 0, groups: 0, routes: 0, inactive: 0 };
   walkMenuTree(nodes, node => {
