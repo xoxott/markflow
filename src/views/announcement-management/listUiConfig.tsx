@@ -1,4 +1,5 @@
 import { NTag } from 'naive-ui';
+import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
@@ -42,6 +43,7 @@ export interface AnnouncementTableColumnHandlers {
   onRepublish: (row: Announcement) => void;
   onRevertToDraft: (row: Announcement) => void;
   onArchive: (row: Announcement) => void;
+  canWrite: boolean;
 }
 
 function renderTypeTag(type: Api.AnnouncementManagement.AnnouncementType | undefined) {
@@ -118,22 +120,19 @@ export function createAnnouncementTableColumns(
       title: $t('page.announcementManagement.publishedAt'),
       key: 'publishedAt',
       width: 180,
-      render: (row: Announcement) =>
-        row.publishedAt ? new Date(row.publishedAt).toLocaleString('zh-CN') : '-'
+      render: (row: Announcement) => formatApiDateTime(row.publishedAt)
     },
     {
       title: $t('page.announcementManagement.expiresAt'),
       key: 'expiresAt',
       width: 180,
-      render: (row: Announcement) =>
-        row.expiresAt ? new Date(row.expiresAt).toLocaleString('zh-CN') : '-'
+      render: (row: Announcement) => formatApiDateTime(row.expiresAt)
     },
     {
       title: $t('page.announcementManagement.createdAt'),
       key: 'createdAt',
       width: 180,
-      render: (row: Announcement) =>
-        row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-'
+      render: (row: Announcement) => formatApiDateTime(row.createdAt)
     },
     createActionColumn(
       {
@@ -143,6 +142,8 @@ export function createAnnouncementTableColumns(
             label: $t('common.edit'),
             type: 'primary',
             icon: 'carbon:edit',
+            show: () => h.canWrite,
+            disabled: (row: Announcement) => row.status !== 'draft',
             onClick: h.onEdit
           },
           {
@@ -150,7 +151,7 @@ export function createAnnouncementTableColumns(
             label: $t('page.announcementManagement.publish'),
             type: 'success',
             icon: 'carbon:send',
-            show: (row: Announcement) => row.status === 'draft',
+            show: (row: Announcement) => h.canWrite && row.status === 'draft',
             onClick: h.onPublish
           },
           {
@@ -158,7 +159,7 @@ export function createAnnouncementTableColumns(
             label: $t('page.announcementManagement.republish'),
             type: 'success',
             icon: 'carbon:reset',
-            show: (row: Announcement) => row.status === 'archived',
+            show: (row: Announcement) => h.canWrite && row.status === 'archived',
             onClick: h.onRepublish
           },
           {
@@ -166,7 +167,7 @@ export function createAnnouncementTableColumns(
             label: $t('page.announcementManagement.revertToDraft'),
             type: 'warning',
             icon: 'carbon:undo',
-            show: (row: Announcement) => row.status === 'published',
+            show: (row: Announcement) => h.canWrite && row.status === 'published',
             onClick: h.onRevertToDraft
           },
           {
@@ -174,13 +175,14 @@ export function createAnnouncementTableColumns(
             label: $t('page.announcementManagement.archive'),
             type: 'warning',
             icon: 'carbon:archive',
-            show: (row: Announcement) => row.status === 'published',
+            show: (row: Announcement) => h.canWrite && row.status === 'published',
             onClick: h.onArchive
           },
           {
             label: $t('common.delete'),
             type: 'error',
             icon: 'carbon:trash-can',
+            show: (row: Announcement) => h.canWrite && row.status === 'draft',
             onClick: h.onDelete
           }
         ]

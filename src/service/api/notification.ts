@@ -1,113 +1,86 @@
 import { request } from '../request';
 
-/**
- * Get notification list
- *
- * @param params Query parameters
- */
+const API_PREFIX = '/api/admin/notifications';
+
+/** 分页列表 */
 export function fetchNotificationList(params: Api.NotificationManagement.NotificationListParams) {
   return request<Api.NotificationManagement.NotificationListResponse>({
-    url: '/api/admin/notifications',
+    url: API_PREFIX,
     method: 'get',
     params
   });
 }
 
-/**
- * Get notification detail
- *
- * @param id Notification ID
- */
+/** 详情 */
 export function fetchNotificationDetail(id: number) {
   return request<Api.NotificationManagement.NotificationDetailResponse>({
-    url: `/api/admin/notifications/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'get'
   });
 }
 
-/**
- * Create notification
- *
- * @param data Notification data
- */
+/** 创建 */
 export function fetchCreateNotification(
   data: Api.NotificationManagement.CreateNotificationRequest
 ) {
   return request<Api.NotificationManagement.CreateNotificationResponse>({
-    url: '/api/admin/notifications',
+    url: API_PREFIX,
     method: 'post',
     data
   });
 }
 
-/**
- * Update notification
- *
- * @param id Notification ID
- * @param data Notification data
- */
+/** 更新 */
 export function fetchUpdateNotification(
   id: number,
   data: Api.NotificationManagement.UpdateNotificationRequest
 ) {
   return request<Api.NotificationManagement.UpdateNotificationResponse>({
-    url: `/api/admin/notifications/${id}`,
-    method: 'put',
+    url: `${API_PREFIX}/${id}`,
+    method: 'patch',
     data
   });
 }
 
-/**
- * Delete notification
- *
- * @param id Notification ID
- */
+/** 删除 */
 export function fetchDeleteNotification(id: number) {
   return request<Api.NotificationManagement.DeleteNotificationResponse>({
-    url: `/api/admin/notifications/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'delete'
   });
 }
 
-/**
- * Batch delete notifications
- *
- * @param data Notification IDs
- */
+/** 批量删除 */
 export function fetchBatchDeleteNotifications(
   data: Api.NotificationManagement.BatchDeleteNotificationsRequest
 ) {
   return request<Api.NotificationManagement.BatchDeleteNotificationsResponse>({
-    url: '/api/admin/notifications/batch',
+    url: `${API_PREFIX}/batch`,
     method: 'delete',
     data
   });
 }
 
-/**
- * Toggle notification status (send/unsend)
- *
- * @param id Notification ID
- * @param isSent Status
- */
-export function fetchToggleNotificationStatus(id: number, isSent: boolean) {
-  return request<Api.NotificationManagement.ToggleNotificationStatusResponse>({
-    url: `/api/admin/notifications/${id}/status`,
-    method: 'patch',
-    data: { isSent }
+/** 发布 */
+export function fetchPublishNotification(id: number) {
+  return request<Api.NotificationManagement.PublishNotificationResponse>({
+    url: `${API_PREFIX}/${id}/publish`,
+    method: 'post'
   });
 }
 
-/**
- * Mark notification as read
- *
- * @param id Notification ID
- * @param userId User ID (optional, defaults to current user)
- */
-export function fetchMarkAsRead(id: number, userId?: number) {
-  return request<Api.NotificationManagement.MarkAsReadResponse>({
-    url: `/api/admin/notifications/${id}/read`,
-    method: 'patch',
-    data: userId ? { userId } : {}
+/** 取消发布并回到草稿 */
+export function fetchRevertNotificationToDraft(id: number) {
+  return request<Api.NotificationManagement.RevertNotificationToDraftResponse>({
+    url: `${API_PREFIX}/${id}/revert-to-draft`,
+    method: 'post'
+  });
+}
+
+/** 归档 */
+export function fetchArchiveNotification(id: number) {
+  return request<Api.NotificationManagement.ArchiveNotificationResponse>({
+    url: `${API_PREFIX}/${id}/unpublish`,
+    method: 'post'
   });
 }

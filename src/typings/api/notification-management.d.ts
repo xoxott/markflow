@@ -1,30 +1,32 @@
-/** Notification Management API types */
+/** Notification Management API types (ai-server admin/notifications) */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./common.d.ts" />
 
 declare namespace Api {
-  /**
-   * namespace NotificationManagement
-   *
-   * backend api module: "notification-management"
-   */
   namespace NotificationManagement {
-    /** Notification information */
+    /** ai-server NotificationType */
+    type NotificationType = 'system' | 'user' | 'workflow' | 'alert' | 'announcement';
+
+    /** ai-server NotificationPriority */
+    type NotificationPriority = 0 | 1 | 2 | 3;
+
+    /** ai-server NotificationBroadcastStatus */
+    type NotificationStatus = 'draft' | 'published' | 'archived';
+
+    /** Notification broadcast entity */
     interface Notification {
       id: number;
       title: string;
       content: string;
-      type: string | null;
-      priority: number | null;
-      isSent: boolean;
-      sentAt: string | null;
+      type: NotificationType;
+      priority: NotificationPriority;
+      status: NotificationStatus;
+      publishedAt: string | null;
       expiresAt: string | null;
       targetUserIds: number[] | null;
       targetRoleIds: number[] | null;
-      /** detail 可选：目标用户名称回显 */
       targetUsers?: Api.AdminOptionTarget[] | null;
-      /** detail 可选：目标角色名称回显 */
       targetRoles?: Api.AdminOptionTarget[] | null;
       readCount: number | null;
       totalCount: number | null;
@@ -32,104 +34,39 @@ declare namespace Api {
       updatedAt: string;
     }
 
-    /** Notification list query parameters */
     interface NotificationListParams extends Common.PaginationParams {
-      /** Search keyword (title or content) */
       search?: string;
-      /** Filter by status（query: true | false） */
-      isSent?: Common.QueryBoolean;
-      /** Filter by type */
-      type?: string;
-      /** Filter by target user ID */
+      status?: NotificationStatus;
+      type?: NotificationType;
       targetUserId?: number;
-      /** Sort by field */
       sortBy?: string;
-      /** Sort order (asc or desc) */
-      sortOrder?: 'asc' | 'desc';
+      sortOrder?: 'ASC' | 'DESC';
     }
 
-    /** Create notification request */
     interface CreateNotificationRequest {
       title: string;
       content: string;
-      type?: string;
-      priority?: number;
-      isSent?: boolean;
-      sentAt?: string;
+      type?: NotificationType;
+      priority?: NotificationPriority;
       expiresAt?: string;
       targetUserIds?: number[];
       targetRoleIds?: number[];
     }
 
-    /** Update notification request */
-    interface UpdateNotificationRequest {
-      title?: string;
-      content?: string;
-      type?: string;
-      priority?: number;
-      isSent?: boolean;
-      sentAt?: string;
-      expiresAt?: string;
-      targetUserIds?: number[];
-      targetRoleIds?: number[];
-    }
+    type UpdateNotificationRequest = Partial<CreateNotificationRequest>;
 
-    /** Batch delete notifications request */
     interface BatchDeleteNotificationsRequest {
       ids: number[];
     }
 
-    /** Toggle notification status request */
-    interface ToggleNotificationStatusRequest {
-      id: number;
-      isSent: boolean;
-    }
-
-    /** Mark notification as read request */
-    interface MarkAsReadRequest {
-      id: number;
-      userId?: number;
-    }
-
-    /** Notification list response */
     type NotificationListResponse = ListData<Notification>;
-
-    /** Notification detail response */
     type NotificationDetailResponse = Notification;
-
-    /** Create notification response */
-    interface CreateNotificationResponse {
-      message: string;
-      notification: Notification;
-    }
-
-    /** Update notification response */
-    interface UpdateNotificationResponse {
-      message: string;
-      notification: Notification;
-    }
-
-    /** Delete notification response */
-    interface DeleteNotificationResponse {
-      message: string;
-    }
-
-    /** Batch delete notifications response */
-    interface BatchDeleteNotificationsResponse {
-      message: string;
-      deletedCount: number;
-    }
-
-    /** Toggle notification status response */
-    interface ToggleNotificationStatusResponse {
-      message: string;
-      notification: Notification;
-    }
-
-    /** Mark as read response */
-    interface MarkAsReadResponse {
-      message: string;
-      notification: Notification;
-    }
+    type CreateNotificationResponse = Notification;
+    type UpdateNotificationResponse = Notification;
+    type DeleteNotificationResponse = null;
+    type BatchDeleteNotificationsResponse = { deletedCount: number };
+    type PublishNotificationResponse = Notification;
+    type RevertNotificationToDraftResponse = Notification;
+    type ArchiveNotificationResponse = Notification;
   }
 }

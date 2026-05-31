@@ -54,7 +54,8 @@ export default defineConfig({
             'src/hooks/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
             'src/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
             'src/views/menu-management/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-            'src/views/announcement-management/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
+            'src/views/announcement-management/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+            'src/views/notification-management/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
           ],
           environment: 'happy-dom',
           globals: true,

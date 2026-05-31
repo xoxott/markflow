@@ -1,8 +1,9 @@
-import { NSwitch, NTag } from 'naive-ui';
-import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { NTag } from 'naive-ui';
+import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
+import { createNotificationStatusOptions, createNotificationTypeOptions } from './constants';
 
 type Notification = Api.NotificationManagement.Notification;
 
@@ -21,24 +22,16 @@ export function createNotificationSearchFields(): SearchFieldConfig[] {
       field: 'type',
       label: $t('page.notificationManagement.type'),
       placeholder: $t('page.notificationManagement.typePlaceholder'),
-      width: '120px',
-      options: [
-        { label: $t('page.notificationManagement.typeInfo'), value: 'info' },
-        { label: $t('page.notificationManagement.typeWarning'), value: 'warning' },
-        { label: $t('page.notificationManagement.typeError'), value: 'error' },
-        { label: $t('page.notificationManagement.typeSuccess'), value: 'success' }
-      ]
+      width: '140px',
+      options: createNotificationTypeOptions()
     },
     {
       type: 'select',
-      field: 'isSent',
+      field: 'status',
       label: $t('page.notificationManagement.status'),
       placeholder: $t('page.notificationManagement.statusPlaceholder'),
       width: '120px',
-      options: createQueryBooleanSelectOptions(
-        $t('page.notificationManagement.sent'),
-        $t('page.notificationManagement.unsent')
-      )
+      options: createNotificationStatusOptions()
     }
   ];
 }
@@ -46,7 +39,37 @@ export function createNotificationSearchFields(): SearchFieldConfig[] {
 export interface NotificationTableColumnHandlers {
   onEdit: (row: Notification) => void;
   onDelete: (row: Notification) => void;
-  onToggleStatus: (id: number, isSent: boolean) => void;
+  onPublish: (row: Notification) => void;
+  onRepublish: (row: Notification) => void;
+  onRevertToDraft: (row: Notification) => void;
+  onArchive: (row: Notification) => void;
+  canWrite: boolean;
+}
+
+function renderTypeTag(type: Api.NotificationManagement.NotificationType | undefined) {
+  if (!type) return '-';
+  const typeMap = Object.fromEntries(
+    createNotificationTypeOptions().map(option => [option.value, option.label])
+  );
+  return <NTag type="info">{typeMap[type] ?? type}</NTag>;
+}
+
+function renderStatusTag(status: Api.NotificationManagement.NotificationStatus | undefined) {
+  if (!status) return '-';
+  const statusMap: Record<
+    Api.NotificationManagement.NotificationStatus,
+    { label: string; type: 'default' | 'success' | 'warning' }
+  > = {
+    draft: { label: $t('page.notificationManagement.statusDraft'), type: 'default' },
+    published: {
+      label: $t('page.notificationManagement.statusPublished'),
+      type: 'success'
+    },
+    archived: { label: $t('page.notificationManagement.statusArchived'), type: 'warning' }
+  };
+  const item = statusMap[status];
+  if (!item) return status;
+  return <NTag type={item.type}>{item.label}</NTag>;
 }
 
 export function createNotificationTableColumns(
@@ -71,22 +94,13 @@ export function createNotificationTableColumns(
       title: $t('page.notificationManagement.type'),
       key: 'type',
       width: 120,
-      render: (row: Notification) => {
-        if (!row.type) return '-';
-        const typeMap: Record<string, string> = {
-          info: $t('page.notificationManagement.typeInfo'),
-          warning: $t('page.notificationManagement.typeWarning'),
-          error: $t('page.notificationManagement.typeError'),
-          success: $t('page.notificationManagement.typeSuccess')
-        };
-        return <NTag type="info">{typeMap[row.type] || row.type}</NTag>;
-      }
+      render: (row: Notification) => renderTypeTag(row.type)
     },
     {
       title: $t('page.notificationManagement.priority'),
       key: 'priority',
       width: 100,
-      render: (row: Notification) => row.priority || '-'
+      render: (row: Notification) => row.priority ?? '-'
     },
     {
       title: $t('page.notificationManagement.targetUsers'),
@@ -114,60 +128,83 @@ export function createNotificationTableColumns(
     },
     {
       title: $t('page.notificationManagement.status'),
-      key: 'isSent',
-      width: 120,
-      render: (row: Notification) => (
-        <NSwitch
-          value={row.isSent}
-          onUpdateValue={value => h.onToggleStatus(row.id, value)}
-          loading={false}
-        />
-      )
+      key: 'status',
+      width: 110,
+      render: (row: Notification) => renderStatusTag(row.status)
     },
     {
-      title: $t('page.notificationManagement.sentAt'),
-      key: 'sentAt',
+      title: $t('page.notificationManagement.publishedAt'),
+      key: 'publishedAt',
       width: 180,
-      render: (row: Notification) => {
-        if (!row.sentAt) return '-';
-        return new Date(row.sentAt).toLocaleString('zh-CN');
-      }
+      render: (row: Notification) => formatApiDateTime(row.publishedAt)
     },
     {
       title: $t('page.notificationManagement.expiresAt'),
       key: 'expiresAt',
       width: 180,
-      render: (row: Notification) => {
-        if (!row.expiresAt) return '-';
-        return new Date(row.expiresAt).toLocaleString('zh-CN');
-      }
+      render: (row: Notification) => formatApiDateTime(row.expiresAt)
     },
     {
       title: $t('page.notificationManagement.createdAt'),
       key: 'createdAt',
       width: 180,
-      render: (row: Notification) => {
-        if (!row.createdAt) return '-';
-        return new Date(row.createdAt).toLocaleString('zh-CN');
-      }
+      render: (row: Notification) => formatApiDateTime(row.createdAt)
     },
-    createActionColumn({
-      mode: 'inline',
-      buttons: [
-        {
-          label: $t('common.edit'),
-          type: 'primary',
-          icon: 'carbon:edit',
-          onClick: h.onEdit
-        },
-        {
-          label: $t('common.delete'),
-          type: 'error',
-          icon: 'carbon:trash-can',
-          onClick: h.onDelete
-        }
-      ]
-    })
+    createActionColumn(
+      {
+        mode: 'menu',
+        buttons: [
+          {
+            label: $t('common.edit'),
+            type: 'primary',
+            icon: 'carbon:edit',
+            show: () => h.canWrite,
+            disabled: (row: Notification) => row.status !== 'draft',
+            onClick: h.onEdit
+          },
+          {
+            key: 'publish',
+            label: $t('page.notificationManagement.publish'),
+            type: 'success',
+            icon: 'carbon:send',
+            show: (row: Notification) => h.canWrite && row.status === 'draft',
+            onClick: h.onPublish
+          },
+          {
+            key: 'republish',
+            label: $t('page.notificationManagement.republish'),
+            type: 'success',
+            icon: 'carbon:reset',
+            show: (row: Notification) => h.canWrite && row.status === 'archived',
+            onClick: h.onRepublish
+          },
+          {
+            key: 'revertToDraft',
+            label: $t('page.notificationManagement.revertToDraft'),
+            type: 'warning',
+            icon: 'carbon:undo',
+            show: (row: Notification) => h.canWrite && row.status === 'published',
+            onClick: h.onRevertToDraft
+          },
+          {
+            key: 'archive',
+            label: $t('page.notificationManagement.archive'),
+            type: 'warning',
+            icon: 'carbon:archive',
+            show: (row: Notification) => h.canWrite && row.status === 'published',
+            onClick: h.onArchive
+          },
+          {
+            label: $t('common.delete'),
+            type: 'error',
+            icon: 'carbon:trash-can',
+            show: (row: Notification) => h.canWrite && row.status === 'draft',
+            onClick: h.onDelete
+          }
+        ]
+      },
+      { width: 120 }
+    )
   ];
 }
 

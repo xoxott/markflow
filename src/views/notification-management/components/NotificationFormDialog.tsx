@@ -1,21 +1,12 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import {
-  NButton,
-  NDatePicker,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSpace,
-  NSwitch
-} from 'naive-ui';
+import { NAlert, NButton, NDatePicker, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { mapTargetsToPresetOptionsIfAny } from '@/hooks/admin/adminOptionUtils';
 import { $t } from '@/locales';
 import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import BaseDialog from '@/components/base-dialog';
+import { createNotificationPriorityOptions, createNotificationTypeOptions } from '../constants';
 import type { NotificationFormDialogConfig } from './dialog';
 
 export default defineComponent({
@@ -30,44 +21,34 @@ export default defineComponent({
   emits: ['update:show'],
   setup(props, { emit }) {
     const { formRef, validate } = useNaiveForm();
-
-    const sentAtTimestamp = ref<number | null>(null);
     const expiresAtTimestamp = ref<number | null>(null);
 
     const formModel = useSyncedFormModel(() => props.config.formData, {
       afterSync(_, source) {
-        sentAtTimestamp.value = source.sentAt ? new Date(source.sentAt).getTime() : null;
         expiresAtTimestamp.value = source.expiresAt ? new Date(source.expiresAt).getTime() : null;
       }
     });
 
-    // 通知类型选项
-    const typeOptions = [
-      { label: $t('page.notificationManagement.typeInfo' as any), value: 'info' },
-      { label: $t('page.notificationManagement.typeWarning' as any), value: 'warning' },
-      { label: $t('page.notificationManagement.typeError' as any), value: 'error' },
-      { label: $t('page.notificationManagement.typeSuccess' as any), value: 'success' }
-    ];
+    const typeOptions = computed(() => createNotificationTypeOptions());
+    const priorityOptions = computed(() => createNotificationPriorityOptions());
 
-    // 表单验证规则
     const formRules = {
       title: [
         {
           required: true,
-          message: $t('page.notificationManagement.titleRequired' as any),
+          message: $t('page.notificationManagement.titleRequired'),
           trigger: 'blur'
         }
       ],
       content: [
         {
           required: true,
-          message: $t('page.notificationManagement.contentRequired' as any),
+          message: $t('page.notificationManagement.contentRequired'),
           trigger: 'blur'
         }
       ]
     };
 
-    // 关闭弹窗
     const handleClose = () => {
       props.config.onClose?.();
       emit('update:show', false);
@@ -83,28 +64,23 @@ export default defineComponent({
       resizable: props.config.resizable ?? false
     }));
 
-    // 确认提交
     const handleConfirm = async () => {
       const isValid = await validate();
       if (!isValid) return;
 
-      // 将时间戳转换为 ISO 字符串
       const submitData = {
         ...formModel,
-        sentAt: sentAtTimestamp.value ? new Date(sentAtTimestamp.value).toISOString() : '',
         expiresAt: expiresAtTimestamp.value ? new Date(expiresAtTimestamp.value).toISOString() : ''
       };
       await props.config.onConfirm(submitData);
       handleClose();
     };
 
-    // 取消
     const handleCancel = () => {
       props.config.onCancel?.();
       handleClose();
     };
 
-    // 监听显示状态，重置表单验证
     watch(
       () => props.show,
       show => {
@@ -118,107 +94,92 @@ export default defineComponent({
       <BaseDialog show={props.show} config={dialogConfig.value}>
         {{
           default: () => (
-            <NForm
-              ref={formRef}
-              model={formModel}
-              rules={formRules}
-              labelPlacement="left"
-              labelWidth="100px"
-            >
-              <NFormItem label={$t('page.notificationManagement.title' as any)} path="title">
-                <NInput
-                  v-model:value={formModel.title}
-                  placeholder={$t('page.notificationManagement.titlePlaceholder' as any)}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.notificationManagement.content' as any)} path="content">
-                <NInput
-                  v-model:value={formModel.content}
-                  type="textarea"
-                  placeholder={$t('page.notificationManagement.contentPlaceholder' as any)}
-                  rows={6}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.notificationManagement.type' as any)} path="type">
-                <NSelect
-                  v-model:value={formModel.type}
-                  placeholder={$t('page.notificationManagement.typePlaceholder' as any)}
-                  clearable
-                  options={typeOptions}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.notificationManagement.priority' as any)} path="priority">
-                <NInputNumber
-                  v-model:value={formModel.priority}
-                  placeholder={$t('page.notificationManagement.priorityPlaceholder' as any)}
-                  min={1}
-                  max={10}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem
-                label={$t('page.notificationManagement.targetUsers' as any)}
-                path="targetUserIds"
+            <>
+              {!props.config.isEdit ? (
+                <NAlert type="info" class="mb-16px" showIcon={false}>
+                  {$t('page.notificationManagement.createDraftHint')}
+                </NAlert>
+              ) : null}
+              <NForm
+                ref={formRef}
+                model={formModel}
+                rules={formRules}
+                labelPlacement="left"
+                labelWidth="100px"
               >
-                <AdminRemoteSelect
-                  resource="users"
-                  value={formModel.targetUserIds}
-                  presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetUsers)}
-                  multiple
-                  placeholder={$t('page.notificationManagement.targetUsersPlaceholder' as any)}
-                  style={{ width: '100%' }}
-                  onUpdate:value={value => {
-                    formModel.targetUserIds = (value as number[]) ?? [];
-                  }}
-                />
-              </NFormItem>
-              <NFormItem
-                label={$t('page.notificationManagement.targetRoles' as any)}
-                path="targetRoleIds"
-              >
-                <AdminRemoteSelect
-                  resource="roles"
-                  value={formModel.targetRoleIds}
-                  presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetRoles)}
-                  multiple
-                  placeholder={$t('page.notificationManagement.targetRolesPlaceholder' as any)}
-                  style={{ width: '100%' }}
-                  onUpdate:value={value => {
-                    formModel.targetRoleIds = (value as number[]) ?? [];
-                  }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.notificationManagement.sentAt' as any)} path="sentAt">
-                <NDatePicker
-                  v-model:value={sentAtTimestamp.value}
-                  type="datetime"
-                  placeholder={$t('page.notificationManagement.sentAtPlaceholder' as any)}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem
-                label={$t('page.notificationManagement.expiresAt' as any)}
-                path="expiresAt"
-              >
-                <NDatePicker
-                  v-model:value={expiresAtTimestamp.value}
-                  type="datetime"
-                  placeholder={$t('page.notificationManagement.expiresAtPlaceholder' as any)}
-                  clearable
-                  style={{ width: '100%' }}
-                />
-              </NFormItem>
-              <NFormItem label={$t('page.notificationManagement.status' as any)} path="isSent">
-                <NSwitch v-model:value={formModel.isSent} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isSent
-                    ? $t('page.notificationManagement.sent' as any)
-                    : $t('page.notificationManagement.unsent' as any)}
-                </span>
-              </NFormItem>
-            </NForm>
+                <NFormItem label={$t('page.notificationManagement.title')} path="title">
+                  <NInput
+                    v-model:value={formModel.title}
+                    placeholder={$t('page.notificationManagement.titlePlaceholder')}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.notificationManagement.content')} path="content">
+                  <NInput
+                    v-model:value={formModel.content}
+                    type="textarea"
+                    placeholder={$t('page.notificationManagement.contentPlaceholder')}
+                    rows={6}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.notificationManagement.type')} path="type">
+                  <NSelect
+                    v-model:value={formModel.type}
+                    placeholder={$t('page.notificationManagement.typePlaceholder')}
+                    options={typeOptions.value}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.notificationManagement.priority')} path="priority">
+                  <NSelect
+                    v-model:value={formModel.priority}
+                    placeholder={$t('page.notificationManagement.priorityPlaceholder')}
+                    clearable
+                    options={priorityOptions.value}
+                    style={{ width: '100%' }}
+                  />
+                </NFormItem>
+                <NFormItem
+                  label={$t('page.notificationManagement.targetUsers')}
+                  path="targetUserIds"
+                >
+                  <AdminRemoteSelect
+                    resource="users"
+                    value={formModel.targetUserIds}
+                    presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetUsers)}
+                    multiple
+                    placeholder={$t('page.notificationManagement.targetUsersPlaceholder')}
+                    style={{ width: '100%' }}
+                    onUpdate:value={value => {
+                      formModel.targetUserIds = (value as number[]) ?? [];
+                    }}
+                  />
+                </NFormItem>
+                <NFormItem
+                  label={$t('page.notificationManagement.targetRoles')}
+                  path="targetRoleIds"
+                >
+                  <AdminRemoteSelect
+                    resource="roles"
+                    value={formModel.targetRoleIds}
+                    presetOptions={mapTargetsToPresetOptionsIfAny(props.config.targetRoles)}
+                    multiple
+                    placeholder={$t('page.notificationManagement.targetRolesPlaceholder')}
+                    style={{ width: '100%' }}
+                    onUpdate:value={value => {
+                      formModel.targetRoleIds = (value as number[]) ?? [];
+                    }}
+                  />
+                </NFormItem>
+                <NFormItem label={$t('page.notificationManagement.expiresAt')} path="expiresAt">
+                  <NDatePicker
+                    v-model:value={expiresAtTimestamp.value}
+                    type="datetime"
+                    placeholder={$t('page.notificationManagement.expiresAtPlaceholder')}
+                    clearable
+                    style={{ width: '100%' }}
+                  />
+                </NFormItem>
+              </NForm>
+            </>
           ),
           footer: () => (
             <NSpace justify="end">

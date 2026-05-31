@@ -10,6 +10,8 @@ import {
   fetchRevertAnnouncementToDraft,
   fetchUpdateAnnouncement
 } from '@/service/api/announcement';
+import { useAuthStore } from '@/store/modules/auth';
+import { hasPermissionAccess } from '@/utils/rbac/permission-access';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
@@ -32,6 +34,11 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const announcementDialog = useAnnouncementDialog();
     const dialog = useDialog(instance?.appContext.app);
+    const authStore = useAuthStore();
+
+    const canWrite = computed(() =>
+      hasPermissionAccess(authStore.permissionCodes, ['announcement:write'])
+    );
 
     const selectedRowKeys = ref<number[]>([]);
 
@@ -48,6 +55,8 @@ export default defineComponent({
       });
 
     async function handleAdd() {
+      if (!canWrite.value) return;
+
       await announcementDialog.showAnnouncementForm({
         isEdit: false,
         formData: createEmptyForm(),
@@ -60,6 +69,8 @@ export default defineComponent({
     }
 
     async function handleEdit(row: Announcement) {
+      if (!canWrite.value || row.status !== 'draft') return;
+
       const { data: announcementDetail, error } = await fetchAnnouncementDetail(row.id);
       if (error || !announcementDetail) {
         message.error($t('page.announcementManagement.getDetailFailed'));
@@ -88,6 +99,8 @@ export default defineComponent({
     }
 
     async function confirmPublish(row: Announcement, republish: boolean) {
+      if (!canWrite.value) return;
+
       await dialog.confirm({
         title: republish
           ? $t('page.announcementManagement.confirmRepublishTitle')
@@ -109,6 +122,8 @@ export default defineComponent({
     }
 
     async function confirmRevertToDraft(row: Announcement) {
+      if (!canWrite.value) return;
+
       await dialog.confirm({
         title: $t('page.announcementManagement.confirmRevertToDraftTitle'),
         content: $t('page.announcementManagement.confirmRevertToDraft', { title: row.title }),
@@ -122,6 +137,8 @@ export default defineComponent({
     }
 
     async function confirmArchive(row: Announcement) {
+      if (!canWrite.value) return;
+
       await dialog.confirm({
         title: $t('page.announcementManagement.confirmArchiveTitle'),
         content: $t('page.announcementManagement.confirmArchive', { title: row.title }),
@@ -135,6 +152,8 @@ export default defineComponent({
     }
 
     async function handleDelete(row: Announcement) {
+      if (!canWrite.value || row.status !== 'draft') return;
+
       await dialog.confirmDelete(row.title, async () => {
         await fetchDeleteAnnouncement(row.id);
         message.success($t('common.deleteSuccess'));
@@ -143,10 +162,22 @@ export default defineComponent({
     }
 
     async function handleBatchDelete() {
+      if (!canWrite.value) return;
+
       if (selectedRowKeys.value.length === 0) {
         message.warning($t('page.announcementManagement.selectAnnouncementsToDelete'));
         return;
       }
+
+      const hasNonDraft = selectedRowKeys.value.some(id => {
+        const row = data.value.find(item => item.id === id);
+        return row?.status !== 'draft';
+      });
+      if (hasNonDraft) {
+        message.warning($t('page.announcementManagement.draftOnlyDelete'));
+        return;
+      }
+
       await dialog.confirmDelete(
         $t('page.announcementManagement.confirmBatchDelete', {
           count: selectedRowKeys.value.length
@@ -164,6 +195,7 @@ export default defineComponent({
 
     const tableColumns = computed(() =>
       createAnnouncementTableColumns({
+        canWrite: canWrite.value,
         onEdit: handleEdit,
         onDelete: handleDelete,
         onPublish: row => confirmPublish(row, false),
@@ -183,8 +215,8 @@ export default defineComponent({
         onReset={onReset}
         actionConfig={{
           preset: {
-            add: { onClick: handleAdd },
-            batchDelete: { onClick: handleBatchDelete },
+            add: canWrite.value ? { onClick: handleAdd } : undefined,
+            batchDelete: canWrite.value ? { onClick: handleBatchDelete } : undefined,
             refresh: { onClick: getData }
           }
         }}
@@ -192,9 +224,11 @@ export default defineComponent({
         data={data.value}
         loading={loading.value}
         pagination={pagination}
-        selectedKeys={selectedRowKeys.value}
+        selectedKeys={canWrite.value ? selectedRowKeys.value : []}
         onUpdateSelectedKeys={keys => {
-          selectedRowKeys.value = keys as number[];
+          if (canWrite.value) {
+            selectedRowKeys.value = keys as number[];
+          }
         }}
         rowKey="id"
         scrollX={ANNOUNCEMENT_LIST_SCROLL_X}
