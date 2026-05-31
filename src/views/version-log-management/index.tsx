@@ -4,7 +4,6 @@ import {
   fetchBatchDeleteVersionLogs,
   fetchCreateVersionLog,
   fetchDeleteVersionLog,
-  fetchToggleVersionLogStatus,
   fetchUpdateVersionLog,
   fetchVersionLogDetail,
   fetchVersionLogList
@@ -13,7 +12,6 @@ import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
 import { $t } from '@/locales';
-import type { VersionLogFormData } from './components/dialog';
 import { useVersionLogDialog } from './components/useVersionLogDialog';
 import {
   VERSION_LOG_LIST_SCROLL_X,
@@ -21,8 +19,23 @@ import {
   createVersionLogTableColumns,
   normalizeVersionLogRemoteSorter
 } from './listUiConfig';
+import {
+  buildCreatePayload,
+  buildUpdatePayload,
+  createEmptyForm,
+  mapDetailToForm
+} from './utils/changelog-form';
 
 type VersionLog = Api.VersionLogManagement.VersionLog;
+
+function getRequestErrorMessage(error: unknown): string | undefined {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' ? message : undefined;
+  }
+
+  return undefined;
+}
 
 export default defineComponent({
   name: 'VersionLogManagement',
@@ -48,117 +61,69 @@ export default defineComponent({
       apiFn: fetchVersionLogList,
       listFilters: {
         search: '',
-        isPublished: undefined,
-        type: undefined as string | undefined,
         sortBy: undefined as string | undefined,
-        sortOrder: undefined as 'asc' | 'desc' | undefined
+        sortOrder: undefined as 'ASC' | 'DESC' | undefined
       },
       showTotal: true,
       immediate: true
     });
 
     async function handleAdd() {
-      const formData: VersionLogFormData = {
-        version: '',
-        type: '',
-        releaseDate: '',
-        content: '',
-        features: '',
-        fixes: '',
-        improvements: '',
-        isPublished: false,
-        publishedAt: ''
-      };
-
       await versionLogDialog.showVersionLogForm({
         isEdit: false,
-        formData,
-        onConfirm: async (form: VersionLogFormData) => {
-          const features = form.features.trim()
-            ? form.features.split('\n').filter(f => f.trim())
-            : undefined;
-          const fixes = form.fixes.trim()
-            ? form.fixes.split('\n').filter(f => f.trim())
-            : undefined;
-          const improvements = form.improvements.trim()
-            ? form.improvements.split('\n').filter(f => f.trim())
-            : undefined;
+        formData: createEmptyForm(),
+        onConfirm: async form => {
+          const { error } = await fetchCreateVersionLog(buildCreatePayload(form));
+          if (error) {
+            message.error(
+              getRequestErrorMessage(error) || $t('page.versionLogManagement.saveFailed')
+            );
+            return;
+          }
 
-          await fetchCreateVersionLog({
-            version: form.version,
-            type: form.type,
-            releaseDate: form.releaseDate,
-            content: form.content,
-            features,
-            fixes,
-            improvements,
-            isPublished: form.isPublished,
-            publishedAt: form.publishedAt || undefined
-          });
           message.success($t('common.addSuccess'));
           getData();
+          return true;
         }
       });
     }
 
     async function handleEdit(row: VersionLog) {
-      const { data: versionLogDetail } = await fetchVersionLogDetail(row.id);
-      if (!versionLogDetail) {
-        message.error($t('page.versionLogManagement.getDetailFailed'));
-        return;
-      }
+      const loadingRef = message.loading($t('page.versionLogManagement.loadingDetail'), {
+        duration: 0
+      });
 
-      const formData: VersionLogFormData = {
-        version: versionLogDetail.version,
-        type: versionLogDetail.type,
-        releaseDate: versionLogDetail.releaseDate,
-        content: versionLogDetail.content,
-        features: versionLogDetail.features?.join('\n') || '',
-        fixes: versionLogDetail.fixes?.join('\n') || '',
-        improvements: versionLogDetail.improvements?.join('\n') || '',
-        isPublished: versionLogDetail.isPublished,
-        publishedAt: versionLogDetail.publishedAt || ''
-      };
+      let versionLogDetail: VersionLog | null = null;
+
+      try {
+        const { data: detail, error } = await fetchVersionLogDetail(row.id);
+        if (error || !detail) {
+          message.error($t('page.versionLogManagement.getDetailFailed'));
+          return;
+        }
+
+        versionLogDetail = detail;
+      } finally {
+        loadingRef.destroy();
+      }
 
       await versionLogDialog.showVersionLogForm({
         isEdit: true,
-        formData,
-        onConfirm: async (form: VersionLogFormData) => {
-          const features = form.features.trim()
-            ? form.features.split('\n').filter(f => f.trim())
-            : undefined;
-          const fixes = form.fixes.trim()
-            ? form.fixes.split('\n').filter(f => f.trim())
-            : undefined;
-          const improvements = form.improvements.trim()
-            ? form.improvements.split('\n').filter(f => f.trim())
-            : undefined;
+        formData: mapDetailToForm(versionLogDetail),
+        onConfirm: async form => {
+          const { error } = await fetchUpdateVersionLog(row.id, buildUpdatePayload(form));
+          if (error) {
+            message.error(
+              getRequestErrorMessage(error) || $t('page.versionLogManagement.saveFailed')
+            );
+            return;
+          }
 
-          const updateData: Api.VersionLogManagement.UpdateVersionLogRequest = {
-            type: form.type,
-            releaseDate: form.releaseDate,
-            content: form.content,
-            features,
-            fixes,
-            improvements,
-            isPublished: form.isPublished,
-            publishedAt: form.publishedAt || undefined
-          };
-          await fetchUpdateVersionLog(row.id, updateData);
           message.success($t('common.updateSuccess'));
           getData();
+          return true;
         }
       });
-    }
-
-    async function handleToggleStatus(versionLogId: number, isPublished: boolean) {
-      try {
-        await fetchToggleVersionLogStatus(versionLogId, isPublished);
-        message.success($t('page.versionLogManagement.toggleStatusSuccess'));
-        getData();
-      } catch {
-        getData();
-      }
     }
 
     async function handleDelete(row: VersionLog) {
@@ -174,13 +139,33 @@ export default defineComponent({
         message.warning($t('page.versionLogManagement.selectVersionLogsToDelete'));
         return;
       }
+
       await dialog.confirmDelete(
         $t('page.versionLogManagement.confirmBatchDelete', {
           count: selectedRowKeys.value.length
         }),
         async () => {
-          await fetchBatchDeleteVersionLogs({ ids: selectedRowKeys.value });
-          message.success($t('page.versionLogManagement.batchDeleteSuccess'));
+          const { data: result, error } = await fetchBatchDeleteVersionLogs({
+            ids: selectedRowKeys.value
+          });
+          if (error) {
+            return;
+          }
+
+          const failedCount = result?.failedIds?.length ?? 0;
+          const deletedCount = result?.deletedCount ?? 0;
+
+          if (failedCount > 0) {
+            message.warning(
+              $t('page.versionLogManagement.batchDeletePartialSuccess', {
+                deleted: deletedCount,
+                failed: failedCount
+              })
+            );
+          } else {
+            message.success($t('page.versionLogManagement.batchDeleteSuccess'));
+          }
+
           selectedRowKeys.value = [];
           getData();
         }
@@ -192,8 +177,7 @@ export default defineComponent({
     const tableColumns = computed(() =>
       createVersionLogTableColumns({
         onEdit: handleEdit,
-        onDelete: handleDelete,
-        onToggleStatus: handleToggleStatus
+        onDelete: handleDelete
       })
     );
 

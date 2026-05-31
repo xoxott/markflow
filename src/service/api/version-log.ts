@@ -1,97 +1,60 @@
 import { request } from '../request';
 
-/**
- * Get version log list
- *
- * @param params Query parameters
- */
+const API_PREFIX = '/api/admin/changelogs';
+
+/** 分页列表 */
 export function fetchVersionLogList(params: Api.VersionLogManagement.VersionLogListParams) {
   return request<Api.VersionLogManagement.VersionLogListResponse>({
-    url: '/api/admin/changelogs',
+    url: API_PREFIX,
     method: 'get',
     params
   });
 }
 
-/**
- * Get version log detail
- *
- * @param id Version log ID
- */
+/** 详情 */
 export function fetchVersionLogDetail(id: number) {
   return request<Api.VersionLogManagement.VersionLogDetailResponse>({
-    url: `/api/admin/changelogs/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'get'
   });
 }
 
-/**
- * Create version log
- *
- * @param data Version log data
- */
+/** 创建 */
 export function fetchCreateVersionLog(data: Api.VersionLogManagement.CreateVersionLogRequest) {
   return request<Api.VersionLogManagement.CreateVersionLogResponse>({
-    url: '/api/admin/changelogs',
+    url: API_PREFIX,
     method: 'post',
     data
   });
 }
 
-/**
- * Update version log
- *
- * @param id Version log ID
- * @param data Version log data
- */
+/** 更新 */
 export function fetchUpdateVersionLog(
   id: number,
   data: Api.VersionLogManagement.UpdateVersionLogRequest
 ) {
   return request<Api.VersionLogManagement.UpdateVersionLogResponse>({
-    url: `/api/admin/changelogs/${id}`,
-    method: 'put',
+    url: `${API_PREFIX}/${id}`,
+    method: 'patch',
     data
   });
 }
 
-/**
- * Delete version log
- *
- * @param id Version log ID
- */
+/** 删除 */
 export function fetchDeleteVersionLog(id: number) {
   return request<Api.VersionLogManagement.DeleteVersionLogResponse>({
-    url: `/api/admin/changelogs/${id}`,
+    url: `${API_PREFIX}/${id}`,
     method: 'delete'
   });
 }
 
-/**
- * Batch delete version logs
- *
- * @param data Version log IDs
- */
+/** 批量删除 */
 export function fetchBatchDeleteVersionLogs(
   data: Api.VersionLogManagement.BatchDeleteVersionLogsRequest
 ) {
   return request<Api.VersionLogManagement.BatchDeleteVersionLogsResponse>({
-    url: '/api/admin/changelogs/batch',
+    url: `${API_PREFIX}/batch`,
     method: 'delete',
     data
-  });
-}
-
-/**
- * Toggle version log status (publish/unpublish)
- *
- * @param id Version log ID
- * @param isPublished Status
- */
-export function fetchToggleVersionLogStatus(id: number, isPublished: boolean) {
-  return request<Api.VersionLogManagement.ToggleVersionLogStatusResponse>({
-    url: `/api/admin/changelogs/${id}/status`,
-    method: 'patch',
-    data: { isPublished }
   });
 }

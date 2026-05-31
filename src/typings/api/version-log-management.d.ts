@@ -1,119 +1,79 @@
-/** Version Log Management API types */
+/** Version Log Management API types (ai-server admin/changelogs) */
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./common.d.ts" />
 
 declare namespace Api {
-  /**
-   * namespace VersionLogManagement
-   *
-   * backend api module: "version-log-management"
-   */
   namespace VersionLogManagement {
-    /** Version log information */
+    /** ai-server ChangeType */
+    type ChangeType = 'feature' | 'fix' | 'improvement' | 'breaking' | 'security' | 'deprecated';
+
+    interface ChangeItem {
+      type: ChangeType;
+      description: string;
+      pr?: string;
+      issue?: string;
+    }
+
+    /** Changelog entity (ai-server ChangelogOutput) */
     interface VersionLog {
       id: number;
       version: string;
-      type: string;
+      title: string;
+      description: string | null;
+      changes: ChangeItem[];
       releaseDate: string;
-      content: string;
-      features: string[] | null;
-      fixes: string[] | null;
-      improvements: string[] | null;
-      isPublished: boolean;
-      publishedAt: string | null;
+      releasedBy: number | null;
+      isPrerelease: boolean;
+      breakingChanges: string[] | null;
+      deprecations: string[] | null;
+      metadata: Record<string, unknown> | null;
       createdAt: string;
       updatedAt: string;
+      hasBreakingChanges: boolean;
+      hasDeprecations: boolean;
     }
 
-    /** Version log list query parameters */
+    /** List query (ai-server ChangelogFilterDto + PaginationDto) */
     interface VersionLogListParams extends Common.PaginationParams {
-      /** Search keyword (version) */
       search?: string;
-      /** Filter by type */
-      type?: string;
-      /** Filter by status（query: true | false） */
-      isPublished?: Common.QueryBoolean;
-      /** Filter by start date */
-      startDate?: string;
-      /** Filter by end date */
-      endDate?: string;
-      /** Sort by field */
+      version?: string;
       sortBy?: string;
-      /** Sort order (asc or desc) */
-      sortOrder?: 'asc' | 'desc';
+      sortOrder?: 'ASC' | 'DESC';
     }
 
-    /** Create version log request */
+    /** Create body (ai-server CreateChangelogDto) */
     interface CreateVersionLogRequest {
       version: string;
-      type: string;
+      title: string;
+      description?: string;
+      changes: ChangeItem[];
       releaseDate: string;
-      content: string;
-      features?: string[];
-      fixes?: string[];
-      improvements?: string[];
-      isPublished?: boolean;
-      publishedAt?: string;
+      metadata?: Record<string, unknown>;
     }
 
-    /** Update version log request */
-    interface UpdateVersionLogRequest {
-      version?: string;
-      type?: string;
-      releaseDate?: string;
-      content?: string;
-      features?: string[];
-      fixes?: string[];
-      improvements?: string[];
-      isPublished?: boolean;
-      publishedAt?: string;
-    }
+    /** Update body (ai-server UpdateChangelogDto — version 不可变更) */
+    type UpdateVersionLogRequest = Partial<Omit<CreateVersionLogRequest, 'version'>>;
 
-    /** Batch delete version logs request */
     interface BatchDeleteVersionLogsRequest {
       ids: number[];
     }
 
-    /** Toggle version log status request */
-    interface ToggleVersionLogStatusRequest {
+    interface BatchDeleteVersionLogFailure {
       id: number;
-      isPublished: boolean;
+      reason: string;
     }
 
-    /** Version log list response */
-    type VersionLogListResponse = ListData<VersionLog>;
-
-    /** Version log detail response */
-    type VersionLogDetailResponse = VersionLog;
-
-    /** Create version log response */
-    interface CreateVersionLogResponse {
-      message: string;
-      versionLog: VersionLog;
-    }
-
-    /** Update version log response */
-    interface UpdateVersionLogResponse {
-      message: string;
-      versionLog: VersionLog;
-    }
-
-    /** Delete version log response */
-    interface DeleteVersionLogResponse {
-      message: string;
-    }
-
-    /** Batch delete version logs response */
     interface BatchDeleteVersionLogsResponse {
-      message: string;
       deletedCount: number;
+      failedIds: number[];
+      failures: BatchDeleteVersionLogFailure[];
     }
 
-    /** Toggle version log status response */
-    interface ToggleVersionLogStatusResponse {
-      message: string;
-      versionLog: VersionLog;
-    }
+    type VersionLogListResponse = ListData<VersionLog>;
+    type VersionLogDetailResponse = VersionLog;
+    type CreateVersionLogResponse = VersionLog;
+    type UpdateVersionLogResponse = VersionLog;
+    type DeleteVersionLogResponse = null;
   }
 }

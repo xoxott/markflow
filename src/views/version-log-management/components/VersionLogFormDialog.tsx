@@ -1,9 +1,10 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import { NButton, NDatePicker, NForm, NFormItem, NInput, NSpace, NSwitch } from 'naive-ui';
+import { NButton, NDatePicker, NForm, NFormItem, NInput, NSpace, NTag } from 'naive-ui';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
+import { CHANGELOG_VERSION_PATTERN, isPrereleaseVersion } from '../utils/changelog-form';
 import type { VersionLogFormDialogConfig } from './dialog';
 
 export default defineComponent({
@@ -37,7 +38,7 @@ export default defineComponent({
           trigger: 'blur'
         },
         {
-          pattern: /^\d+\.\d+\.\d+$/,
+          pattern: CHANGELOG_VERSION_PATTERN,
           message: $t('page.versionLogManagement.versionInvalid'),
           trigger: 'blur'
         }
@@ -84,7 +85,9 @@ export default defineComponent({
       const isValid = await validate();
       if (!isValid) return;
 
-      await props.config.onConfirm({ ...formModel });
+      const succeeded = await props.config.onConfirm({ ...formModel });
+      if (succeeded !== true) return;
+
       handleClose();
     };
 
@@ -92,6 +95,19 @@ export default defineComponent({
       props.config.onCancel?.();
       handleClose();
     };
+
+    const versionIsPrerelease = computed(() => isPrereleaseVersion(formModel.version));
+
+    const versionReleaseHint = computed(() => {
+      const version = formModel.version.trim();
+      if (!version || !CHANGELOG_VERSION_PATTERN.test(version)) {
+        return null;
+      }
+
+      return versionIsPrerelease.value
+        ? $t('page.versionLogManagement.versionPrereleaseAutoHint')
+        : $t('page.versionLogManagement.versionStableAutoHint');
+    });
 
     watch(
       () => props.show,
@@ -114,11 +130,23 @@ export default defineComponent({
               labelWidth="100px"
             >
               <NFormItem label={$t('page.versionLogManagement.version')} path="version">
-                <NInput
-                  v-model:value={formModel.version}
-                  placeholder={$t('page.versionLogManagement.versionPlaceholder')}
-                  disabled={props.config.isEdit}
-                />
+                <NSpace vertical size={8} class="w-full">
+                  <NInput
+                    v-model:value={formModel.version}
+                    placeholder={$t('page.versionLogManagement.versionPlaceholder')}
+                    disabled={props.config.isEdit}
+                  />
+                  {versionReleaseHint.value ? (
+                    <div class="flex items-center gap-8px text-12px text-gray-500">
+                      <NTag type={versionIsPrerelease.value ? 'warning' : 'success'} size="small">
+                        {versionIsPrerelease.value
+                          ? $t('page.versionLogManagement.prerelease')
+                          : $t('page.versionLogManagement.stableRelease')}
+                      </NTag>
+                      <span>{versionReleaseHint.value}</span>
+                    </div>
+                  ) : null}
+                </NSpace>
               </NFormItem>
               <NFormItem label={$t('page.versionLogManagement.releaseTitle')} path="title">
                 <NInput
@@ -167,13 +195,29 @@ export default defineComponent({
                   rows={3}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.versionLogManagement.isPrerelease')} path="isPrerelease">
-                <NSwitch v-model:value={formModel.isPrerelease} />
-                <span style={{ marginLeft: '8px' }}>
-                  {formModel.isPrerelease
-                    ? $t('page.versionLogManagement.prerelease')
-                    : $t('page.versionLogManagement.stableRelease')}
-                </span>
+              <NFormItem label={$t('page.versionLogManagement.breaking')} path="breaking">
+                <NInput
+                  v-model:value={formModel.breaking}
+                  type="textarea"
+                  placeholder={$t('page.versionLogManagement.breakingPlaceholder')}
+                  rows={3}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.versionLogManagement.security')} path="security">
+                <NInput
+                  v-model:value={formModel.security}
+                  type="textarea"
+                  placeholder={$t('page.versionLogManagement.securityPlaceholder')}
+                  rows={3}
+                />
+              </NFormItem>
+              <NFormItem label={$t('page.versionLogManagement.deprecated')} path="deprecated">
+                <NInput
+                  v-model:value={formModel.deprecated}
+                  type="textarea"
+                  placeholder={$t('page.versionLogManagement.deprecatedPlaceholder')}
+                  rows={3}
+                />
               </NFormItem>
             </NForm>
           ),

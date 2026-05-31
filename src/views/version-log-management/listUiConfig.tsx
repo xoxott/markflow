@@ -1,5 +1,5 @@
-import { NSwitch, NTag } from 'naive-ui';
-import { createQueryBooleanSelectOptions } from '@/constants/queryBoolean';
+import { NSpace, NTag } from 'naive-ui';
+import { formatApiDateTime } from '@/utils/datetime';
 import { createActionColumn } from '@/components/table-page/utils/createActionColumn';
 import type { SearchFieldConfig, TableColumnConfig } from '@/components/table-page/types';
 import { $t } from '@/locales';
@@ -9,7 +9,7 @@ type VersionLog = Api.VersionLogManagement.VersionLog;
 export function normalizeVersionLogRemoteSorter(sorter: unknown) {
   const cleared = {
     sortBy: undefined as string | undefined,
-    sortOrder: undefined as 'asc' | 'desc' | undefined
+    sortOrder: undefined as 'ASC' | 'DESC' | undefined
   };
   if (!sorter) return cleared;
   const list = Array.isArray(sorter) ? sorter : [sorter];
@@ -18,8 +18,8 @@ export function normalizeVersionLogRemoteSorter(sorter: unknown) {
   const order = first.order;
   if (order !== 'ascend' && order !== 'descend') return cleared;
   return {
-    sortBy: String(first.columnKey),
-    sortOrder: (order === 'ascend' ? 'asc' : 'desc') as 'asc' | 'desc'
+    sortBy: String(first.columnKey) === 'version' ? 'versionString' : String(first.columnKey),
+    sortOrder: (order === 'ascend' ? 'ASC' : 'DESC') as 'ASC' | 'DESC'
   };
 }
 
@@ -32,29 +32,6 @@ export function createVersionLogSearchFields(): SearchFieldConfig[] {
       placeholder: $t('page.versionLogManagement.searchPlaceholder'),
       icon: 'i-carbon-search',
       width: '200px'
-    },
-    {
-      type: 'select',
-      field: 'type',
-      label: $t('page.versionLogManagement.type'),
-      placeholder: $t('page.versionLogManagement.typePlaceholder'),
-      width: '120px',
-      options: [
-        { label: $t('page.versionLogManagement.typeMajor'), value: 'major' },
-        { label: $t('page.versionLogManagement.typeMinor'), value: 'minor' },
-        { label: $t('page.versionLogManagement.typePatch'), value: 'patch' }
-      ]
-    },
-    {
-      type: 'select',
-      field: 'isPublished',
-      label: $t('page.versionLogManagement.status'),
-      placeholder: $t('page.versionLogManagement.statusPlaceholder'),
-      width: '120px',
-      options: createQueryBooleanSelectOptions(
-        $t('page.versionLogManagement.published'),
-        $t('page.versionLogManagement.unpublished')
-      )
     }
   ];
 }
@@ -62,7 +39,6 @@ export function createVersionLogSearchFields(): SearchFieldConfig[] {
 export interface VersionLogTableColumnHandlers {
   onEdit: (row: VersionLog) => void;
   onDelete: (row: VersionLog) => void;
-  onToggleStatus: (id: number, isPublished: boolean) => void;
 }
 
 export function createVersionLogTableColumns(
@@ -76,24 +52,13 @@ export function createVersionLogTableColumns(
       sorter: true
     },
     {
-      title: $t('page.versionLogManagement.type'),
-      key: 'type',
-      width: 100,
+      title: $t('page.versionLogManagement.releaseTitle'),
+      key: 'title',
+      width: 220,
+      sorter: true,
       render: (row: VersionLog) => {
-        if (!row.type) return '-';
-        const typeMap: Record<string, string> = {
-          major: $t('page.versionLogManagement.typeMajor'),
-          minor: $t('page.versionLogManagement.typeMinor'),
-          patch: $t('page.versionLogManagement.typePatch')
-        };
-        const typeColorMap: Record<string, 'error' | 'warning' | 'info'> = {
-          major: 'error',
-          minor: 'warning',
-          patch: 'info'
-        };
-        return (
-          <NTag type={typeColorMap[row.type] || 'default'}>{typeMap[row.type] || row.type}</NTag>
-        );
+        const title = row.title || '-';
+        return title.length > 40 ? `${title.substring(0, 40)}...` : title;
       }
     },
     {
@@ -101,39 +66,49 @@ export function createVersionLogTableColumns(
       key: 'releaseDate',
       width: 120,
       sorter: true,
-      render: (row: VersionLog) => {
-        if (!row.releaseDate) return '-';
-        return new Date(row.releaseDate).toLocaleDateString('zh-CN');
-      }
+      render: (row: VersionLog) => formatApiDateTime(row.releaseDate, { format: 'date' })
     },
     {
-      title: $t('page.versionLogManagement.content'),
-      key: 'content',
-      width: 300,
-      render: (row: VersionLog) => {
-        const content = row.content || '-';
-        return content.length > 50 ? `${content.substring(0, 50)}...` : content;
-      }
+      title: $t('page.versionLogManagement.changeCount'),
+      key: 'changes',
+      width: 100,
+      render: (row: VersionLog) => row.changes?.length ?? 0
     },
     {
-      title: $t('page.versionLogManagement.status'),
-      key: 'isPublished',
+      title: $t('page.versionLogManagement.isPrerelease'),
+      key: 'isPrerelease',
       width: 120,
       render: (row: VersionLog) => (
-        <NSwitch
-          value={row.isPublished}
-          onUpdateValue={value => h.onToggleStatus(row.id, value)}
-          loading={false}
-        />
+        <NTag type={row.isPrerelease ? 'warning' : 'success'}>
+          {row.isPrerelease
+            ? $t('page.versionLogManagement.prerelease')
+            : $t('page.versionLogManagement.stableRelease')}
+        </NTag>
       )
     },
     {
-      title: $t('page.versionLogManagement.publishedAt'),
-      key: 'publishedAt',
-      width: 180,
+      title: $t('page.versionLogManagement.changeFlags'),
+      key: 'changeFlags',
+      width: 160,
       render: (row: VersionLog) => {
-        if (!row.publishedAt) return '-';
-        return new Date(row.publishedAt).toLocaleString('zh-CN');
+        if (!row.hasBreakingChanges && !row.hasDeprecations) {
+          return '-';
+        }
+
+        return (
+          <NSpace size="small">
+            {row.hasBreakingChanges ? (
+              <NTag type="error" size="small">
+                {$t('page.versionLogManagement.hasBreakingChanges')}
+              </NTag>
+            ) : null}
+            {row.hasDeprecations ? (
+              <NTag type="warning" size="small">
+                {$t('page.versionLogManagement.hasDeprecations')}
+              </NTag>
+            ) : null}
+          </NSpace>
+        );
       }
     },
     {
@@ -141,10 +116,7 @@ export function createVersionLogTableColumns(
       key: 'createdAt',
       width: 180,
       sorter: true,
-      render: (row: VersionLog) => {
-        if (!row.createdAt) return '-';
-        return new Date(row.createdAt).toLocaleString('zh-CN');
-      }
+      render: (row: VersionLog) => formatApiDateTime(row.createdAt)
     },
     createActionColumn({
       mode: 'inline',
@@ -166,4 +138,4 @@ export function createVersionLogTableColumns(
   ];
 }
 
-export const VERSION_LOG_LIST_SCROLL_X = 1960;
+export const VERSION_LOG_LIST_SCROLL_X = 1440;
