@@ -856,7 +856,7 @@ const local: App.I18n.Schema = {
       moduleAlert: '告警',
       moduleSystem: '系统',
       id: 'ID',
-      searchPlaceholder: '请输入路径或方法',
+      searchPlaceholder: '请输入路径、方法、IP 或用户名',
       actionPlaceholder: '操作类型',
       modulePlaceholder: '模块',
       userPlaceholder: '用户',
@@ -878,6 +878,8 @@ const local: App.I18n.Schema = {
       logTypeAudit: '审计日志',
       selectLogsToDelete: '请选择要删除的日志',
       batchDeleteSuccess: '批量删除成功',
+      clearLogsSuccess: '清空日志成功',
+      metadata: '附加信息',
       getDetailFailed: '获取日志详情失败'
     },
     knowledgeBase: {

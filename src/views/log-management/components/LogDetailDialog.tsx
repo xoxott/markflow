@@ -34,6 +34,11 @@ export default defineComponent({
 
     return () => {
       const log = props.config.log;
+      const metadataText =
+        log.metadata && Object.keys(log.metadata).length > 0
+          ? JSON.stringify(log.metadata, null, 2)
+          : null;
+
       return (
         <BaseDialog show={props.show} config={dialogConfig.value}>
           {{
@@ -96,6 +101,13 @@ export default defineComponent({
                     ) : null}
                   </NSpace>
                 </NCard>
+                {metadataText ? (
+                  <NCard title={$t('page.logManagement.metadata')} size="small">
+                    <pre class="max-h-260px overflow-auto rounded-4px bg-#fafafa p-8px text-12px">
+                      {metadataText}
+                    </pre>
+                  </NCard>
+                ) : null}
               </NSpace>
             ),
             footer: () => (

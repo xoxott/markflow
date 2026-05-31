@@ -868,7 +868,7 @@ const local: App.I18n.Schema = {
       moduleAlert: 'Alert',
       moduleSystem: 'System',
       id: 'ID',
-      searchPlaceholder: 'Please enter path or method',
+      searchPlaceholder: 'Please enter path, method, IP or username',
       actionPlaceholder: 'Action',
       modulePlaceholder: 'Module',
       userPlaceholder: 'User',
@@ -890,6 +890,8 @@ const local: App.I18n.Schema = {
       logTypeAudit: 'Audit Logs',
       selectLogsToDelete: 'Please select logs to delete',
       batchDeleteSuccess: 'Batch delete successfully',
+      clearLogsSuccess: 'Logs cleared successfully',
+      metadata: 'Additional Metadata',
       getDetailFailed: 'Failed to get log details'
     },
     knowledgeBase: {
