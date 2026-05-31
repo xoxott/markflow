@@ -44,6 +44,7 @@ export interface NotificationTableColumnHandlers {
   onRevertToDraft: (row: Notification) => void;
   onArchive: (row: Notification) => void;
   canWrite: boolean;
+  canDelete: boolean;
 }
 
 function renderTypeTag(type: Api.NotificationManagement.NotificationType | undefined) {
@@ -198,7 +199,7 @@ export function createNotificationTableColumns(
             label: $t('common.delete'),
             type: 'error',
             icon: 'carbon:trash-can',
-            show: (row: Notification) => h.canWrite && row.status === 'draft',
+            show: () => h.canDelete,
             onClick: h.onDelete
           }
         ]
