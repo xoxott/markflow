@@ -19,7 +19,7 @@ export const ROUTE_DEFAULT_PERMISSION_CODES: Partial<Record<RouteKey, string[]>>
   'alert-management': ['alert:read'],
   'menu-management': ['menu:read'],
   'log-management': ['log:read'],
-  'version-log-management': ['version-log:read'],
+  'version-log-management': ['changelog:read'],
   'component': ['component:read'],
   'mobile': ['mobile:read'],
   'upload': ['upload:read'],

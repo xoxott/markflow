@@ -285,7 +285,7 @@ const local: App.I18n.Schema = {
       },
       knowledgeBase: {
         title: '知识库',
-        desc: '基于文件管理构建文档资产，为检索增强与 AI 应用提供知识来源。'
+        desc: '集中管理文档资产，为检索增强与 AI 应用提供知识来源。'
       },
       quickLinks: {
         monitoring: '运维监控',

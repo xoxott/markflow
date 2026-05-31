@@ -17,7 +17,7 @@ import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
 import { MENU_TYPE_META } from '../constants';
 import type { MenuTreeNode } from '../types';
-import { findMenuPath, getAllExpandableKeys } from '../utils/menu-tree';
+import { findMenuPath, getAllExpandableKeys, resolveMenuNodeLabel } from '../utils/menu-tree';
 import MenuEmptyState from './MenuEmptyState';
 
 export default defineComponent({
@@ -99,7 +99,7 @@ export default defineComponent({
 
           return {
             key: node.id,
-            label: node.name,
+            label: resolveMenuNodeLabel(node),
             prefix: () => <SvgIcon icon={icon} class="menu-tree-node__icon" />,
             suffix: () => (
               <div onClick={(e: Event) => e.stopPropagation()}>

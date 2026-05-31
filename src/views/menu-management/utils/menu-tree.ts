@@ -1,5 +1,10 @@
+import { $t } from '@/locales';
 import type { MenuTreeStats, ParentGroupOption } from '../constants';
 import type { MenuTreeNode } from '../types';
+
+export function resolveMenuNodeLabel(node: Pick<MenuTreeNode, 'name' | 'i18nKey'>): string {
+  return node.i18nKey ? $t(node.i18nKey) : node.name;
+}
 
 export function findMenuNode(nodes: MenuTreeNode[], id: string): MenuTreeNode | null {
   for (const node of nodes) {
@@ -58,7 +63,7 @@ export function flattenGroupOptions(
   walkMenuTree(nodes, (node, depth) => {
     if (node.type !== 'group' || node.id === excludeId) return;
     const indent = depth > 0 ? `${'　'.repeat(depth)}└ ` : '';
-    options.push({ label: `${indent}${node.name}`, value: node.id });
+    options.push({ label: `${indent}${resolveMenuNodeLabel(node)}`, value: node.id });
   });
   return options;
 }
@@ -84,7 +89,9 @@ export function filterMenuTree(nodes: MenuTreeNode[], keyword: string): MenuTree
   const filterNodes = (items: MenuTreeNode[]): MenuTreeNode[] =>
     items.reduce<MenuTreeNode[]>((acc, node) => {
       const children = node.children?.length ? filterNodes(node.children) : [];
+      const displayName = resolveMenuNodeLabel(node);
       const selfMatch =
+        displayName.toLowerCase().includes(query) ||
         node.name.toLowerCase().includes(query) ||
         node.routeKey?.toLowerCase().includes(query) ||
         node.i18nKey?.toLowerCase().includes(query) ||

@@ -1,6 +1,15 @@
 import type { RouteKey } from '@elegant-router/types';
 import { resolveDefaultPermissionCodes } from '@/constants/rbac/route-permissions';
+import { $t } from '@/locales';
 import { generatedRoutes } from '@/router/elegant/routes';
+
+function resolveRouteRegistryTitle(route: (typeof generatedRoutes)[number]): string {
+  const i18nKey = route.meta?.i18nKey;
+  if (i18nKey) {
+    return String($t(i18nKey));
+  }
+  return String(route.meta?.title ?? route.name);
+}
 
 const authRouteNames = new Set<string>(
   generatedRoutes.filter(route => !route.meta?.constant).map(route => route.name)
@@ -16,7 +25,7 @@ export function buildSyncRegistryPayload(): Array<
       routeKey: route.name as RouteKey,
       path: route.path,
       component: route.component,
-      title: String(route.meta?.title ?? route.name),
+      title: resolveRouteRegistryTitle(route),
       i18nKey: route.meta?.i18nKey ?? null,
       icon: route.meta?.icon,
       hideInMenu: route.meta?.hideInMenu ?? undefined,

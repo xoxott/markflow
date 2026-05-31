@@ -288,7 +288,7 @@ const local: App.I18n.Schema = {
       },
       knowledgeBase: {
         title: 'Knowledge Base',
-        desc: 'Organize documents on top of the file manager to power retrieval and AI applications.'
+        desc: 'Organize documents in knowledge bases to power retrieval and AI applications.'
       },
       quickLinks: {
         monitoring: 'Monitoring',

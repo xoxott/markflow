@@ -7,7 +7,7 @@ import { MENU_TYPE_META } from '../constants';
 import type { MenuTreeNode } from '../types';
 import { buildMenuDetailItems } from '../utils/menu-detail';
 import { menuTypeRequiresRouteRegistry } from '../utils/menu-type';
-import { findMenuPath } from '../utils/menu-tree';
+import { findMenuPath, resolveMenuNodeLabel } from '../utils/menu-tree';
 import MenuEmptyState from './MenuEmptyState';
 
 export default defineComponent({
@@ -92,7 +92,7 @@ export default defineComponent({
                                 }
                           }
                         >
-                          {item.name}
+                          {resolveMenuNodeLabel(item)}
                         </NBreadcrumbItem>
                       );
                     })}
@@ -109,7 +109,7 @@ export default defineComponent({
                       )}
                     </div>
                     <div class="min-w-0">
-                      <h3 class="menu-management__detail-name">{props.node.name}</h3>
+                      <h3 class="menu-management__detail-name">{resolveMenuNodeLabel(props.node)}</h3>
                       <div class="menu-management__detail-meta">
                         <NTag
                           size="small"

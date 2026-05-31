@@ -1,5 +1,6 @@
 import type { TreeSelectOption } from 'naive-ui';
 import type { MenuTreeNode } from '../types';
+import { resolveMenuNodeLabel } from './menu-tree';
 
 export interface ActiveMenuTreeOptionsConfig {
   /** sidebarKey of the menu being edited (exclude self). */
@@ -56,14 +57,14 @@ export function buildActiveMenuTreeOptions(
 
         if (!children.length) {
           if (!groupSelectable) return [];
-          return [{ key: node.sidebarKey, label: node.name, disabled: false }];
+          return [{ key: node.sidebarKey, label: resolveMenuNodeLabel(node), disabled: false }];
         }
 
         if (!groupSelectable) {
           return [
             {
               key: `group:${node.sidebarKey}`,
-              label: node.name,
+              label: resolveMenuNodeLabel(node),
               disabled: true,
               children
             }
@@ -73,7 +74,7 @@ export function buildActiveMenuTreeOptions(
         return [
           {
             key: node.sidebarKey,
-            label: node.name,
+            label: resolveMenuNodeLabel(node),
             disabled: false,
             children
           }
@@ -85,7 +86,7 @@ export function buildActiveMenuTreeOptions(
       return [
         {
           key: node.sidebarKey,
-          label: node.name,
+          label: resolveMenuNodeLabel(node),
           disabled: false
         }
       ];
@@ -101,6 +102,6 @@ export function resolveActiveMenuLabel(
 ): string {
   if (!value?.trim()) return '-';
   const found = findMenuNodeBySidebarKey(nodes, value);
-  if (found) return found.name;
+  if (found) return resolveMenuNodeLabel(found);
   return value;
 }
