@@ -19,6 +19,7 @@ import { clearMainRequestPipelineCache } from '@/service/request';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { isStaticDemo, seedStaticDemoAuth } from '@/utils/env/static-demo';
+import { isSuperPermission as checkSuperPermission } from '@/utils/rbac/permission-access';
 import { SetupStoreId } from '@/enum';
 import { $t } from '@/locales';
 import { useRouteStore } from '../route';
@@ -43,6 +44,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     role: '',
     roles: [],
     buttons: [],
+    permissionCodes: [],
     isActive: false,
     lastLoginAt: '',
     lastActivityAt: '',
@@ -51,17 +53,10 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     updatedAt: ''
   });
 
-  /** Get role codes as string array for compatibility */
-  const roleCodes = computed(() => {
-    return userInfo.roles?.map(role => role.code) || [];
-  });
+  /** Effective permission codes for navigation and route guards */
+  const permissionCodes = computed(() => userInfo.permissionCodes ?? []);
 
-  /** is super role in static route */
-  const isStaticSuper = computed(() => {
-    const { VITE_AUTH_ROUTE_MODE, VITE_STATIC_SUPER_ROLE } = import.meta.env;
-
-    return VITE_AUTH_ROUTE_MODE === 'static' && roleCodes.value.includes(VITE_STATIC_SUPER_ROLE);
-  });
+  const isSuperPermission = computed(() => checkSuperPermission(permissionCodes.value));
 
   /** Get user ID as string for compatibility */
   const userId = computed(() => String(userInfo.id || ''));
@@ -237,7 +232,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
       updatedAt: data.user.updatedAt,
       roles: data.user.roles,
       role: firstRoleCode,
-      buttons: data.user.buttons || []
+      buttons: data.user.buttons || [],
+      permissionCodes: data.user.permissionCodes ?? []
     });
 
     // Skip getUserInfo since we already have user info from login response
@@ -385,9 +381,10 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
         isOnline: info.isOnline,
         createdAt: info.createdAt,
         updatedAt: info.updatedAt,
-        roles: info.roles, // Keep full roles array
-        role: firstRoleCode, // Set first role code for compatibility
-        buttons: info.buttons || [] // Set default empty array if not provided
+        roles: info.roles,
+        role: firstRoleCode,
+        buttons: info.buttons || [],
+        permissionCodes: info.permissionCodes ?? []
       });
 
       return true;
@@ -485,7 +482,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
       updatedAt: data.user.updatedAt,
       roles: data.user.roles,
       role: firstRoleCode,
-      buttons: data.user.buttons || []
+      buttons: data.user.buttons || [],
+      permissionCodes: data.user.permissionCodes ?? []
     });
 
     // Skip getUserInfo since we already have user info from login response
@@ -512,8 +510,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     userInfo,
     userId,
     userName,
-    roleCodes,
-    isStaticSuper,
+    permissionCodes,
+    isSuperPermission,
     isLogin,
     loginLoading,
     resetStore,

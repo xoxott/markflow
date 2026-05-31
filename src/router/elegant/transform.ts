@@ -182,6 +182,7 @@ const routeMap: RouteMap = {
   'user-management': '/user-management',
   'role-management': '/role-management',
   'permission-management': '/permission-management',
+  'resource-management': '/resource-management',
   'announcement-management': '/announcement-management',
   'notification-management': '/notification-management',
   'alert-management': '/alert-management',

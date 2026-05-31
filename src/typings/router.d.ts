@@ -15,14 +15,12 @@ declare module 'vue-router' {
      */
     i18nKey?: App.I18n.I18nKey | null;
     /**
-     * Roles of the route
+     * Permission codes required to access the route
      *
-     * Route can be accessed if the current user has at least one of the roles
-     *
-     * It only works when the route mode is "static", if the route mode is "dynamic", it will be
-     * ignored
+     * Route can be accessed if the current user has at least one of the permission codes. Empty
+     * array means no extra permission check beyond login.
      */
-    roles?: string[];
+    permissionCodes?: string[];
     /** Whether to cache the route */
     keepAlive?: boolean | null;
     /**

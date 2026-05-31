@@ -69,6 +69,14 @@ export function fetchSyncRoutes(data?: Api.MenuManagement.SyncRoutesRequest) {
   });
 }
 
+/** Get current user's filtered routes and sidebar menus */
+export function fetchUserRoutes() {
+  return request<Api.Route.UserRoute>({
+    url: '/api/admin/menus/user-routes',
+    method: 'get'
+  });
+}
+
 /** Get bindable route registry */
 export function fetchRouteRegistry() {
   return request<Api.MenuManagement.RouteRegistryResponse>({

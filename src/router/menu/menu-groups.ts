@@ -49,6 +49,7 @@ export const MENU_GROUP_DEFINITIONS: MenuGroupDefinition[] = [
       'user-management',
       'role-management',
       'permission-management',
+      'resource-management',
       'announcement-management',
       'notification-management',
       'alert-management',

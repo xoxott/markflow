@@ -50,7 +50,10 @@ export default defineConfig({
           }
         },
         test: {
-          include: ['src/hooks/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+          include: [
+            'src/hooks/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+            'src/utils/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
+          ],
           environment: 'happy-dom',
           globals: true,
           setupFiles: ['./src/hooks/upload/__tests__/setup.ts']
@@ -66,6 +69,19 @@ export default defineConfig({
           include: ['src/service/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
           environment: 'node',
           globals: true
+        }
+      },
+      {
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url))
+          }
+        },
+        test: {
+          include: ['src/store/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+          environment: 'happy-dom',
+          globals: true,
+          setupFiles: ['./src/store/__tests__/setup.ts']
         }
       }
     ]

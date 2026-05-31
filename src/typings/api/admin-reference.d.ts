@@ -25,6 +25,7 @@ declare namespace Api {
       action?: string;
     }
 
+    /** @deprecated Use GET /api/admin/resources/options */
     /** GET /admin/permissions/options/resources */
     type PermissionResourceOptionsQuery = OptionsBaseQuery;
 

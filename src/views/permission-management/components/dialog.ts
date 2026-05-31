@@ -4,6 +4,7 @@ import type { BaseDialogProps } from '@/components/base-dialog/dialog';
 export interface PermissionFormData {
   name: string;
   code: string;
+  resourceId: number | null;
   resource: string;
   action: string;
   description: string;
@@ -12,12 +13,8 @@ export interface PermissionFormData {
 
 /** 权限表单对话框配置 */
 export interface PermissionFormDialogConfig extends BaseDialogProps {
-  /** 是否为编辑模式 */
   isEdit: boolean;
-  /** 表单数据 */
   formData: PermissionFormData;
-  /** 确认回调 */
   onConfirm: (data: PermissionFormData) => void | Promise<void>;
-  /** 取消回调 */
   onCancel?: () => void;
 }

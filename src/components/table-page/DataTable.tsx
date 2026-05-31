@@ -1,8 +1,12 @@
-import { type PropType, computed, defineComponent } from 'vue';
+import { type PropType, type VNodeChild, computed, defineComponent } from 'vue';
 import { NDataTable } from 'naive-ui';
-import type { DataTableProps as NaiveDataTableProps, PaginationProps } from 'naive-ui';
+import type {
+  DataTableColumns,
+  DataTableProps as NaiveDataTableProps,
+  PaginationProps
+} from 'naive-ui';
 import { $t } from '@/locales';
-import type { PresetRendererType, TableColumnConfig } from './types';
+import type { DataTableProps, PresetRendererType, TableColumnConfig } from './types';
 import { useDataTableHeight } from './hooks/useDataTableHeight';
 import {
   ActionRenderer,
@@ -13,6 +17,8 @@ import {
   TagRenderer,
   TextRenderer
 } from './renderers';
+
+type TableRow = Record<string, unknown>;
 
 /**
  * 在 naive NDataTable 之上封装：
@@ -25,11 +31,11 @@ export default defineComponent({
   name: 'DataTable',
   props: {
     columns: {
-      type: Array as PropType<TableColumnConfig[]>,
+      type: Array as PropType<TableColumnConfig<TableRow>[]>,
       required: true
     },
     data: {
-      type: Array as PropType<any[]>,
+      type: Array as PropType<TableRow[]>,
       required: true
     },
     loading: {
@@ -45,7 +51,7 @@ export default defineComponent({
       default: () => []
     },
     rowKey: {
-      type: [String, Function] as PropType<string | ((row: any) => string | number)>,
+      type: [String, Function] as PropType<DataTableProps<TableRow>['rowKey']>,
       default: 'id'
     },
     onUpdateSelectedKeys: {
@@ -80,15 +86,10 @@ export default defineComponent({
       type: [String, Number] as PropType<string | number>,
       default: undefined
     },
-    /**
-     * 为 true 时根据容器高度启用 NDataTable `flexHeight`（表体滚动、分页器固定底部）。 显式传入 `maxHeight` 或在 `tableProps` 中设置
-     * `flexHeight` 时不会自动覆盖。
-     */
     autoHeight: {
       type: Boolean,
       default: true
     },
-    /** 与 TablePage.tableProps 一致：浅合并进 NDataTable */
     tableProps: {
       type: Object as PropType<Partial<NaiveDataTableProps>>,
       default: undefined
@@ -104,23 +105,25 @@ export default defineComponent({
       () => props.autoHeight && !hasExplicitMaxHeight.value && !hasExplicitFlexHeight.value
     );
 
+    const selectionEnabled = computed(
+      () => props.showSelection && typeof props.onUpdateSelectedKeys === 'function'
+    );
+
     const { containerRef, flexHeight } = useDataTableHeight(autoFlexEnabled);
 
-    /** naive-ui 2.41+ 的 NDataTable 仅接受函数型 rowKey；将字符串字段名规范为 (row) => row[field]。 */
-    const naiveRowKey = computed((): ((row: Record<string, unknown>) => string | number) => {
+    const naiveRowKey = computed((): ((row: TableRow) => string | number) => {
       const rk = props.rowKey;
       if (typeof rk === 'function') {
-        return rk as (row: Record<string, unknown>) => string | number;
+        return rk;
       }
       const field = typeof rk === 'string' && rk.length > 0 ? rk : 'id';
-      return (row: Record<string, unknown>) => row[field] as string | number;
+      return row => row[field] as string | number;
     });
 
-    /** 将业务列声明展开为 naive 可识别的列数组（含 selection / index） */
-    const processedColumns = computed(() => {
-      const cols: any[] = [];
+    const processedColumns = computed((): DataTableColumns<TableRow> => {
+      const cols: DataTableColumns<TableRow> = [];
 
-      if (props.showSelection) {
+      if (selectionEnabled.value) {
         cols.push({
           type: 'selection',
           width: 40,
@@ -135,7 +138,7 @@ export default defineComponent({
           width: 70,
           fixed: 'left',
           align: 'center',
-          render: (_row: any, index: number) => {
+          render: (_row, index) => {
             const pg = props.pagination;
             const isObj = typeof pg === 'object' && pg !== null;
             const page = isObj ? Number((pg as PaginationProps).page ?? 1) || 1 : 1;
@@ -147,7 +150,7 @@ export default defineComponent({
 
       props.columns.forEach(column => {
         const { render, renderConfig, ...restColumn } = column;
-        const key = (column as any).key;
+        const key = String(column.key);
 
         if (typeof render === 'function') {
           cols.push({
@@ -164,26 +167,24 @@ export default defineComponent({
           cols.push({
             ...restColumn,
             key,
-            render: (row: any, _index: number) => {
-              const field = key as string;
-
+            render: (row: TableRow) => {
               switch (rendererType) {
                 case 'avatar':
-                  return <AvatarRenderer row={row} config={renderConfig as any} />;
+                  return <AvatarRenderer row={row} config={renderConfig as never} />;
                 case 'status':
-                  return <StatusRenderer row={row} field={field} config={renderConfig as any} />;
+                  return <StatusRenderer row={row} field={key} config={renderConfig as never} />;
                 case 'date':
-                  return <DateRenderer row={row} field={field} config={renderConfig as any} />;
+                  return <DateRenderer row={row} field={key} config={renderConfig as never} />;
                 case 'tag':
-                  return <TagRenderer row={row} field={field} config={renderConfig as any} />;
+                  return <TagRenderer row={row} field={key} config={renderConfig as never} />;
                 case 'badge':
-                  return <BadgeRenderer row={row} field={field} config={renderConfig as any} />;
+                  return <BadgeRenderer row={row} field={key} config={renderConfig as never} />;
                 case 'action':
-                  return <ActionRenderer row={row} config={renderConfig as any} />;
+                  return <ActionRenderer row={row} config={renderConfig as never} />;
                 case 'text':
-                  return <TextRenderer row={row} field={field} config={renderConfig as any} />;
+                  return <TextRenderer row={row} field={key} config={renderConfig as never} />;
                 default:
-                  return row[field];
+                  return row[key] as VNodeChild;
               }
             }
           });
@@ -193,10 +194,9 @@ export default defineComponent({
         cols.push({
           ...restColumn,
           key,
-          render: (row: any) => {
-            const field = key as string;
-            const value = row[field];
-            return value !== null && value !== undefined ? value : '-';
+          render: (row: TableRow) => {
+            const value = row[key];
+            return (value !== null && value !== undefined ? value : '-') as VNodeChild;
           }
         });
       });
@@ -204,7 +204,6 @@ export default defineComponent({
       return cols;
     });
 
-    /** 合并顺序：外部 tableProps 先展开，再用内置受控字段覆盖，避免 checkedRowKeys 被意外冲掉 */
     const usesServerPagination = computed(() => {
       const pg = props.pagination;
       return pg !== false && pg !== undefined && typeof pg === 'object';
@@ -230,10 +229,10 @@ export default defineComponent({
           : hasExplicitMaxHeight.value
             ? { maxHeight: props.maxHeight }
             : {}),
-        ...(props.showSelection
+        ...(selectionEnabled.value
           ? {
               checkedRowKeys: props.selectedKeys,
-              onUpdateCheckedRowKeys: props.onUpdateSelectedKeys ?? (() => {})
+              onUpdateCheckedRowKeys: props.onUpdateSelectedKeys
             }
           : {})
       };

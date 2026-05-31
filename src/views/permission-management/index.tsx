@@ -23,7 +23,6 @@ import {
   createPermissionSearchFields,
   createPermissionTableColumns
 } from './listUiConfig';
-import { buildPermissionCode } from './utils/permissionCode';
 
 type Permission = Api.PermissionManagement.Permission;
 
@@ -84,6 +83,7 @@ export default defineComponent({
       const formData: PermissionFormData = {
         name: '',
         code: '',
+        resourceId: null,
         resource: '',
         action: '',
         description: '',
@@ -94,9 +94,13 @@ export default defineComponent({
         isEdit: false,
         formData,
         onConfirm: async (form: PermissionFormData) => {
+          if (!form.resourceId) {
+            return;
+          }
           await fetchCreatePermission({
             name: form.name,
-            code: buildPermissionCode(form.resource, form.action),
+            resourceId: form.resourceId,
+            action: form.action,
             description: form.description || undefined
           });
           message.success($t('common.addSuccess'));
@@ -116,6 +120,7 @@ export default defineComponent({
       const formData: PermissionFormData = {
         name: permissionDetail.name,
         code: permissionDetail.code,
+        resourceId: permissionDetail.resourceId ?? null,
         resource: permissionDetail.resource,
         action: permissionDetail.action,
         description: permissionDetail.description || '',

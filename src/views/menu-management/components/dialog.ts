@@ -11,7 +11,7 @@ export interface MenuFormData {
   isActive: boolean;
   hideInMenu: boolean;
   activeMenu: string;
-  roleCodes: string[];
+  permissionCodes: string[];
 }
 
 export interface MenuFormDialogConfig extends BaseDialogProps {
@@ -19,5 +19,7 @@ export interface MenuFormDialogConfig extends BaseDialogProps {
   formData: MenuFormData;
   parentOptions: Array<{ label: string; value: string }>;
   excludeMenuId?: string;
+  title?: string;
   onConfirm: (data: MenuFormData) => void | Promise<void>;
+  onCancel?: () => void;
 }

@@ -1,10 +1,8 @@
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
-import {
-  fetchAdminPermissionActionOptions,
-  fetchAdminPermissionResourceOptions
-} from '@/service/api/admin-reference';
+import { fetchAdminPermissionActionOptions } from '@/service/api/admin-reference';
+import { fetchResourceOptions } from '@/service/api/resource';
 import { buildPermissionFacetCacheKey, useAdminOptionStore } from '@/store/modules/admin-option';
 import type { PermissionFacetKind } from '@/store/modules/admin-option/cacheKey';
 import type { UiOptionItem } from './types';
@@ -73,7 +71,7 @@ export function usePermissionFacetOptions(
       if (!data) {
         const result =
           facet === 'resources'
-            ? await fetchAdminPermissionResourceOptions(params)
+            ? await fetchResourceOptions(params)
             : await fetchAdminPermissionActionOptions(
                 params as Api.AdminReference.PermissionActionOptionsQuery
               );

@@ -83,8 +83,6 @@ declare namespace Env {
      *   use "," to separate multiple codes
      */
     readonly VITE_SERVICE_EXPIRED_TOKEN_CODES: string;
-    /** when the route mode is static, the defined super role */
-    readonly VITE_STATIC_SUPER_ROLE: string;
     /**
      * other backend service base url
      *
@@ -146,8 +144,6 @@ declare namespace Env {
      * Set to Y to skip login without ai-server
      */
     readonly VITE_DEV_BYPASS_AUTH?: CommonType.YesOrNo;
-    /** Use menu-mock for dynamic route bootstrap when Y */
-    readonly VITE_USE_MENU_MOCK?: CommonType.YesOrNo;
     /** The launch editor */
     readonly VITE_DEVTOOLS_LAUNCH_EDITOR?: import('vite-plugin-vue-devtools').VitePluginVueDevToolsOptions['launchEditor'];
   }

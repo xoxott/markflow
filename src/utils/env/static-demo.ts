@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/modules/auth';
+import { SUPER_PERMISSION_CODE } from '@/utils/rbac/permission-access';
 import { localStg } from '@/utils/storage';
 
 export const STATIC_DEMO_TOKEN = 'static-demo-token';
@@ -30,7 +31,6 @@ export function seedStaticDemoAuthTokens(): void {
 
 /** Seed local auth so route init never calls /users/me on static hosts. */
 export function seedStaticDemoAuth(): void {
-  const superRole = import.meta.env.VITE_STATIC_SUPER_ROLE || 'R_SUPER';
   const authStore = useAuthStore();
 
   seedStaticDemoAuthTokens();
@@ -40,9 +40,10 @@ export function seedStaticDemoAuth(): void {
     username: 'demo-user',
     email: 'demo@example.com',
     avatar: null,
-    role: superRole,
-    roles: [{ code: superRole, name: 'Demo' }],
+    role: 'demo',
+    roles: [{ id: 1, code: 'demo', name: 'Demo' }],
     buttons: [],
+    permissionCodes: [SUPER_PERMISSION_CODE],
     isActive: true,
     lastLoginAt: new Date().toISOString(),
     lastActivityAt: new Date().toISOString(),

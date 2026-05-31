@@ -1,6 +1,4 @@
-import type { RouteKey } from '@elegant-router/types';
 import type { MenuFormData } from '../components/dialog';
-import type { MenuTreeNode } from '../types';
 
 export function createDefaultFormData(parentId: string | null = null): MenuFormData {
   return {
@@ -14,15 +12,14 @@ export function createDefaultFormData(parentId: string | null = null): MenuFormD
     isActive: true,
     hideInMenu: false,
     activeMenu: '',
-    roleCodes: []
+    permissionCodes: []
   };
 }
 
-export function menuNodeToFormData(
-  node?: MenuTreeNode | null,
-  parentId: string | null = null
-): MenuFormData {
-  if (!node) return createDefaultFormData(parentId);
+export function menuNodeToFormData(node: Api.MenuManagement.MenuTreeNode | null): MenuFormData {
+  if (!node) {
+    return createDefaultFormData();
+  }
 
   return {
     type: node.type,
@@ -30,17 +27,17 @@ export function menuNodeToFormData(
     i18nKey: node.i18nKey ?? '',
     routeKey: node.routeKey ?? '',
     icon: node.icon ?? '',
-    parentId: node.parentId ?? parentId,
+    parentId: node.parentId,
     order: node.order,
     isActive: node.isActive,
     hideInMenu: node.hideInMenu ?? false,
     activeMenu: node.activeMenu ?? '',
-    roleCodes: node.roleCodes ? [...node.roleCodes] : []
+    permissionCodes: node.permissionCodes ? [...node.permissionCodes] : []
   };
 }
 
-function toOptionalRouteKey(value: string): RouteKey | undefined {
-  return value ? (value as RouteKey) : undefined;
+function toOptionalRouteKey(value: string): import('@elegant-router/types').RouteKey | undefined {
+  return value ? (value as import('@elegant-router/types').RouteKey) : undefined;
 }
 
 export function formDataToCreateRequest(data: MenuFormData): Api.MenuManagement.CreateMenuRequest {
@@ -55,7 +52,7 @@ export function formDataToCreateRequest(data: MenuFormData): Api.MenuManagement.
     isActive: data.isActive,
     hideInMenu: data.hideInMenu,
     activeMenu: data.type === 'route' ? toOptionalRouteKey(data.activeMenu) : undefined,
-    roleCodes: data.roleCodes
+    permissionCodes: data.type === 'route' ? data.permissionCodes : []
   };
 }
 

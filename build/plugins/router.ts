@@ -1,6 +1,7 @@
 import type { RouteMeta } from 'vue-router';
 import ElegantVueRouter from '@elegant-router/vue/vite';
 import type { RouteKey } from '@elegant-router/types';
+import { resolveDefaultPermissionCodes } from '../../src/constants/rbac/route-permissions';
 
 export function setupElegantRouter() {
   return ElegantVueRouter({
@@ -33,6 +34,11 @@ export function setupElegantRouter() {
 
       if (constantRoutes.includes(key)) {
         meta.constant = true;
+      } else {
+        const permissionCodes = resolveDefaultPermissionCodes(key);
+        if (permissionCodes.length) {
+          meta.permissionCodes = permissionCodes;
+        }
       }
 
       return meta;

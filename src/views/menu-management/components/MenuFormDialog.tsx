@@ -1,6 +1,7 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
 import {
+  type FormRules,
   NButton,
   NForm,
   NFormItem,
@@ -18,7 +19,7 @@ import BaseDialog from '@/components/base-dialog';
 import { getMenuTypeOptions } from '../constants';
 import type { MenuFormDialogConfig } from './dialog';
 import RouteKeySelect from './RouteKeySelect';
-import RoleCodeSelect from './RoleCodeSelect';
+import PermissionCodeSelect from './PermissionCodeSelect';
 import IconSelect from './IconSelect';
 
 export default defineComponent({
@@ -46,22 +47,38 @@ export default defineComponent({
       }
     );
 
-    const formRules = computed(() => ({
-      name: [{ required: true, message: $t('page.menuManagement.nameRequired'), trigger: 'blur' }],
-      type: [
-        { required: true, message: $t('page.menuManagement.typeRequired'), trigger: 'change' }
-      ],
-      routeKey:
-        formModel.type === 'route'
-          ? [
-              {
-                required: true,
-                message: $t('page.menuManagement.routeKeyRequired'),
-                trigger: 'change'
-              }
-            ]
-          : []
-    }));
+    const formRules = computed(
+      (): FormRules => ({
+        name: [
+          { required: true, message: $t('page.menuManagement.nameRequired'), trigger: 'blur' }
+        ],
+        type: [
+          { required: true, message: $t('page.menuManagement.typeRequired'), trigger: 'change' }
+        ],
+        routeKey:
+          formModel.type === 'route'
+            ? [
+                {
+                  required: true,
+                  message: $t('page.menuManagement.routeKeyRequired'),
+                  trigger: 'change'
+                }
+              ]
+            : [],
+        permissionCodes:
+          formModel.type === 'route'
+            ? [
+                {
+                  type: 'array' as const,
+                  required: true,
+                  min: 1,
+                  message: $t('page.menuManagement.permissionCodesRequired'),
+                  trigger: 'change'
+                }
+              ]
+            : []
+      })
+    );
 
     const typeOptions = computed(() => getMenuTypeOptions());
 
@@ -178,9 +195,11 @@ export default defineComponent({
               </NGrid>
 
               {renderSectionTitle($t('page.menuManagement.sectionAuth'))}
-              <NFormItem label={$t('page.menuManagement.roleCodes')} path="roleCodes">
-                <RoleCodeSelect v-model:value={formModel.roleCodes} />
-              </NFormItem>
+              {formModel.type === 'route' ? (
+                <NFormItem label={$t('page.menuManagement.permissionCodes')} path="permissionCodes">
+                  <PermissionCodeSelect v-model:value={formModel.permissionCodes} />
+                </NFormItem>
+              ) : null}
             </NForm>
           ),
           footer: () => (

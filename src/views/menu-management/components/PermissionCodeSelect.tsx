@@ -3,7 +3,7 @@ import { AdminRemoteSelect } from '@/components/admin-remote-select';
 import { $t } from '@/locales';
 
 export default defineComponent({
-  name: 'RoleCodeSelect',
+  name: 'PermissionCodeSelect',
   props: {
     value: { type: Array as () => string[], default: () => [] }
   },
@@ -11,11 +11,11 @@ export default defineComponent({
   setup(props, { emit }) {
     return () => (
       <AdminRemoteSelect
-        resource="roles"
+        resource="permissions"
         valueKey="code"
         value={props.value}
         multiple
-        placeholder={$t('page.menuManagement.roleCodesHint')}
+        placeholder={$t('page.menuManagement.permissionCodesHint')}
         onUpdate:value={value => emit('update:value', (value as string[]) ?? [])}
       />
     );

@@ -17,7 +17,8 @@ declare namespace Api {
       isActive: boolean;
       hideInMenu?: boolean;
       activeMenu?: import('@elegant-router/types').RouteKey;
-      roleCodes: string[];
+      /** Required permission codes for route-type menus */
+      permissionCodes: string[];
       constant?: boolean;
       createdAt: string;
       updatedAt: string;
@@ -46,11 +47,19 @@ declare namespace Api {
       icon?: string;
       hideInMenu?: boolean;
       constant?: boolean;
+      /** Suggested permission codes when syncing from route registry */
+      defaultPermissionCodes?: string[];
     }
 
     interface SyncRoutesRequest {
       /** true = 覆盖已有节点的 order/icon/i18nKey；false = 仅新增 */
       overwrite?: boolean;
+      /** Full route registry from frontend (path, component, default permission codes) */
+      registry?: Array<
+        RouteRegistryItem & {
+          component?: string;
+        }
+      >;
     }
 
     interface SyncRoutesResult {
@@ -70,7 +79,7 @@ declare namespace Api {
       isActive?: boolean;
       hideInMenu?: boolean;
       activeMenu?: import('@elegant-router/types').RouteKey;
-      roleCodes?: string[];
+      permissionCodes?: string[];
     }
 
     type UpdateMenuRequest = Partial<CreateMenuRequest>;

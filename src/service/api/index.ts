@@ -1,5 +1,4 @@
 export * from './auth';
-export * from './route';
 export * from './health';
 export * from './system';
 export * from './monitoring';
@@ -16,4 +15,4 @@ export * from './version-log';
 export * from './workflow';
 export * from './workflow-mock';
 export * from './menu';
-export * from './menu-mock';
+export * from './resource';

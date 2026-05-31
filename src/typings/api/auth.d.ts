@@ -41,6 +41,8 @@ declare namespace Api {
       role?: string;
       /** Button permissions (may not be returned by API) */
       buttons?: string[];
+      /** Effective permission codes (role + direct, active only) */
+      permissionCodes?: string[];
     }
 
     /** Login step 1 request */

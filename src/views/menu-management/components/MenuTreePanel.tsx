@@ -1,6 +1,17 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, ref, watch } from 'vue';
-import { NButton, NDropdown, NInput, NSpace, NSpin, NTag, NTooltip, NTree } from 'naive-ui';
+import { useElementSize } from '@vueuse/core';
+import {
+  NButton,
+  NDropdown,
+  NInput,
+  NScrollbar,
+  NSpace,
+  NSpin,
+  NTag,
+  NTooltip,
+  NTree
+} from 'naive-ui';
 import type { DropdownOption, TreeDropInfo, TreeOption } from 'naive-ui';
 import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
@@ -29,6 +40,16 @@ export default defineComponent({
     'update:searchKeyword'
   ],
   setup(props, { emit }) {
+    const panelBodyRef = ref<HTMLElement | null>(null);
+    const toolbarRef = ref<HTMLElement | null>(null);
+    const { height: panelBodyHeight } = useElementSize(panelBodyRef);
+    const { height: toolbarHeight } = useElementSize(toolbarRef);
+    const scrollStyle = computed(() => {
+      const gap = 12;
+      const height = panelBodyHeight.value - toolbarHeight.value - gap;
+      return height > 0 ? { height: `${height}px` } : undefined;
+    });
+
     const expandedKeys = ref<string[]>([]);
 
     watch(
@@ -145,8 +166,8 @@ export default defineComponent({
     );
 
     return () => (
-      <div class="menu-management__panel-body">
-        <div class="menu-management__tree-toolbar">
+      <div ref={panelBodyRef} class="menu-management__panel-body">
+        <div ref={toolbarRef} class="menu-management__tree-toolbar">
           <NInput
             value={props.searchKeyword}
             clearable
@@ -179,7 +200,11 @@ export default defineComponent({
           </div>
         </div>
 
-        <div class="menu-management__tree-scroll">
+        <NScrollbar
+          class="menu-management__tree-scroll"
+          style={scrollStyle.value}
+          yPlacement="right"
+        >
           <NSpin show={props.loading}>
             {props.treeData.length === 0 ? (
               <MenuEmptyState variant="tree" />
@@ -200,7 +225,7 @@ export default defineComponent({
               />
             )}
           </NSpin>
-        </div>
+        </NScrollbar>
       </div>
     );
   }

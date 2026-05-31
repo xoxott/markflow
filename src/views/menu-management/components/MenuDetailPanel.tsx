@@ -40,10 +40,8 @@ export default defineComponent({
           value: node.activeMenu ?? '-'
         },
         {
-          label: $t('page.menuManagement.roleCodes'),
-          value: node.roleCodes.length
-            ? node.roleCodes.join(', ')
-            : $t('page.menuManagement.allRoles')
+          label: $t('page.menuManagement.permissionCodes'),
+          value: node.permissionCodes.length ? node.permissionCodes.join(', ') : '-'
         },
         { label: $t('page.menuManagement.updatedAt'), value: node.updatedAt }
       ];

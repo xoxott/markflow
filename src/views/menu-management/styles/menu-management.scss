@@ -10,7 +10,7 @@
     line-height: 1.4;
   }
 
-  :deep(.n-card__content) {
+  &__panel :deep(.n-card__content) {
     padding: 12px 16px 16px;
   }
 
@@ -171,21 +171,44 @@
     flex: 1;
     gap: 12px;
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+
+    > * {
+      min-height: 0;
+    }
 
     @media (max-width: 1024px) {
       grid-template-columns: 1fr;
+      grid-template-rows: minmax(280px, 1fr) minmax(0, 1fr);
     }
-  }
-
-  &__panel {
-    display: flex;
-    min-height: 0;
-    flex-direction: column;
-    height: 100%;
   }
 
   &__panel-body {
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  // 树卡片：grid 给出固定高度后，用 flex 链把 NScrollbar 限制在卡片内（勿用 flex:1 1 0 / height:0，会塌缩）
+  &__panel--tree {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  &__panel--tree :deep(.n-card__content) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__panel--tree .menu-management__panel-body {
+    display: flex;
+    height: 100%;
     min-height: 0;
     flex: 1;
     flex-direction: column;
@@ -194,14 +217,15 @@
   }
 
   &__tree-scroll {
-    min-height: 0;
-    flex: 1;
-    overflow: auto;
-    padding-right: 4px;
+    flex-shrink: 0;
+    :deep(.n-scrollbar-container) {
+      padding-right: 4px;
+    }
   }
 
   &__tree-toolbar {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
     gap: 8px;
   }

@@ -35,6 +35,7 @@ declare module "@elegant-router/types" {
     "user-management": "/user-management";
     "role-management": "/role-management";
     "permission-management": "/permission-management";
+    "resource-management": "/resource-management";
     "announcement-management": "/announcement-management";
     "notification-management": "/notification-management";
     "alert-management": "/alert-management";
@@ -97,6 +98,7 @@ declare module "@elegant-router/types" {
     | "user-management"
     | "role-management"
     | "permission-management"
+    | "resource-management"
     | "announcement-management"
     | "notification-management"
     | "alert-management"
@@ -144,6 +146,7 @@ declare module "@elegant-router/types" {
     | "user-management"
     | "role-management"
     | "permission-management"
+    | "resource-management"
     | "announcement-management"
     | "notification-management"
     | "alert-management"

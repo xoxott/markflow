@@ -213,6 +213,17 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'resource-management',
+    path: '/resource-management',
+    component: 'layout.base$view.resource-management',
+    meta: {
+      title: 'resource-management',
+      i18nKey: 'route.resource-management',
+      icon: 'mdi:folder-key',
+      order: 6.5
+    }
+  },
+  {
     name: 'announcement-management',
     path: '/announcement-management',
     component: 'layout.base$view.announcement-management',

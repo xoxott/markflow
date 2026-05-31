@@ -1,14 +1,16 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, watch } from 'vue';
-import { NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
+import { type FormRules, NButton, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
+import { fetchResourceDetail } from '@/service/api/resource';
 import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
+import { ResourceSelect } from '@/components/resource-select';
 import { PermissionFacetSelect } from '@/components/permission-facet-select';
 import BaseDialog from '@/components/base-dialog';
 import { buildPermissionCode } from '../utils/permissionCode';
 import type { PermissionFormDialogConfig } from './dialog';
 
-const FACET_PATTERN = /^[a-z0-9_-]+$/;
+const ACTION_PATTERN = /^[a-z0-9_-]+$/;
 
 export default defineComponent({
   name: 'PermissionFormDialog',
@@ -26,11 +28,17 @@ export default defineComponent({
     const formModel = useSyncedFormModel(() => props.config.formData);
 
     watch(
-      () => formModel.resource,
-      (_resource, previousResource) => {
-        if (previousResource !== undefined) {
+      () => formModel.resourceId,
+      async (resourceId, previousResourceId) => {
+        if (previousResourceId !== undefined && resourceId !== previousResourceId) {
           formModel.action = '';
         }
+        if (!resourceId) {
+          formModel.resource = '';
+          return;
+        }
+        const { data } = await fetchResourceDetail(resourceId);
+        formModel.resource = data?.code ?? '';
       }
     );
 
@@ -43,7 +51,7 @@ export default defineComponent({
       }
     );
 
-    const formRules = {
+    const formRules: FormRules = {
       name: [
         {
           required: true,
@@ -51,15 +59,11 @@ export default defineComponent({
           trigger: 'blur'
         }
       ],
-      resource: [
+      resourceId: [
         {
           required: true,
+          type: 'number' as const,
           message: $t('page.permissionManagement.resourceRequired' as any),
-          trigger: 'change'
-        },
-        {
-          pattern: FACET_PATTERN,
-          message: $t('page.permissionManagement.resourceInvalid' as any),
           trigger: 'change'
         }
       ],
@@ -70,7 +74,7 @@ export default defineComponent({
           trigger: 'change'
         },
         {
-          pattern: FACET_PATTERN,
+          pattern: ACTION_PATTERN,
           message: $t('page.permissionManagement.actionInvalid' as any),
           trigger: 'change'
         }
@@ -133,28 +137,38 @@ export default defineComponent({
                   placeholder={$t('page.permissionManagement.namePlaceholder' as any)}
                 />
               </NFormItem>
-              <NFormItem label={$t('page.permissionManagement.resource' as any)} path="resource">
-                <PermissionFacetSelect
-                  facet="resources"
-                  value={formModel.resource || null}
-                  placeholder={$t('page.permissionManagement.resourcePlaceholder' as any)}
-                  disabled={isEdit.value}
-                  onUpdate:value={value => {
-                    formModel.resource = value ?? '';
-                  }}
-                />
-              </NFormItem>
+              {isEdit.value ? (
+                <NFormItem label={$t('page.permissionManagement.resource' as any)} path="resource">
+                  <NInput value={formModel.resource} disabled />
+                </NFormItem>
+              ) : (
+                <NFormItem
+                  label={$t('page.permissionManagement.resource' as any)}
+                  path="resourceId"
+                >
+                  <ResourceSelect
+                    value={formModel.resourceId}
+                    placeholder={$t('page.permissionManagement.resourcePlaceholder' as any)}
+                    onUpdate:value={value => {
+                      formModel.resourceId = value;
+                    }}
+                  />
+                </NFormItem>
+              )}
               <NFormItem label={$t('page.permissionManagement.action' as any)} path="action">
-                <PermissionFacetSelect
-                  facet="actions"
-                  resource={formModel.resource || null}
-                  value={formModel.action || null}
-                  placeholder={$t('page.permissionManagement.actionPlaceholder' as any)}
-                  disabled={isEdit.value}
-                  onUpdate:value={value => {
-                    formModel.action = value ?? '';
-                  }}
-                />
+                {isEdit.value ? (
+                  <NInput value={formModel.action} disabled />
+                ) : (
+                  <PermissionFacetSelect
+                    facet="actions"
+                    resource={formModel.resource || null}
+                    value={formModel.action || null}
+                    placeholder={$t('page.permissionManagement.actionPlaceholder' as any)}
+                    onUpdate:value={value => {
+                      formModel.action = value ?? '';
+                    }}
+                  />
+                )}
               </NFormItem>
               <NFormItem label={$t('page.permissionManagement.code' as any)} path="code">
                 <NInput

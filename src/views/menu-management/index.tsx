@@ -31,7 +31,7 @@ export default defineComponent({
     } = useMenuManagement();
 
     return () => (
-      <div class="menu-management h-full flex flex-col gap-16px">
+      <div class="menu-management h-full min-h-0 flex flex-col gap-16px">
         <MenuPageHeader
           loading={loading.value}
           applying={applying.value}
@@ -42,7 +42,10 @@ export default defineComponent({
         />
 
         <div class="menu-management__layout">
-          <NCard bordered={false} class="menu-management__panel h-full card-wrapper">
+          <NCard
+            bordered={false}
+            class="menu-management__panel menu-management__panel--tree h-full card-wrapper"
+          >
             {{
               header: () => (
                 <span class="menu-management__panel-title">

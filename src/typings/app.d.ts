@@ -706,6 +706,26 @@ declare namespace App {
           userCount: string;
           permissionCount: string;
         };
+        resourceManagement: {
+          title: string;
+          code: string;
+          name: string;
+          description: string;
+          status: string;
+          createdAt: string;
+          updatedAt: string;
+          active: string;
+          inactive: string;
+          searchPlaceholder: string;
+          statusPlaceholder: string;
+          codePlaceholder: string;
+          namePlaceholder: string;
+          descriptionPlaceholder: string;
+          codeRequired: string;
+          nameRequired: string;
+          codeInvalid: string;
+          getDetailFailed: string;
+        };
         permissionManagement: {
           title: string;
           name: string;
@@ -772,8 +792,9 @@ declare namespace App {
           isActive: string;
           hideInMenu: string;
           activeMenu: string;
-          roleCodes: string;
-          roleCodesHint: string;
+          permissionCodes: string;
+          permissionCodesHint: string;
+          permissionCodesRequired: string;
           nameRequired: string;
           typeRequired: string;
           routeKeyRequired: string;

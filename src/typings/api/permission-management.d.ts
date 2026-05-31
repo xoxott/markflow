@@ -15,6 +15,7 @@ declare namespace Api {
       id: number;
       name: string;
       code: string;
+      resourceId?: number;
       resource: string;
       action: string;
       description: string | null;
@@ -42,7 +43,8 @@ declare namespace Api {
     /** Create permission request */
     interface CreatePermissionRequest {
       name: string;
-      code: string;
+      resourceId: number;
+      action: string;
       description?: string;
     }
 

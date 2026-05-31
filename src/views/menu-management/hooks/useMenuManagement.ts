@@ -1,7 +1,16 @@
 import type { App } from 'vue';
 import { computed, getCurrentInstance, onMounted, ref, shallowRef } from 'vue';
 import { useMessage } from 'naive-ui';
-import { mockMenuApi } from '@/service/api/menu-mock';
+import {
+  fetchCreateMenu,
+  fetchDeleteMenu,
+  fetchMenuTree,
+  fetchMoveMenu,
+  fetchSyncRoutes,
+  fetchToggleMenuStatus,
+  fetchUpdateMenu
+} from '@/service/api/menu';
+import { buildSyncRegistryPayload } from '@/service/menu/route-registry-sync';
 import { useRouteStore } from '@/store/modules/route';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import { $t } from '@/locales';
@@ -53,8 +62,8 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
   const loadTree = async () => {
     loading.value = true;
     try {
-      const result = await mockMenuApi.fetchMenuTree();
-      treeData.value = result.data;
+      const result = await fetchMenuTree();
+      treeData.value = result.data ?? [];
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : $t('page.menuManagement.loadFailed'));
     } finally {
@@ -99,12 +108,12 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       onConfirm: async (data: MenuFormData) => {
         if (params.isEdit && params.menuId) {
           await persistAndRefresh(
-            () => mockMenuApi.fetchUpdateMenu(params.menuId!, formDataToUpdateRequest(data)),
+            () => fetchUpdateMenu(params.menuId!, formDataToUpdateRequest(data)),
             $t('common.updateSuccess')
           );
         } else {
           await persistAndRefresh(
-            () => mockMenuApi.fetchCreateMenu(formDataToCreateRequest(data)),
+            () => fetchCreateMenu(formDataToCreateRequest(data)),
             $t('common.addSuccess')
           );
         }
@@ -148,7 +157,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       confirmText: $t('common.delete'),
       onConfirm: async () => {
         try {
-          await mockMenuApi.fetchDeleteMenu(id);
+          await fetchDeleteMenu(id);
           message.success($t('common.deleteSuccess'));
           if (selectedKey.value === id) selectedKey.value = null;
           await loadTree();
@@ -166,7 +175,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
     const node = findMenuNode(treeData.value, id);
     if (!node) return;
     try {
-      await mockMenuApi.fetchToggleMenuStatus(id, !node.isActive);
+      await fetchToggleMenuStatus(id, !node.isActive);
       message.success($t('page.menuManagement.statusUpdated'));
       await loadTree();
       await applyRoutes(true);
@@ -184,12 +193,16 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       cancelText: $t('page.menuManagement.syncAddOnly'),
       onConfirm: async () => {
         try {
-          const result = await mockMenuApi.fetchSyncRoutes({ overwrite: true });
+          const result = await fetchSyncRoutes({
+            overwrite: true,
+            registry: buildSyncRegistryPayload()
+          });
+          const syncStats = result.data;
           message.success(
             $t('page.menuManagement.syncSuccess', {
-              created: result.data.created,
-              updated: result.data.updated,
-              skipped: result.data.skipped
+              created: syncStats?.created ?? 0,
+              updated: syncStats?.updated ?? 0,
+              skipped: syncStats?.skipped ?? 0
             })
           );
           await loadTree();
@@ -202,12 +215,16 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       },
       onCancel: async () => {
         try {
-          const result = await mockMenuApi.fetchSyncRoutes({ overwrite: false });
+          const result = await fetchSyncRoutes({
+            overwrite: false,
+            registry: buildSyncRegistryPayload()
+          });
+          const syncStats = result.data;
           message.success(
             $t('page.menuManagement.syncSuccess', {
-              created: result.data.created,
-              updated: result.data.updated,
-              skipped: result.data.skipped
+              created: syncStats?.created ?? 0,
+              updated: syncStats?.updated ?? 0,
+              skipped: syncStats?.skipped ?? 0
             })
           );
           await loadTree();
@@ -230,7 +247,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
     if (!canDropMenu(treeData.value, dragId, targetId, position)) return;
 
     try {
-      await mockMenuApi.fetchMoveMenu(dragId, { targetId, position });
+      await fetchMoveMenu(dragId, { targetId, position });
       message.success($t('page.menuManagement.moveSuccess'));
       await loadTree();
       await applyRoutes(true);

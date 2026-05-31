@@ -32,6 +32,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   'user-management': () => import('@/views/user-management/index'),
   'role-management': () => import('@/views/role-management/index'),
   'permission-management': () => import('@/views/permission-management/index'),
+  'resource-management': () => import('@/views/resource-management/index'),
   'announcement-management': () => import('@/views/announcement-management/index'),
   'notification-management': () => import('@/views/notification-management/index'),
   'alert-management': () => import('@/views/alert-management/index'),
