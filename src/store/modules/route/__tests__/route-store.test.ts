@@ -122,7 +122,8 @@ describe('useRouteStore', () => {
           home: 'home',
           menus: [
             {
-              key: 'home',
+              type: 'route',
+              sidebarKey: 'home',
               label: 'home',
               i18nKey: 'route.home',
               routeKey: 'home',

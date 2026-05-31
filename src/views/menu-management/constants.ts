@@ -29,7 +29,7 @@ export const MENU_TYPE_META: Record<MenuType, MenuTypeMeta> = {
 };
 
 export function getMenuTypeOptions(): SelectOption[] {
-  return (['group', 'route'] as const).map(type => ({
+  return (['group', 'route', 'external'] as const).map(type => ({
     label: MENU_TYPE_META[type].label(),
     value: type
   }));

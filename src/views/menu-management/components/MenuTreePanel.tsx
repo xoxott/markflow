@@ -26,6 +26,7 @@ export default defineComponent({
     treeData: { type: Array as PropType<MenuTreeNode[]>, default: () => [] },
     pathTreeData: { type: Array as PropType<MenuTreeNode[]>, default: undefined },
     loading: { type: Boolean, default: false },
+    syncing: { type: Boolean, default: false },
     selectedKey: { type: String as PropType<string | null>, default: null },
     searchKeyword: { type: String, default: '' }
   },
@@ -37,6 +38,7 @@ export default defineComponent({
     'delete',
     'toggle-status',
     'drop',
+    'sync',
     'update:searchKeyword'
   ],
   setup(props, { emit }) {
@@ -186,6 +188,13 @@ export default defineComponent({
             </NDropdown>
 
             <div class="menu-management__tree-toolbar-actions">
+              {props.treeData.length > 0
+                ? renderIconButton(
+                    'mdi:database-sync-outline',
+                    $t('page.menuManagement.syncRoutesHint'),
+                    () => emit('sync')
+                  )
+                : null}
               {renderIconButton(
                 'mdi:unfold-more-horizontal',
                 $t('page.menuManagement.expandAll'),
@@ -207,7 +216,7 @@ export default defineComponent({
         >
           <NSpin show={props.loading}>
             {props.treeData.length === 0 ? (
-              <MenuEmptyState variant="tree" />
+              <MenuEmptyState variant="tree" syncing={props.syncing} onSync={() => emit('sync')} />
             ) : (
               <NTree
                 blockLine

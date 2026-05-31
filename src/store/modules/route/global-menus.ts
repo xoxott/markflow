@@ -157,11 +157,11 @@ export function buildDynamicGlobalMenus(
   const convert = (items: Api.MenuManagement.SerializedMenuNode[]): App.Global.Menu[] =>
     items.map(item => {
       const menu: App.Global.Menu = {
-        key: item.key,
+        key: item.sidebarKey,
         label: item.i18nKey ? $t(item.i18nKey) : item.label,
         i18nKey: item.i18nKey ?? null,
-        routeKey: item.routeKey,
-        routePath: item.routePath,
+        routeKey: (item.routeKey ?? item.sidebarKey) as RouteKey,
+        routePath: (item.routePath ?? '/') as RouteMap[RouteKey],
         icon: item.icon ? renderIcon({ icon: item.icon, fontSize: 20 }) : undefined
       };
 

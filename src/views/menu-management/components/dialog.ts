@@ -1,4 +1,5 @@
 import type { BaseDialogProps } from '@/components/base-dialog/dialog';
+import type { MenuTreeNode } from '../types';
 
 export interface MenuFormData {
   type: Api.MenuManagement.MenuType;
@@ -18,6 +19,9 @@ export interface MenuFormDialogConfig extends BaseDialogProps {
   isEdit: boolean;
   formData: MenuFormData;
   parentOptions: Array<{ label: string; value: string }>;
+  menuTreeData: MenuTreeNode[];
+  routeKeyOptions: Array<{ label: string; value: string }>;
+  excludeSidebarKey?: string;
   excludeMenuId?: string;
   title?: string;
   onConfirm: (data: MenuFormData) => void | Promise<void>;

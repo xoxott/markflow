@@ -61,7 +61,8 @@ describe('buildStaticGlobalMenus', () => {
 describe('buildDynamicGlobalMenus', () => {
   const serialized: Api.MenuManagement.SerializedMenuNode[] = [
     {
-      key: 'system-management',
+      type: 'group',
+      sidebarKey: 'group-system',
       label: 'System',
       i18nKey: 'menuGroup.systemManagement',
       routeKey: 'user-management',
@@ -69,7 +70,8 @@ describe('buildDynamicGlobalMenus', () => {
       icon: 'mdi:cog-outline',
       children: [
         {
-          key: 'user-management',
+          type: 'route',
+          sidebarKey: 'user-management',
           label: 'Users',
           i18nKey: 'route.user-management',
           routeKey: 'user-management',
@@ -80,10 +82,11 @@ describe('buildDynamicGlobalMenus', () => {
     }
   ];
 
-  it('preserves nested children from API', () => {
+  it('maps sidebarKey to menu.key and preserves nested children', () => {
     const menus = buildDynamicGlobalMenus(serialized, mockRenderIcon);
 
     expect(menus).toHaveLength(1);
+    expect(menus[0].key).toBe('group-system');
     expect(menus[0].children).toHaveLength(1);
     expect(menus[0].children?.[0].key).toBe('user-management');
   });

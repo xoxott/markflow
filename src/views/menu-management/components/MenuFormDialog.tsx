@@ -17,8 +17,16 @@ import { useNaiveForm, useSyncedFormModel } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import BaseDialog from '@/components/base-dialog';
 import { getMenuTypeOptions } from '../constants';
+import {
+  menuTypeRequiresPermissionCodes,
+  menuTypeRequiresRouteRegistry,
+  menuTypeShowsRouteFields,
+  menuTypeUsesExternalUrl
+} from '../utils/menu-type';
+import { findMenuNode } from '../utils/menu-tree';
 import type { MenuFormDialogConfig } from './dialog';
 import RouteKeySelect from './RouteKeySelect';
+import ActiveMenuTreeSelect from './ActiveMenuTreeSelect';
 import PermissionCodeSelect from './PermissionCodeSelect';
 import IconSelect from './IconSelect';
 
@@ -43,42 +51,72 @@ export default defineComponent({
           formModel.routeKey = '';
           formModel.hideInMenu = false;
           formModel.activeMenu = '';
+          formModel.permissionCodes = [];
+        }
+        if (type === 'external') {
+          formModel.hideInMenu = false;
+          formModel.activeMenu = '';
         }
       }
     );
 
-    const formRules = computed(
-      (): FormRules => ({
+    watch(
+      () => formModel.hideInMenu,
+      hideInMenu => {
+        if (!hideInMenu) {
+          formModel.activeMenu = '';
+          return;
+        }
+        if (formModel.activeMenu.trim()) return;
+        const parent = formModel.parentId
+          ? findMenuNode(props.config.menuTreeData, formModel.parentId)
+          : null;
+        if (parent) {
+          formModel.activeMenu = parent.sidebarKey;
+        }
+      }
+    );
+
+    const showActiveMenuField = computed(
+      () =>
+        menuTypeShowsRouteFields(formModel.type) &&
+        (formModel.hideInMenu || Boolean(formModel.activeMenu))
+    );
+
+    const formRules = computed((): FormRules => {
+      const rules: FormRules = {
         name: [
           { required: true, message: $t('page.menuManagement.nameRequired'), trigger: 'blur' }
         ],
         type: [
           { required: true, message: $t('page.menuManagement.typeRequired'), trigger: 'change' }
-        ],
-        routeKey:
-          formModel.type === 'route'
-            ? [
-                {
-                  required: true,
-                  message: $t('page.menuManagement.routeKeyRequired'),
-                  trigger: 'change'
-                }
-              ]
-            : [],
-        permissionCodes:
-          formModel.type === 'route'
-            ? [
-                {
-                  type: 'array' as const,
-                  required: true,
-                  min: 1,
-                  message: $t('page.menuManagement.permissionCodesRequired'),
-                  trigger: 'change'
-                }
-              ]
-            : []
-      })
-    );
+        ]
+      };
+
+      if (menuTypeRequiresRouteRegistry(formModel.type)) {
+        rules.routeKey = [
+          {
+            required: true,
+            message: $t('page.menuManagement.routeKeyRequired'),
+            trigger: 'change'
+          }
+        ];
+      }
+
+      if (menuTypeRequiresPermissionCodes(formModel.type)) {
+        rules.permissionCodes = [
+          {
+            type: 'array' as const,
+            required: true,
+            min: 1,
+            message: $t('page.menuManagement.permissionCodesRequired'),
+            trigger: 'change'
+          }
+        ];
+      }
+
+      return rules;
+    });
 
     const typeOptions = computed(() => getMenuTypeOptions());
 
@@ -161,10 +199,23 @@ export default defineComponent({
                     />
                   </NFormItem>
                 </NGi>
-                {formModel.type === 'route' ? (
+                {menuTypeRequiresRouteRegistry(formModel.type) ? (
                   <NGi span={2}>
                     <NFormItem label={$t('page.menuManagement.routeKey')} path="routeKey">
-                      <RouteKeySelect v-model:value={formModel.routeKey} />
+                      <RouteKeySelect
+                        v-model:value={formModel.routeKey}
+                        options={props.config.routeKeyOptions}
+                      />
+                    </NFormItem>
+                  </NGi>
+                ) : null}
+                {menuTypeUsesExternalUrl(formModel.type) ? (
+                  <NGi span={2}>
+                    <NFormItem label={$t('page.menuManagement.externalUrl')} path="routeKey">
+                      <NInput
+                        v-model:value={formModel.routeKey}
+                        placeholder={$t('page.menuManagement.externalUrlPlaceholder')}
+                      />
                     </NFormItem>
                   </NGi>
                 ) : null}
@@ -178,24 +229,35 @@ export default defineComponent({
                     <NSwitch v-model:value={formModel.isActive} />
                   </NFormItem>
                 </NGi>
-                {formModel.type === 'route' ? (
-                  <NGi>
+                {menuTypeShowsRouteFields(formModel.type) ? (
+                  <NGi span={showActiveMenuField.value ? 2 : undefined}>
                     <NFormItem label={$t('page.menuManagement.hideInMenu')} path="hideInMenu">
                       <NSwitch v-model:value={formModel.hideInMenu} />
                     </NFormItem>
                   </NGi>
                 ) : null}
-                {formModel.type === 'route' ? (
+                {showActiveMenuField.value ? (
                   <NGi span={2}>
-                    <NFormItem label={$t('page.menuManagement.activeMenu')} path="activeMenu">
-                      <RouteKeySelect v-model:value={formModel.activeMenu} />
+                    <NFormItem
+                      label={$t('page.menuManagement.activeMenu')}
+                      path="activeMenu"
+                      feedback={$t('page.menuManagement.activeMenuHint')}
+                    >
+                      <ActiveMenuTreeSelect
+                        v-model:value={formModel.activeMenu}
+                        treeData={props.config.menuTreeData}
+                        excludeSidebarKey={props.config.excludeSidebarKey}
+                        excludeMenuId={props.config.excludeMenuId}
+                      />
                     </NFormItem>
                   </NGi>
                 ) : null}
               </NGrid>
 
-              {renderSectionTitle($t('page.menuManagement.sectionAuth'))}
-              {formModel.type === 'route' ? (
+              {menuTypeRequiresPermissionCodes(formModel.type)
+                ? renderSectionTitle($t('page.menuManagement.sectionAuth'))
+                : null}
+              {menuTypeRequiresPermissionCodes(formModel.type) ? (
                 <NFormItem label={$t('page.menuManagement.permissionCodes')} path="permissionCodes">
                   <PermissionCodeSelect v-model:value={formModel.permissionCodes} />
                 </NFormItem>

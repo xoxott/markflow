@@ -770,11 +770,9 @@ declare namespace App {
         };
         menuManagement: {
           title: string;
-          subtitle: string;
           treeTitle: string;
           detailTitle: string;
           syncRoutes: string;
-          applySidebar: string;
           addRoot: string;
           addChild: string;
           addMenu: string;
@@ -786,12 +784,17 @@ declare namespace App {
           name: string;
           i18nKey: string;
           routeKey: string;
+          path: string;
+          externalUrl: string;
+          externalUrlPlaceholder: string;
           icon: string;
           parent: string;
           order: string;
           isActive: string;
           hideInMenu: string;
           activeMenu: string;
+          activeMenuHint: string;
+          activeMenuPlaceholder: string;
           permissionCodes: string;
           permissionCodesHint: string;
           permissionCodesRequired: string;
@@ -804,7 +807,6 @@ declare namespace App {
           sectionBasic: string;
           sectionDisplay: string;
           sectionAuth: string;
-          fieldId: string;
           updatedAt: string;
           active: string;
           inactive: string;
@@ -825,6 +827,7 @@ declare namespace App {
           statsGroupLabel: string;
           statsRouteLabel: string;
           statsInactiveLabel: string;
+          syncRoutesHint: string;
           syncConfirm: string;
           syncOverwrite: string;
           syncAddOnly: string;
@@ -838,7 +841,6 @@ declare namespace App {
           saveFailed: string;
           deleteFailed: string;
           statusUpdated: string;
-          sidebarRefreshed: string;
           confirmDelete: string;
         };
         agentManagement: {

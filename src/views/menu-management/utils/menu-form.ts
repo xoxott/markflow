@@ -1,4 +1,10 @@
 import type { MenuFormData } from '../components/dialog';
+import {
+  menuTypeRequiresPermissionCodes,
+  menuTypeRequiresRouteRegistry,
+  menuTypeShowsRouteFields,
+  menuTypeUsesExternalUrl
+} from './menu-type';
 
 export function createDefaultFormData(parentId: string | null = null): MenuFormData {
   return {
@@ -40,19 +46,32 @@ function toOptionalRouteKey(value: string): import('@elegant-router/types').Rout
   return value ? (value as import('@elegant-router/types').RouteKey) : undefined;
 }
 
+function resolveRouteKey(data: MenuFormData): string | undefined {
+  if (menuTypeRequiresRouteRegistry(data.type)) {
+    return toOptionalRouteKey(data.routeKey);
+  }
+  if (menuTypeUsesExternalUrl(data.type)) {
+    return data.routeKey.trim() || undefined;
+  }
+  return undefined;
+}
+
 export function formDataToCreateRequest(data: MenuFormData): Api.MenuManagement.CreateMenuRequest {
   return {
     type: data.type,
     name: data.name,
     i18nKey: (data.i18nKey || null) as App.I18n.I18nKey | null,
-    routeKey: data.type === 'route' ? toOptionalRouteKey(data.routeKey) : undefined,
+    routeKey: resolveRouteKey(data) as Api.MenuManagement.CreateMenuRequest['routeKey'],
     icon: data.icon || undefined,
     parentId: data.parentId,
     order: data.order,
     isActive: data.isActive,
-    hideInMenu: data.hideInMenu,
-    activeMenu: data.type === 'route' ? toOptionalRouteKey(data.activeMenu) : undefined,
-    permissionCodes: data.type === 'route' ? data.permissionCodes : []
+    hideInMenu: menuTypeShowsRouteFields(data.type) ? data.hideInMenu : undefined,
+    activeMenu:
+      menuTypeShowsRouteFields(data.type) && data.hideInMenu && data.activeMenu.trim()
+        ? data.activeMenu.trim()
+        : undefined,
+    permissionCodes: menuTypeRequiresPermissionCodes(data.type) ? data.permissionCodes : []
   };
 }
 

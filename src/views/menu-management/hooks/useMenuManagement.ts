@@ -31,9 +31,20 @@ import {
   formDataToUpdateRequest,
   menuNodeToFormData
 } from '../utils/menu-form';
+import { useRouteRegistry } from './useRouteRegistry';
 
 export interface UseMenuManagementOptions {
   app?: App;
+}
+
+function formatSyncSuccessMessage(stats: Api.MenuManagement.SyncRoutesResult | null | undefined) {
+  return $t('page.menuManagement.syncSuccess', {
+    menusCreated: stats?.menusCreated ?? 0,
+    menusUpdated: stats?.menusUpdated ?? 0,
+    registryCreated: stats?.registryCreated ?? 0,
+    registryUpdated: stats?.registryUpdated ?? 0,
+    skipped: stats?.skipped ?? 0
+  });
 }
 
 export function useMenuManagement(options: UseMenuManagementOptions = {}) {
@@ -43,9 +54,10 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
   const app = options.app ?? instance?.appContext.app;
   const dialog = useDialog(app);
   const menuDialog = useMenuDialog(app);
+  const { routeKeyOptions, getRegistryItem } = useRouteRegistry();
 
   const loading = ref(false);
-  const applying = ref(false);
+  const syncing = ref(false);
   const treeData = shallowRef<MenuTreeNode[]>([]);
   const selectedKey = ref<string | null>(null);
   const searchKeyword = ref('');
@@ -53,6 +65,9 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
   const filteredTree = computed(() => filterMenuTree(treeData.value, searchKeyword.value));
   const selectedNode = computed(() =>
     selectedKey.value ? findMenuNode(treeData.value, selectedKey.value) : null
+  );
+  const selectedRegistryItem = computed(() =>
+    getRegistryItem(selectedNode.value?.routeKey ?? undefined)
   );
   const parentOptions = computed(() =>
     flattenGroupOptions(treeData.value, selectedKey.value ?? undefined)
@@ -71,14 +86,8 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
     }
   };
 
-  const applyRoutes = async (silent = false) => {
-    applying.value = true;
-    try {
-      await routeStore.reloadAuthRoutes();
-      if (!silent) message.success($t('page.menuManagement.sidebarRefreshed'));
-    } finally {
-      applying.value = false;
-    }
+  const applyRoutes = async () => {
+    await routeStore.reloadAuthRoutes();
   };
 
   const persistAndRefresh = async (action: () => Promise<unknown>, successMessage: string) => {
@@ -86,7 +95,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       await action();
       message.success(successMessage);
       await loadTree();
-      await applyRoutes(true);
+      await applyRoutes();
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : $t('page.menuManagement.saveFailed'));
       throw error;
@@ -104,6 +113,11 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       title: params.title,
       formData: params.formData,
       parentOptions: parentOptions.value,
+      menuTreeData: treeData.value,
+      routeKeyOptions: routeKeyOptions.value,
+      excludeSidebarKey: params.menuId
+        ? findMenuNode(treeData.value, params.menuId)?.sidebarKey
+        : undefined,
       excludeMenuId: params.menuId,
       onConfirm: async (data: MenuFormData) => {
         if (params.isEdit && params.menuId) {
@@ -161,7 +175,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
           message.success($t('common.deleteSuccess'));
           if (selectedKey.value === id) selectedKey.value = null;
           await loadTree();
-          await applyRoutes(true);
+          await applyRoutes();
         } catch (error: unknown) {
           message.error(
             error instanceof Error ? error.message : $t('page.menuManagement.deleteFailed')
@@ -178,13 +192,14 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       await fetchToggleMenuStatus(id, !node.isActive);
       message.success($t('page.menuManagement.statusUpdated'));
       await loadTree();
-      await applyRoutes(true);
+      await applyRoutes();
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : $t('page.menuManagement.saveFailed'));
     }
   };
 
   const handleSyncRoutes = () => {
+    if (syncing.value) return;
     dialog.confirm({
       title: $t('page.menuManagement.syncRoutes'),
       content: $t('page.menuManagement.syncConfirm'),
@@ -192,47 +207,39 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       confirmText: $t('page.menuManagement.syncOverwrite'),
       cancelText: $t('page.menuManagement.syncAddOnly'),
       onConfirm: async () => {
+        syncing.value = true;
         try {
           const result = await fetchSyncRoutes({
             overwrite: true,
             registry: buildSyncRegistryPayload()
           });
-          const syncStats = result.data;
-          message.success(
-            $t('page.menuManagement.syncSuccess', {
-              created: syncStats?.created ?? 0,
-              updated: syncStats?.updated ?? 0,
-              skipped: syncStats?.skipped ?? 0
-            })
-          );
+          message.success(formatSyncSuccessMessage(result.data));
           await loadTree();
-          await applyRoutes(true);
+          await applyRoutes();
         } catch (error: unknown) {
           message.error(
             error instanceof Error ? error.message : $t('page.menuManagement.syncFailed')
           );
+        } finally {
+          syncing.value = false;
         }
       },
       onCancel: async () => {
+        syncing.value = true;
         try {
           const result = await fetchSyncRoutes({
             overwrite: false,
             registry: buildSyncRegistryPayload()
           });
-          const syncStats = result.data;
-          message.success(
-            $t('page.menuManagement.syncSuccess', {
-              created: syncStats?.created ?? 0,
-              updated: syncStats?.updated ?? 0,
-              skipped: syncStats?.skipped ?? 0
-            })
-          );
+          message.success(formatSyncSuccessMessage(result.data));
           await loadTree();
-          await applyRoutes(true);
+          await applyRoutes();
         } catch (error: unknown) {
           message.error(
             error instanceof Error ? error.message : $t('page.menuManagement.syncFailed')
           );
+        } finally {
+          syncing.value = false;
         }
       }
     });
@@ -250,7 +257,7 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
       await fetchMoveMenu(dragId, { targetId, position });
       message.success($t('page.menuManagement.moveSuccess'));
       await loadTree();
-      await applyRoutes(true);
+      await applyRoutes();
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : $t('page.menuManagement.moveFailed'));
     }
@@ -260,15 +267,14 @@ export function useMenuManagement(options: UseMenuManagementOptions = {}) {
 
   return {
     loading,
-    applying,
+    syncing,
     treeData,
     filteredTree,
     selectedKey,
     selectedNode,
+    selectedRegistryItem,
     searchKeyword,
     stats,
-    loadTree,
-    applyRoutes,
     handleAddRoot,
     handleAddChild,
     handleEdit,

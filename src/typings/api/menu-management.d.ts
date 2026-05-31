@@ -10,16 +10,20 @@ declare namespace Api {
       type: MenuType;
       name: string;
       i18nKey?: App.I18n.I18nKey | null;
-      routeKey?: import('@elegant-router/types').RouteKey;
+      routeKey?: import('@elegant-router/types').RouteKey | string;
+      /**
+       * Sidebar highlight/selection key from backend (group=id, route=routeKey,
+       * external=routeKey|id)
+       */
+      sidebarKey: string;
       icon?: string;
       parentId: string | null;
       order: number;
       isActive: boolean;
       hideInMenu?: boolean;
-      activeMenu?: import('@elegant-router/types').RouteKey;
+      activeMenu?: string;
       /** Required permission codes for route-type menus */
       permissionCodes: string[];
-      constant?: boolean;
       createdAt: string;
       updatedAt: string;
     }
@@ -30,11 +34,12 @@ declare namespace Api {
 
     /** 可序列化的侧边栏节点（不含 VNode） */
     interface SerializedMenuNode {
-      key: string;
+      type: MenuType;
+      sidebarKey: string;
       label: string;
       i18nKey?: App.I18n.I18nKey | null;
-      routeKey: import('@elegant-router/types').RouteKey;
-      routePath: import('@elegant-router/types').RoutePath;
+      routeKey?: import('@elegant-router/types').RouteKey | string | null;
+      routePath?: import('@elegant-router/types').RoutePath | string | null;
       icon?: string;
       children?: SerializedMenuNode[];
     }
@@ -63,22 +68,26 @@ declare namespace Api {
     }
 
     interface SyncRoutesResult {
-      created: number;
-      updated: number;
+      registryCreated: number;
+      registryUpdated: number;
+      menusCreated: number;
+      menusUpdated: number;
       skipped: number;
+      groupsEnsured: number;
+      routesReparented: number;
     }
 
     interface CreateMenuRequest {
       type: MenuType;
       name: string;
       i18nKey?: App.I18n.I18nKey | null;
-      routeKey?: import('@elegant-router/types').RouteKey;
+      routeKey?: import('@elegant-router/types').RouteKey | string;
       icon?: string;
       parentId?: string | null;
       order?: number;
       isActive?: boolean;
       hideInMenu?: boolean;
-      activeMenu?: import('@elegant-router/types').RouteKey;
+      activeMenu?: string;
       permissionCodes?: string[];
     }
 
@@ -94,7 +103,6 @@ declare namespace Api {
     }
 
     type MenuTreeResponse = MenuTreeNode[];
-    type MenuDetailResponse = Menu;
     type CreateMenuResponse = Menu;
     type UpdateMenuResponse = Menu;
     type RouteRegistryResponse = RouteRegistryItem[];

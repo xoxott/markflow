@@ -8,14 +8,6 @@ export function fetchMenuTree() {
   });
 }
 
-/** Get menu detail */
-export function fetchMenuDetail(id: string) {
-  return request<Api.MenuManagement.MenuDetailResponse>({
-    url: `/api/admin/menus/${id}`,
-    method: 'get'
-  });
-}
-
 /** Create menu */
 export function fetchCreateMenu(data: Api.MenuManagement.CreateMenuRequest) {
   return request<Api.MenuManagement.CreateMenuResponse>({

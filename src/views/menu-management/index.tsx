@@ -12,15 +12,14 @@ export default defineComponent({
   setup() {
     const {
       loading,
-      applying,
+      syncing,
       treeData,
       filteredTree,
       selectedKey,
       selectedNode,
+      selectedRegistryItem,
       searchKeyword,
       stats,
-      loadTree,
-      applyRoutes,
       handleAddRoot,
       handleAddChild,
       handleEdit,
@@ -32,14 +31,7 @@ export default defineComponent({
 
     return () => (
       <div class="menu-management h-full min-h-0 flex flex-col gap-16px">
-        <MenuPageHeader
-          loading={loading.value}
-          applying={applying.value}
-          stats={stats.value}
-          onSync={handleSyncRoutes}
-          onRefresh={loadTree}
-          onApply={() => applyRoutes()}
-        />
+        <MenuPageHeader stats={stats.value} />
 
         <div class="menu-management__layout">
           <NCard
@@ -57,8 +49,10 @@ export default defineComponent({
                   treeData={filteredTree.value}
                   pathTreeData={treeData.value}
                   loading={loading.value}
+                  syncing={syncing.value}
                   selectedKey={selectedKey.value}
                   searchKeyword={searchKeyword.value}
+                  onSync={handleSyncRoutes}
                   onUpdate:searchKeyword={(val: string) => {
                     searchKeyword.value = val;
                   }}
@@ -79,6 +73,7 @@ export default defineComponent({
           <MenuDetailPanel
             node={selectedNode.value}
             treeData={treeData.value}
+            registryItem={selectedRegistryItem.value}
             onSelect={(id: string) => {
               searchKeyword.value = '';
               selectedKey.value = id;

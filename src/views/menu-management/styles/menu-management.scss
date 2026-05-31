@@ -151,14 +151,6 @@
     color: var(--n-text-color-1);
   }
 
-  &__desc {
-    margin: 4px 0 0;
-    max-width: 640px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--n-text-color-3);
-  }
-
   &__stats {
     display: flex;
     flex-wrap: wrap;
@@ -256,6 +248,18 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
+    color: var(--n-text-color-3);
+  }
+
+  &__empty-actions {
+    margin-top: 4px;
+  }
+
+  &__empty-hint {
+    max-width: 260px;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
     color: var(--n-text-color-3);
   }
 

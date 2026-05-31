@@ -1,6 +1,6 @@
 import type { PropType } from 'vue';
 import { defineComponent } from 'vue';
-import { NButton, NCard, NSpace } from 'naive-ui';
+import { NCard } from 'naive-ui';
 import SvgIcon from '@/components/custom/svg-icon';
 import { $t } from '@/locales';
 import type { MenuTreeStats } from '../constants';
@@ -15,15 +15,12 @@ interface StatItem {
 export default defineComponent({
   name: 'MenuPageHeader',
   props: {
-    loading: { type: Boolean, default: false },
-    applying: { type: Boolean, default: false },
     stats: {
       type: Object as PropType<MenuTreeStats>,
       required: true
     }
   },
-  emits: ['sync', 'refresh', 'apply'],
-  setup(props, { emit }) {
+  setup(props) {
     const statItems = (): StatItem[] => {
       const items: StatItem[] = [
         {
@@ -55,8 +52,6 @@ export default defineComponent({
       return items;
     };
 
-    const buttonIcon = (icon: string) => () => <SvgIcon icon={icon} class="text-16px" />;
-
     return () => (
       <NCard
         bordered={false}
@@ -87,29 +82,8 @@ export default defineComponent({
                     ))}
                   </div>
                 </div>
-                <p class="menu-management__desc">{$t('page.menuManagement.subtitle')}</p>
               </div>
             </div>
-          </div>
-
-          <div class="menu-management__header-actions">
-            <NSpace wrap size={10} justify="end">
-              <NButton type="primary" loading={props.loading} onClick={() => emit('sync')}>
-                {{
-                  icon: buttonIcon('mdi:database-sync-outline'),
-                  default: () => $t('page.menuManagement.syncRoutes')
-                }}
-              </NButton>
-              <NButton loading={props.loading} onClick={() => emit('refresh')}>
-                {{ icon: buttonIcon('mdi:refresh'), default: () => $t('common.refresh') }}
-              </NButton>
-              <NButton loading={props.applying} onClick={() => emit('apply')}>
-                {{
-                  icon: buttonIcon('mdi:navigation-variant-outline'),
-                  default: () => $t('page.menuManagement.applySidebar')
-                }}
-              </NButton>
-            </NSpace>
           </div>
         </div>
       </NCard>
