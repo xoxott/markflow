@@ -198,6 +198,53 @@
     }
   }
 
+  // 详情卡片：与树卡片相同的 flex + NScrollbar 高度约束
+  &__panel--detail {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  &__panel--detail :deep(.n-card__content) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__panel--detail .menu-management__panel-body {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  &__detail-scroll-host {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__detail-scroll {
+    flex-shrink: 0;
+
+    :deep(.n-scrollbar-container) {
+      padding-right: 4px;
+    }
+  }
+
+  &__detail-scroll-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   &__tree-toolbar {
     display: flex;
     flex-shrink: 0;
