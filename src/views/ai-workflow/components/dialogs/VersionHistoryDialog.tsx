@@ -1,11 +1,9 @@
 import type { PropType } from 'vue';
 import { computed, defineComponent, onMounted, ref } from 'vue';
 import { NButton, NDataTable, NSpace, NSpin } from 'naive-ui';
-import { mockWorkflowApi } from '@/service/api/workflow-mock';
+import { workflowP1MockApi } from '@/service/api/workflow-mock';
 import BaseDialog from '@/components/base-dialog';
 import type { VersionHistoryDialogOptions } from './dialog';
-
-const { fetchWorkflowVersions } = mockWorkflowApi;
 
 export default defineComponent({
   name: 'VersionHistoryDialog',
@@ -23,7 +21,7 @@ export default defineComponent({
     const restoring = ref<number | null>(null);
 
     const dialogConfig = computed(() => ({
-      title: '版本历史',
+      title: '版本历史（P1 Mock）',
       width: 720,
       height: 'auto',
       draggable: true,
@@ -33,7 +31,7 @@ export default defineComponent({
     async function loadVersions() {
       loading.value = true;
       try {
-        const { data } = await fetchWorkflowVersions(props.config.workflowId);
+        const { data } = await workflowP1MockApi.fetchWorkflowVersions(props.config.workflowId);
         versions.value = Array.isArray(data) ? data : [];
       } finally {
         loading.value = false;

@@ -12,7 +12,7 @@ export function fetchWorkflowList(params: Api.Workflow.WorkflowListParams) {
 }
 
 /** 获取工作流详情 */
-export function fetchWorkflowDetail(id: string) {
+export function fetchWorkflowDetail(id: number) {
   return request<Api.Workflow.Workflow>({
     url: `${API_PREFIX}/${id}`,
     method: 'get'
@@ -29,7 +29,7 @@ export function fetchCreateWorkflow(data: Api.Workflow.CreateWorkflowRequest) {
 }
 
 /** 更新工作流 */
-export function fetchUpdateWorkflow(id: string, data: Api.Workflow.UpdateWorkflowRequest) {
+export function fetchUpdateWorkflow(id: number, data: Api.Workflow.UpdateWorkflowRequest) {
   return request<Api.Workflow.Workflow>({
     url: `${API_PREFIX}/${id}`,
     method: 'patch',
@@ -38,7 +38,7 @@ export function fetchUpdateWorkflow(id: string, data: Api.Workflow.UpdateWorkflo
 }
 
 /** 删除工作流 */
-export function fetchDeleteWorkflow(id: string) {
+export function fetchDeleteWorkflow(id: number) {
   return request<null>({
     url: `${API_PREFIX}/${id}`,
     method: 'delete'
@@ -46,7 +46,7 @@ export function fetchDeleteWorkflow(id: string) {
 }
 
 /** 发布工作流 */
-export function fetchPublishWorkflow(id: string) {
+export function fetchPublishWorkflow(id: number) {
   return request<Api.Workflow.Workflow>({
     url: `${API_PREFIX}/${id}/publish`,
     method: 'post'
@@ -54,7 +54,7 @@ export function fetchPublishWorkflow(id: string) {
 }
 
 /** 归档工作流 */
-export function fetchArchiveWorkflow(id: string) {
+export function fetchArchiveWorkflow(id: number) {
   return request<Api.Workflow.Workflow>({
     url: `${API_PREFIX}/${id}/archive`,
     method: 'post'
@@ -62,7 +62,7 @@ export function fetchArchiveWorkflow(id: string) {
 }
 
 /** 执行工作流 */
-export function fetchExecuteWorkflow(id: string, params?: Api.Workflow.ExecutionParams) {
+export function fetchExecuteWorkflow(id: number, params?: Api.Workflow.ExecutionParams) {
   return request<Api.Workflow.Execution>({
     url: `${API_PREFIX}/${id}/execute`,
     method: 'post',
@@ -72,8 +72,8 @@ export function fetchExecuteWorkflow(id: string, params?: Api.Workflow.Execution
 
 /** 获取工作流执行历史 */
 export function fetchExecutionHistory(
-  workflowId: string,
-  params?: Api.Workflow.ExecutionHistoryParams
+  workflowId: number,
+  params?: Omit<Api.Workflow.ExecutionHistoryParams, 'workflowId'>
 ) {
   return request<Api.ListData<Api.Workflow.Execution>>({
     url: `${API_PREFIX}/${workflowId}/executions`,
@@ -83,7 +83,7 @@ export function fetchExecutionHistory(
 }
 
 /** 获取执行详情 */
-export function fetchExecutionDetail(executionId: string) {
+export function fetchExecutionDetail(executionId: number) {
   return request<Api.Workflow.ExecutionDetail>({
     url: `${API_PREFIX}/executions/${executionId}`,
     method: 'get'
@@ -91,8 +91,8 @@ export function fetchExecutionDetail(executionId: string) {
 }
 
 /** 取消执行 */
-export function fetchCancelExecution(executionId: string) {
-  return request<null>({
+export function fetchCancelExecution(executionId: number) {
+  return request<Api.Workflow.Execution>({
     url: `${API_PREFIX}/executions/${executionId}/cancel`,
     method: 'post'
   });

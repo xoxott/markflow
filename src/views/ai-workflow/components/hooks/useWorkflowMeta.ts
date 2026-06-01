@@ -1,6 +1,6 @@
-import type { Ref } from 'vue';
-import { computed, reactive, ref } from 'vue';
+import { type Ref, computed, reactive, ref } from 'vue';
 import { useMessage } from 'naive-ui';
+import type { FlatResponseData } from '@suga/axios';
 import { useNaiveForm } from '@/hooks/common/form';
 import {
   type WorkflowMetaForm,
@@ -11,11 +11,11 @@ import {
 } from '../shared/workflow-meta';
 
 export interface UseWorkflowMetaOptions {
-  workflowId: Ref<string | undefined>;
+  workflowId: Ref<number | undefined>;
   updateWorkflow: (
-    id: string,
+    id: number,
     data: Api.Workflow.UpdateWorkflowRequest
-  ) => Promise<{ data: Api.Workflow.Workflow }>;
+  ) => Promise<FlatResponseData<Api.Workflow.Workflow>>;
   onUpdated?: (workflow: Api.Workflow.Workflow) => void;
 }
 
@@ -36,7 +36,7 @@ export function useWorkflowMeta(options: UseWorkflowMetaOptions) {
   }
 
   async function saveMeta(): Promise<boolean> {
-    if (!options.workflowId.value) return false;
+    if (options.workflowId.value === null || options.workflowId.value === undefined) return false;
 
     const isValid = await validate();
     if (!isValid) return false;
@@ -49,6 +49,9 @@ export function useWorkflowMeta(options: UseWorkflowMetaOptions) {
         tags: metaForm.tags,
         status: metaForm.status
       });
+      if (!data) {
+        throw new Error('保存失败');
+      }
       syncFromWorkflow(data);
       options.onUpdated?.(data);
       message.success('信息已保存');

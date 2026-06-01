@@ -1,9 +1,11 @@
 /** 工作流图校验（纯函数，与画布实现无关） */
 
+import { getNodeDisplayLabel } from '../registry/node-registry';
+
 export interface WorkflowValidationIssue {
   type: 'error' | 'warning';
   nodeId?: string;
-  connectionId?: string;
+  edgeId?: string;
   message: string;
   code?: string;
 }
@@ -16,9 +18,9 @@ export interface WorkflowValidationResult {
 
 export function validateWorkflowGraph(
   nodes: Api.Workflow.WorkflowNode[],
-  connections: Api.Workflow.Connection[]
+  edges: Api.Workflow.WorkflowEdge[]
 ): WorkflowValidationResult {
-  const issues = collectValidationIssues(nodes, connections);
+  const issues = collectValidationIssues(nodes, edges);
   const errors = issues.filter(i => i.type === 'error');
   const warnings = issues.filter(i => i.type === 'warning');
   return {
@@ -30,7 +32,7 @@ export function validateWorkflowGraph(
 
 function collectValidationIssues(
   nodes: Api.Workflow.WorkflowNode[],
-  connections: Api.Workflow.Connection[]
+  edges: Api.Workflow.WorkflowEdge[]
 ): WorkflowValidationIssue[] {
   const errors: WorkflowValidationIssue[] = [];
 
@@ -47,64 +49,61 @@ function collectValidationIssues(
   }
 
   const connectedIds = new Set<string>();
-  connections.forEach(c => {
-    connectedIds.add(c.sourceNodeId);
-    connectedIds.add(c.targetNodeId);
+  edges.forEach(e => {
+    connectedIds.add(e.source);
+    connectedIds.add(e.target);
   });
 
   nodes.forEach(node => {
+    const label = getNodeDisplayLabel(node);
     if (!connectedIds.has(node.id) && node.type !== 'start' && node.type !== 'end') {
       errors.push({
         type: 'warning',
         nodeId: node.id,
         code: 'ORPHAN',
-        message: `节点「${node.name}」未连接到其他节点`
+        message: `节点「${label}」未连接到其他节点`
       });
     }
     if (node.type !== 'start') {
-      const hasInput = connections.some(c => c.targetNodeId === node.id);
+      const hasInput = edges.some(e => e.target === node.id);
       if (!hasInput) {
         errors.push({
           type: 'warning',
           nodeId: node.id,
           code: 'NO_INPUT',
-          message: `节点「${node.name}」缺少输入连接`
+          message: `节点「${label}」缺少输入连接`
         });
       }
     }
 
-    if (node.type === 'ai') {
-      const cfg = node.config as Api.Workflow.AINodeConfig;
-      const mode = cfg.mode ?? 'template';
-      if (mode === 'template' && !cfg.agentTemplateId) {
+    if (node.type === 'llm') {
+      const cfg = (node.data?.config ?? {}) as Api.Workflow.LlmNodeConfig;
+      if (!cfg.model) {
         errors.push({
           type: 'error',
           nodeId: node.id,
-          code: 'AI_NO_TEMPLATE',
-          message: `AI 节点「${node.name}」未绑定智能体模板`
+          code: 'LLM_NO_MODEL',
+          message: `LLM 节点「${label}」未配置模型`
         });
       }
-      if (mode === 'manual' && !cfg.model) {
-        errors.push({
-          type: 'error',
-          nodeId: node.id,
-          code: 'AI_NO_MODEL',
-          message: `AI 节点「${node.name}」未配置模型`
-        });
-      }
-      if (mode === 'manual' && !cfg.prompt) {
+      if (!cfg.prompt) {
         errors.push({
           type: 'warning',
           nodeId: node.id,
-          code: 'AI_NO_PROMPT',
-          message: `AI 节点「${node.name}」未配置提示词`
+          code: 'LLM_NO_PROMPT',
+          message: `LLM 节点「${label}」未配置提示词`
         });
       }
     }
   });
 
-  detectCycles(nodes, connections).forEach(cycle => {
-    const label = cycle.map(id => nodes.find(n => n.id === id)?.name ?? id).join(' → ');
+  detectCycles(nodes, edges).forEach(cycle => {
+    const label = cycle
+      .map(id => {
+        const node = nodes.find(n => n.id === id);
+        return node ? getNodeDisplayLabel(node) : id;
+      })
+      .join(' → ');
     errors.push({
       type: 'error',
       code: 'CYCLE',
@@ -115,21 +114,22 @@ function collectValidationIssues(
   nodes
     .filter(n => n.type === 'condition')
     .forEach(node => {
-      const outs = connections.filter(c => c.sourceNodeId === node.id);
-      if (!outs.some(c => c.sourcePortId === 'true')) {
+      const label = getNodeDisplayLabel(node);
+      const outs = edges.filter(e => e.source === node.id);
+      if (!outs.some(e => e.sourceHandle === 'true')) {
         errors.push({
           type: 'warning',
           nodeId: node.id,
           code: 'COND_TRUE',
-          message: `条件节点「${node.name}」缺少 true 分支`
+          message: `条件节点「${label}」缺少 true 分支`
         });
       }
-      if (!outs.some(c => c.sourcePortId === 'false')) {
+      if (!outs.some(e => e.sourceHandle === 'false')) {
         errors.push({
           type: 'warning',
           nodeId: node.id,
           code: 'COND_FALSE',
-          message: `条件节点「${node.name}」缺少 false 分支`
+          message: `条件节点「${label}」缺少 false 分支`
         });
       }
     });
@@ -139,13 +139,13 @@ function collectValidationIssues(
 
 function detectCycles(
   nodes: Api.Workflow.WorkflowNode[],
-  connections: Api.Workflow.Connection[]
+  edges: Api.Workflow.WorkflowEdge[]
 ): string[][] {
   const cycles: string[][] = [];
   const adj = new Map<string, string[]>();
   nodes.forEach(n => adj.set(n.id, []));
-  connections.forEach(c => {
-    adj.get(c.sourceNodeId)?.push(c.targetNodeId);
+  edges.forEach(e => {
+    adj.get(e.source)?.push(e.target);
   });
 
   const visited = new Set<string>();

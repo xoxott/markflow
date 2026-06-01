@@ -13,6 +13,5 @@ export * from './log';
 export * from './alert';
 export * from './version-log';
 export * from './workflow';
-export * from './workflow-mock';
 export * from './menu';
 export * from './resource';

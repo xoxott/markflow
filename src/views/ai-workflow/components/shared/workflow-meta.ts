@@ -64,7 +64,7 @@ export function createWorkflowMetaRules(): FormRules {
 
 export function getWorkflowStatusHint(status: Api.Workflow.WorkflowStatus): string | null {
   if (status === 'published') {
-    return '发布后仍可编辑画布；Mock 阶段仅更新状态字段。';
+    return '发布后仍可编辑画布；执行前需保持已发布状态。';
   }
   if (status === 'archived') {
     return '归档后建议只读；若需再编辑可先改回草稿。';

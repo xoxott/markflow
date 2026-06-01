@@ -5,7 +5,7 @@ import { $t } from '@/locales';
 
 type Workflow = Api.Workflow.Workflow;
 
-export const WORKFLOW_LIST_SCROLL_X = 1362;
+export const WORKFLOW_LIST_SCROLL_X = 1200;
 
 export function createWorkflowSearchFields(): SearchFieldConfig[] {
   return [
@@ -47,9 +47,7 @@ const statusLabelMap: Record<Api.Workflow.WorkflowStatus, string> = {
 
 export interface WorkflowTableColumnHandlers {
   onEdit: (row: Workflow) => void;
-  onCopy: (row: Workflow) => void;
   onExecute: (row: Workflow) => void;
-  onVersion: (row: Workflow) => void;
   onPublish: (row: Workflow) => void;
   onArchive: (row: Workflow) => void;
   onDelete: (row: Workflow) => void;
@@ -88,9 +86,9 @@ export function createWorkflowTableColumns(
     },
     {
       title: '版本',
-      key: 'version',
+      key: 'currentVersion',
       width: 90,
-      render: (row: Workflow) => <NText depth={2}>{`v${row.version}`}</NText>
+      render: (row: Workflow) => <NText depth={2}>{`v${row.currentVersion || 0}`}</NText>
     },
     {
       title: '节点数',
@@ -121,9 +119,7 @@ export function createWorkflowTableColumns(
       mode: 'menu',
       buttons: [
         { key: 'edit', label: '编辑', icon: 'carbon:edit', onClick: h.onEdit },
-        { key: 'copy', label: '复制', icon: 'carbon:copy', onClick: h.onCopy },
         { key: 'execute', label: '执行', icon: 'carbon:play-filled-alt', onClick: h.onExecute },
-        { key: 'version', label: '版本', icon: 'carbon:version', onClick: h.onVersion },
         {
           key: 'publish',
           label: '发布',

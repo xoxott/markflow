@@ -1,23 +1,13 @@
 /**
  * AI Workflow API Type Definitions
  *
- * 仅包含需要持久化到后端的业务数据 UI 相关的数据（位置、样式、状态等）由前端管理，不入库
+ * 与后端 WorkflowConfig / WorkflowResponseDto 对齐
  */
 
 declare namespace Api {
   namespace Workflow {
-    // ==================== 基础类型 ====================
-
-    /** 节点类型 */
-    type NodeType =
-      | 'start'
-      | 'end'
-      | 'ai'
-      | 'http'
-      | 'database'
-      | 'condition'
-      | 'transform'
-      | 'file';
+    /** 节点类型（P0 子集，对齐后端 NodeType） */
+    type NodeType = 'start' | 'end' | 'llm' | 'http' | 'database' | 'condition' | 'transform';
 
     /** 工作流状态 */
     type WorkflowStatus = 'draft' | 'published' | 'archived';
@@ -28,15 +18,21 @@ declare namespace Api {
     /** HTTP 方法 */
     type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-    // ==================== 核心业务数据结构 ====================
+    /** LLM 提供商 */
+    type LlmProvider = 'openai' | 'anthropic' | 'custom';
 
-    /** 位置坐标 */
     interface Position {
       x: number;
       y: number;
     }
 
-    /** 端口定义（业务逻辑） */
+    interface Viewport {
+      x: number;
+      y: number;
+      zoom: number;
+    }
+
+    /** 端口定义（画布 UI 推导，不入库） */
     interface Port {
       id: string;
       type: 'input' | 'output';
@@ -46,138 +42,127 @@ declare namespace Api {
       defaultValue?: any;
     }
 
-    /** 工作流节点（业务数据） */
-    interface WorkflowNode {
-      id: string;
-      type: NodeType;
-      name: string;
-      description?: string;
-      position: Position; // 节点位置需要持久化
-      config: NodeConfig;
-      inputs?: Port[];
-      outputs?: Port[];
-    }
-
-    /** 连接线（业务数据） */
-    interface Connection {
-      id: string;
-      sourceNodeId: string;
-      sourcePortId: string;
-      targetNodeId: string;
-      targetPortId: string;
-    }
-
-    /** 工作流定义（业务数据） */
-    interface WorkflowDefinition {
-      nodes: WorkflowNode[];
-      connections: Connection[];
-      variables?: Record<string, any>;
-      viewport?: {
-        x: number;
-        y: number;
-        zoom: number;
-      };
-    }
-
-    // ==================== 节点配置（业务逻辑） ====================
-
-    /** AI 节点配置 */
-    interface AINodeConfig {
-      /** 引用模式：模板 vs 手动 */
-      mode?: 'template' | 'manual';
-      /** 已发布智能体模板 ID */
-      agentTemplateId?: string;
-      /** 绑定时的模板版本快照 */
-      agentTemplateVersion?: number;
-      /** manual 模式或 override */
+    /** LLM 节点配置 */
+    interface LlmNodeConfig {
+      provider?: LlmProvider;
       model?: string;
       prompt?: string;
+      systemMessage?: string;
       temperature?: number;
       maxTokens?: number;
-      systemPrompt?: string;
-      /** 节点级覆盖 */
-      overrides?: {
-        maxTurns?: number;
-        tools?: string[];
-      };
     }
 
     /** HTTP 节点配置 */
     interface HttpNodeConfig {
-      url: string;
-      method: HttpMethod;
+      url?: string;
+      method?: HttpMethod;
       headers?: Record<string, string>;
-      body?: string;
+      body?: any;
       timeout?: number;
     }
 
     /** 数据库节点配置 */
     interface DatabaseNodeConfig {
-      connectionString: string;
-      query: string;
-      parameters?: Record<string, any>;
+      query?: string;
+      parameters?: any[];
+      timeout?: number;
     }
 
     /** 条件节点配置 */
     interface ConditionNodeConfig {
-      expression: string;
-      trueBranch?: string;
-      falseBranch?: string;
+      conditions?: Array<{
+        variable: string;
+        operator: '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'startsWith' | 'endsWith';
+        value: any;
+        logic?: 'AND' | 'OR';
+      }>;
+      defaultBranch?: string;
     }
 
     /** 转换节点配置 */
     interface TransformNodeConfig {
-      code: string;
-      language?: 'javascript' | 'python';
+      mappings?: Array<{
+        source: string;
+        target: string;
+        transform?: string;
+      }>;
+      script?: string;
     }
 
-    /** 文件节点配置 */
-    interface FileNodeConfig {
-      operation: 'read' | 'write' | 'delete';
-      path: string;
-      content?: string;
-    }
-
-    /** 节点配置联合类型 */
     type NodeConfig =
-      | AINodeConfig
+      | LlmNodeConfig
       | HttpNodeConfig
       | DatabaseNodeConfig
       | ConditionNodeConfig
       | TransformNodeConfig
-      | FileNodeConfig
       | Record<string, any>;
 
-    // ==================== 工作流 API ====================
+    /** 工作流节点（ReactFlow 风格，与后端一致） */
+    interface WorkflowNode {
+      id: string;
+      type: NodeType | string;
+      position: Position;
+      data: {
+        label: string;
+        config?: NodeConfig;
+      };
+    }
+
+    /** 工作流边 */
+    interface WorkflowEdge {
+      id: string;
+      source: string;
+      target: string;
+      sourceHandle?: string;
+      targetHandle?: string;
+    }
+
+    /** 工作流配置 */
+    interface WorkflowConfig {
+      nodes: WorkflowNode[];
+      edges: WorkflowEdge[];
+      variables?: Record<string, any>;
+      viewport?: Viewport;
+    }
 
     /** 工作流 */
     interface Workflow {
-      id: string;
+      id: number;
       name: string;
-      description?: string;
+      description?: string | null;
       status: WorkflowStatus;
-      version: number;
+      config: WorkflowConfig;
+      triggers?: string[];
+      tags?: string[] | null;
+      userId?: number;
       nodeCount: number;
+      edgeCount?: number;
+      hasVariables?: boolean;
+      currentVersion: number;
       executionCount: number;
       lastExecutedAt: string | null;
       createdAt: string;
       updatedAt: string;
-      definition: WorkflowDefinition;
-      tags?: string[];
     }
 
-    /** 执行日志 */
+    /** 执行日志（与后端 ExecutionLog 对齐） */
     interface ExecutionLog {
-      timestamp: string;
-      level: 'info' | 'warn' | 'error';
-      message: string;
-      nodeId?: string;
+      nodeId: string;
+      nodeName: string;
+      status: 'pending' | 'running' | 'success' | 'failed' | 'skipped';
+      input?: any;
+      output?: any;
+      error?: string;
+      startedAt: string;
+      finishedAt?: string;
+      duration?: number;
     }
 
-    /** 节点执行结果 */
+    /** 节点执行结果（前端展示用） */
     interface NodeExecutionResult {
       nodeId: string;
-      status: ExecutionStatus;
+      nodeName?: string;
+      status: ExecutionLog['status'] | ExecutionStatus;
       startTime: string;
       endTime?: string;
       duration?: number;
@@ -188,17 +173,16 @@ declare namespace Api {
 
     /** 工作流执行 */
     interface Execution {
-      id: string;
-      workflowId: string;
-      workflowName: string;
+      id: number;
+      workflowId: number;
+      workflowName?: string | null;
       status: ExecutionStatus;
-      startTime: string;
-      endTime?: string;
-      duration?: number;
-      triggeredBy?: string;
-      input?: Record<string, any>;
+      startedAt: string | null;
+      finishedAt?: string | null;
+      duration?: number | null;
+      input?: Record<string, any> | null;
       output?: any;
-      error?: string;
+      error?: string | null;
     }
 
     /** 执行详情 */
@@ -206,8 +190,6 @@ declare namespace Api {
       logs: ExecutionLog[];
       nodeResults: NodeExecutionResult[];
     }
-
-    // ==================== 请求/响应类型 ====================
 
     /** 工作流列表查询参数 */
     interface WorkflowListParams {
@@ -224,7 +206,7 @@ declare namespace Api {
     interface CreateWorkflowRequest {
       name: string;
       description?: string;
-      definition?: WorkflowDefinition;
+      config?: WorkflowConfig;
       tags?: string[];
     }
 
@@ -233,7 +215,7 @@ declare namespace Api {
       name?: string;
       description?: string;
       status?: WorkflowStatus;
-      definition?: WorkflowDefinition;
+      config?: WorkflowConfig;
       tags?: string[];
     }
 
@@ -245,7 +227,7 @@ declare namespace Api {
 
     /** 执行历史查询参数 */
     interface ExecutionHistoryParams {
-      workflowId: string;
+      workflowId: number;
       page?: number;
       limit?: number;
       status?: ExecutionStatus;
@@ -253,13 +235,16 @@ declare namespace Api {
       endDate?: string;
     }
 
-    /** 工作流版本 */
+    /** 工作流版本（P1） */
     interface WorkflowVersion {
       version: number;
       createdAt: string;
       createdBy?: string;
       changes?: string;
-      definition: WorkflowDefinition;
+      config: WorkflowConfig;
     }
+
+    /** @deprecated 兼容旧引用，等同于 WorkflowConfig */
+    type WorkflowDefinition = WorkflowConfig;
   }
 }

@@ -20,11 +20,11 @@ export interface WorkflowDialogOptions extends BaseDialogProps {
 
 /** 执行详情对话框选项 */
 export interface ExecutionDetailDialogOptions {
-  executionId: string;
+  executionId: number;
 }
 
-/** 版本历史对话框选项 */
+/** 版本历史对话框选项（P1 mock，占位等后端接口落地后替换） */
 export interface VersionHistoryDialogOptions {
-  workflowId: string;
+  workflowId: number;
   onRestore?: (version: number) => Promise<void>;
 }

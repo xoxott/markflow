@@ -22,7 +22,13 @@ import WorkflowEditorHeader from '../components/editor/WorkflowEditorHeader';
 import WorkflowEditorWorkspace from '../components/editor/WorkflowEditorWorkspace';
 import { useWorkflowEditor } from '../components/hooks/useWorkflowEditor';
 import { useWorkflowMeta } from '../components/hooks/useWorkflowMeta';
-import { definitionToFlowState } from '../components/adapters/flow-adapter';
+import { configToFlowState } from '../components/adapters/flow-adapter';
+
+const DEFAULT_CONFIG: Api.Workflow.WorkflowConfig = {
+  nodes: [],
+  edges: [],
+  viewport: { x: 0, y: 0, zoom: 1 }
+};
 
 export default defineComponent({
   name: 'WorkflowEditor',
@@ -33,7 +39,7 @@ export default defineComponent({
     const instance = getCurrentInstance();
     const dialog = useDialog(instance?.appContext.app);
 
-    const workflowId = computed(() => route.params.id as string);
+    const workflowId = computed(() => Number(route.params.id));
     const workflow = ref<Api.Workflow.Workflow | null>(null);
     const loading = ref(true);
     const showLeftPanel = ref(true);
@@ -42,14 +48,7 @@ export default defineComponent({
     const canvasRef = ref<WorkflowEditorCanvasExpose | null>(null);
     const importInputRef = ref<HTMLInputElement | null>(null);
 
-    const definition = computed(
-      () =>
-        workflow.value?.definition ?? {
-          nodes: [],
-          connections: [],
-          viewport: { x: 0, y: 0, zoom: 1 }
-        }
-    );
+    const workflowConfig = computed(() => workflow.value?.config ?? DEFAULT_CONFIG);
 
     const meta = useWorkflowMeta({
       workflowId,
@@ -59,14 +58,14 @@ export default defineComponent({
       }
     });
 
-    async function handleSave(definitionPayload: Api.Workflow.WorkflowDefinition) {
-      if (!workflowId.value) return;
+    async function handleSave(configPayload: Api.Workflow.WorkflowConfig) {
+      if (Number.isNaN(workflowId.value)) return;
 
       try {
-        await fetchUpdateWorkflow(workflowId.value, { definition: definitionPayload });
+        await fetchUpdateWorkflow(workflowId.value, { config: configPayload });
         message.success('画布已保存');
         if (workflow.value) {
-          workflow.value.definition = definitionPayload;
+          workflow.value.config = configPayload;
         }
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : '保存失败';
@@ -82,13 +81,16 @@ export default defineComponent({
 
     const editor = useWorkflowEditor({
       workflowId,
-      definition,
+      config: workflowConfig,
       onSave: handleSave,
       onNodeSelect: handleNodeSelect
     });
 
     async function loadWorkflow() {
-      if (!workflowId.value) return;
+      if (Number.isNaN(workflowId.value)) {
+        router.push('/ai-workflow');
+        return;
+      }
 
       loading.value = true;
       try {
@@ -147,14 +149,14 @@ export default defineComponent({
     }
 
     function handleExport() {
-      const def = editor.getDefinition();
-      if (!def) {
+      const cfg = editor.getWorkflowConfig();
+      if (!cfg) {
         message.warning('画布未就绪，无法导出');
         return;
       }
       const name = meta.metaForm.name.trim() || workflow.value?.name?.trim() || 'workflow';
       const id = workflowId.value || 'draft';
-      downloadJSON(`${name}-${id}.json`, def);
+      downloadJSON(`${name}-${id}.json`, cfg);
       message.success('已导出 JSON');
     }
 
@@ -170,10 +172,10 @@ export default defineComponent({
 
       try {
         const text = await file.text();
-        const parsed = JSON.parse(text) as Api.Workflow.WorkflowDefinition;
+        const parsed = JSON.parse(text) as Api.Workflow.WorkflowConfig;
 
-        if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as any).nodes)) {
-          message.error('导入失败：JSON 不是合法的工作流定义');
+        if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.nodes)) {
+          message.error('导入失败：JSON 不是合法的工作流配置');
           return;
         }
 
@@ -183,7 +185,7 @@ export default defineComponent({
           return;
         }
 
-        const state = definitionToFlowState(parsed);
+        const state = configToFlowState(parsed);
         const snapshot = {
           version: 1,
           nodes: state.nodes,
@@ -243,7 +245,7 @@ export default defineComponent({
         />
         <WorkflowEditorHeader
           title={meta.metaForm.name || workflow.value?.name || '工作流编辑器'}
-          description={meta.metaForm.description || workflow.value?.description}
+          description={meta.metaForm.description || workflow.value?.description || undefined}
           metaForm={meta.metaForm}
           metaFormRef={meta.formRef}
           isMetaDirty={meta.isMetaDirty.value}
@@ -288,7 +290,7 @@ export default defineComponent({
                   ref={canvasRef}
                   editor={editor}
                   workflowId={workflowId.value}
-                  definition={definition.value}
+                  config={workflowConfig.value}
                 />
               ),
               right: () => (

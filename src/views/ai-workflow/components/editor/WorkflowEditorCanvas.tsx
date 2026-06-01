@@ -22,11 +22,11 @@ export default defineComponent({
       required: true
     },
     workflowId: {
-      type: String,
+      type: Number,
       default: undefined
     },
-    definition: {
-      type: Object as PropType<Api.Workflow.WorkflowDefinition>,
+    config: {
+      type: Object as PropType<Api.Workflow.WorkflowConfig>,
       required: true
     }
   },
@@ -44,7 +44,7 @@ export default defineComponent({
     );
 
     expose({
-      getDefinition: editor.getDefinition,
+      getWorkflowConfig: editor.getWorkflowConfig,
       validate: editor.validate,
       save: editor.save,
       fitView: editor.fitView,

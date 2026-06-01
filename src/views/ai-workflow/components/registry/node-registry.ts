@@ -1,7 +1,7 @@
 /**
  * AI 工作流节点类型注册表
  *
- * 仅维护节点元数据（标签、图标、端口等）；画布渲染统一由 Flow + WorkflowFlowNode 负责。 扩展新节点：在此注册，并在 NodeConfigPanel 增加配置表单。
+ * 仅维护节点元数据（标签、图标、端口等）；画布渲染统一由 Flow + WorkflowFlowNode 负责。
  */
 
 export type WorkflowNodeCategory = 'control' | 'ai' | 'data' | 'integration';
@@ -16,6 +16,7 @@ export interface WorkflowNodeTypeConfig {
     inputs?: Api.Workflow.Port[];
     outputs?: Api.Workflow.Port[];
   };
+  defaultConfig?: Api.Workflow.NodeConfig;
 }
 
 export const WORKFLOW_NODE_REGISTRY: Record<Api.Workflow.NodeType, WorkflowNodeTypeConfig> = {
@@ -39,15 +40,21 @@ export const WORKFLOW_NODE_REGISTRY: Record<Api.Workflow.NodeType, WorkflowNodeT
       inputs: [{ id: 'input', type: 'input', label: '输入' }]
     }
   },
-  ai: {
-    label: 'AI 对话',
+  llm: {
+    label: 'LLM 对话',
     icon: 'mdi:robot',
     color: '#2080f0',
-    description: '调用 AI 模型进行对话或推理',
+    description: '调用 LLM 模型进行对话或推理',
     category: 'ai',
     defaultPorts: {
       inputs: [{ id: 'input', type: 'input', label: '输入' }],
       outputs: [{ id: 'output', type: 'output', label: '输出' }]
+    },
+    defaultConfig: {
+      provider: 'openai',
+      model: 'gpt-4',
+      prompt: '',
+      temperature: 0.7
     }
   },
   http: {
@@ -62,24 +69,31 @@ export const WORKFLOW_NODE_REGISTRY: Record<Api.Workflow.NodeType, WorkflowNodeT
         { id: 'success', type: 'output', label: '成功' },
         { id: 'error', type: 'output', label: '失败' }
       ]
+    },
+    defaultConfig: {
+      method: 'GET',
+      timeout: 30
     }
   },
   database: {
     label: '数据库',
     icon: 'mdi:database',
     color: '#7c3aed',
-    description: '执行数据库查询或写入',
+    description: '执行数据库查询',
     category: 'data',
     defaultPorts: {
       inputs: [{ id: 'input', type: 'input', label: '输入' }],
       outputs: [{ id: 'output', type: 'output', label: '输出' }]
+    },
+    defaultConfig: {
+      query: ''
     }
   },
   condition: {
     label: '条件判断',
     icon: 'mdi:source-branch',
     color: '#f59e0b',
-    description: '根据表达式分支执行',
+    description: '根据条件表达式分支执行',
     category: 'control',
     defaultPorts: {
       inputs: [{ id: 'input', type: 'input', label: '输入' }],
@@ -87,28 +101,24 @@ export const WORKFLOW_NODE_REGISTRY: Record<Api.Workflow.NodeType, WorkflowNodeT
         { id: 'true', type: 'output', label: '真' },
         { id: 'false', type: 'output', label: '假' }
       ]
+    },
+    defaultConfig: {
+      conditions: [{ variable: 'input', operator: '==', value: true }],
+      defaultBranch: 'false'
     }
   },
   transform: {
     label: '数据转换',
     icon: 'mdi:code-braces',
     color: '#10b981',
-    description: '使用脚本转换数据',
+    description: '使用脚本或映射转换数据',
     category: 'data',
     defaultPorts: {
       inputs: [{ id: 'input', type: 'input', label: '输入' }],
       outputs: [{ id: 'output', type: 'output', label: '输出' }]
-    }
-  },
-  file: {
-    label: '文件操作',
-    icon: 'mdi:file-document',
-    color: '#6366f1',
-    description: '读取或写入文件',
-    category: 'data',
-    defaultPorts: {
-      inputs: [{ id: 'input', type: 'input', label: '输入' }],
-      outputs: [{ id: 'output', type: 'output', label: '输出' }]
+    },
+    defaultConfig: {
+      script: 'return input;'
     }
   }
 };
@@ -146,10 +156,13 @@ export function createDefaultNodeData(
   const config = getNodeTypeConfig(type);
   return {
     type,
-    name: config.label,
-    description: config.description,
-    inputs: config.defaultPorts?.inputs ?? [],
-    outputs: config.defaultPorts?.outputs ?? [],
-    config: {}
+    data: {
+      label: config.label,
+      config: { ...(config.defaultConfig ?? {}) }
+    }
   };
+}
+
+export function getNodeDisplayLabel(node: Api.Workflow.WorkflowNode): string {
+  return node.data?.label ?? '未命名节点';
 }

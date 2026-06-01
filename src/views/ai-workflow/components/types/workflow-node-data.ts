@@ -58,7 +58,7 @@ export interface WorkflowFlowCanvasExpose {
 
 /** WorkflowEditorCanvas 组件暴露 API */
 export interface WorkflowEditorCanvasExpose {
-  getDefinition: () => Api.Workflow.WorkflowDefinition | null;
+  getWorkflowConfig: () => Api.Workflow.WorkflowConfig | null;
   validate: () => WorkflowValidationResult | null;
   save: () => Promise<void>;
   fitView: () => void;

@@ -9,7 +9,6 @@ import {
   fetchPublishWorkflow,
   fetchWorkflowList
 } from '@/service/api/workflow';
-import { mockWorkflowApi } from '@/service/api/workflow-mock';
 import { useDialog } from '@/components/base-dialog/useDialog';
 import TablePage from '@/components/table-page/TablePage';
 import { useAdminListTable } from '@/components/table-page/hooks';
@@ -22,9 +21,6 @@ import {
   createWorkflowTableColumns
 } from './listUiConfig';
 
-const { fetchBatchDeleteWorkflows, fetchCopyWorkflow, fetchRestoreWorkflowVersion } =
-  mockWorkflowApi;
-
 type Workflow = Api.Workflow.Workflow;
 
 export default defineComponent({
@@ -36,7 +32,7 @@ export default defineComponent({
     const dialog = useDialog(instance?.appContext.app);
     const workflowDialog = useWorkflowDialog();
 
-    const selectedRowKeys = ref<string[]>([]);
+    const selectedRowKeys = ref<number[]>([]);
 
     const { data, loading, pagination, getData, searchParams, onSearch, onReset } =
       useAdminListTable({
@@ -49,7 +45,6 @@ export default defineComponent({
         immediate: true
       });
 
-    // 新建工作流
     async function handleAdd() {
       const formData: WorkflowFormData = {
         name: '',
@@ -67,8 +62,10 @@ export default defineComponent({
               description: confirmData.description,
               tags: confirmData.tags
             });
+            if (!result.data) {
+              throw new Error('创建工作流失败');
+            }
             message.success($t('common.addSuccess'));
-            // 跳转到编辑器
             router.push(`/ai-workflow/editor/${result.data.id}`);
           } catch (error: any) {
             message.error(error?.message || '操作失败');
@@ -78,29 +75,17 @@ export default defineComponent({
       });
     }
 
-    // 编辑工作流
-    async function handleEdit(row: Workflow) {
-      // 跳转到编辑器页面
+    function handleEdit(row: Workflow) {
       router.push(`/ai-workflow/editor/${row.id}`);
     }
 
-    // 复制工作流
-    async function handleCopy(row: Workflow) {
-      try {
-        await fetchCopyWorkflow(row.id, `${row.name} (副本)`);
-        message.success('复制成功');
-        getData();
-      } catch (error: any) {
-        message.error(error?.message || '复制失败');
-      }
-    }
-
-    // 执行工作流
     async function handleExecute(row: Workflow) {
       try {
         const result = await fetchExecuteWorkflow(row.id);
+        if (!result.data) {
+          throw new Error('执行失败');
+        }
         message.success('工作流已开始执行');
-        // 显示执行详情
         workflowDialog.showExecutionDetail({
           executionId: result.data.id
         });
@@ -110,18 +95,6 @@ export default defineComponent({
       }
     }
 
-    // 版本历史
-    function handleVersionHistory(row: Workflow) {
-      workflowDialog.showVersionHistory({
-        workflowId: row.id,
-        onRestore: async (version: number) => {
-          await fetchRestoreWorkflowVersion(row.id, version);
-          getData();
-        }
-      });
-    }
-
-    // 发布工作流
     async function handlePublish(row: Workflow) {
       await dialog.confirm({
         title: '确认发布',
@@ -141,7 +114,6 @@ export default defineComponent({
       });
     }
 
-    // 归档工作流
     async function handleArchive(row: Workflow) {
       await dialog.confirm({
         title: '确认归档',
@@ -161,7 +133,6 @@ export default defineComponent({
       });
     }
 
-    // 删除工作流
     async function handleDelete(row: Workflow) {
       await dialog.confirmDelete(row.name, async () => {
         try {
@@ -174,33 +145,12 @@ export default defineComponent({
       });
     }
 
-    // 批量删除
-    async function handleBatchDelete() {
-      if (selectedRowKeys.value.length === 0) {
-        message.warning('请选择要删除的工作流');
-        return;
-      }
-
-      await dialog.confirmDelete(`${selectedRowKeys.value.length} 个工作流`, async () => {
-        try {
-          await fetchBatchDeleteWorkflows({ ids: selectedRowKeys.value });
-          message.success($t('common.deleteSuccess'));
-          selectedRowKeys.value = [];
-          getData();
-        } catch (error: any) {
-          message.error(error?.message || $t('common.error'));
-        }
-      });
-    }
-
     const searchConfig = computed(() => createWorkflowSearchFields());
 
     const tableColumns = computed(() =>
       createWorkflowTableColumns({
         onEdit: handleEdit,
-        onCopy: handleCopy,
         onExecute: handleExecute,
-        onVersion: handleVersionHistory,
         onPublish: handlePublish,
         onArchive: handleArchive,
         onDelete: handleDelete
@@ -217,7 +167,6 @@ export default defineComponent({
         actionConfig={{
           preset: {
             add: { label: '新建工作流', onClick: handleAdd },
-            batchDelete: { onClick: handleBatchDelete },
             refresh: { onClick: getData }
           }
         }}
@@ -227,7 +176,7 @@ export default defineComponent({
         pagination={pagination}
         selectedKeys={selectedRowKeys.value}
         onUpdateSelectedKeys={keys => {
-          selectedRowKeys.value = keys as string[];
+          selectedRowKeys.value = keys as number[];
         }}
         rowKey="id"
         scrollX={WORKFLOW_LIST_SCROLL_X}

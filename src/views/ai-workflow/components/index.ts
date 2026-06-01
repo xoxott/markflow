@@ -12,8 +12,8 @@ export { useWorkflowMeta } from './hooks/useWorkflowMeta';
 export { useWorkflowDialog } from './dialogs/useWorkflowDialog';
 
 export {
-  definitionToFlowState,
-  flowStateToDefinition,
+  configToFlowState,
+  flowStateToConfig,
   workflowNodeToFlowNode,
   createFlowNodeAt
 } from './adapters/flow-adapter';

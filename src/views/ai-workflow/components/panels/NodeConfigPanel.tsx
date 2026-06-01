@@ -1,4 +1,4 @@
-import { type PropType, defineComponent, reactive, ref, watch } from 'vue';
+import { type PropType, defineComponent, reactive, watch } from 'vue';
 import {
   NButton,
   NDivider,
@@ -7,12 +7,9 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NSelect,
-  NSwitch
+  NSelect
 } from 'naive-ui';
-import { mockAgentApi } from '@/service/api/agent-mock';
 import { MonacoEditor } from '@/components/monaco';
-import AgentTemplateSelect from '@/components/agent/AgentTemplateSelect';
 
 /** 编辑器右侧内嵌配置面板（与画布同区域，不使用全局 Drawer） */
 export default defineComponent({
@@ -34,131 +31,76 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const formData = reactive<any>({
+    const formData = reactive<{
+      label: string;
+      config: Api.Workflow.NodeConfig;
+    }>({
       label: '',
-      description: '',
       config: {}
     });
-
-    const manualOverride = ref(false);
 
     watch(
       () => props.node,
       node => {
         if (node) {
-          formData.label = node.name || '';
-          formData.description = node.description || '';
-          formData.config = {
-            mode: 'template',
-            ...node.config
-          };
-          manualOverride.value = formData.config.mode === 'manual';
+          formData.label = node.data?.label || '';
+          formData.config = { ...(node.data?.config ?? {}) };
         }
       },
       { immediate: true }
     );
 
-    async function applyTemplate(template: Api.AgentManagement.AgentTemplateListItem) {
-      formData.config.agentTemplateId = template.id;
-      formData.config.agentTemplateVersion = template.version;
-      formData.config.mode = manualOverride.value ? 'manual' : 'template';
-
-      if (!manualOverride.value) {
-        formData.config.model = template.modelLabel ?? 'inherit';
-        formData.config.systemPrompt = template.systemPrompt;
-        formData.config.maxTokens = undefined;
-        if (template.maxTurns !== undefined && template.maxTurns !== null) {
-          formData.config.overrides = {
-            ...formData.config.overrides,
-            maxTurns: template.maxTurns
-          };
-        }
-      }
-
-      if (props.node && props.onUpdate) {
-        await props.onUpdate(props.node.id, {
-          config: { ...formData.config }
-        });
-      }
-    }
-
-    const renderAIConfig = () => (
+    const renderLlmConfig = () => (
       <>
-        <NFormItem label="配置模式">
-          <NSwitch
-            value={manualOverride.value}
-            onUpdateValue={(v: boolean) => {
-              manualOverride.value = v;
-              formData.config.mode = v ? 'manual' : 'template';
-            }}
-          >
-            {{
-              checked: () => '手动覆盖',
-              unchecked: () => '模板绑定'
-            }}
-          </NSwitch>
+        <NFormItem label="提供商">
+          <NSelect
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).provider}
+            options={[
+              { label: 'OpenAI', value: 'openai' },
+              { label: 'Anthropic', value: 'anthropic' },
+              { label: 'Custom', value: 'custom' }
+            ]}
+          />
         </NFormItem>
-
-        {!manualOverride.value ? (
-          <NFormItem label="智能体模板">
-            <AgentTemplateSelect
-              value={formData.config.agentTemplateId}
-              onUpdateValue={async (_id, template) => {
-                if (template) await applyTemplate(template);
-              }}
-            />
-          </NFormItem>
-        ) : (
-          <NFormItem label="模型">
-            <NSelect
-              v-model:value={formData.config.model}
-              options={[
-                { label: 'GPT-4', value: 'gpt-4' },
-                { label: 'GPT-3.5', value: 'gpt-3.5-turbo' },
-                { label: 'Claude', value: 'claude-3' }
-              ]}
-              placeholder="选择AI模型"
-            />
-          </NFormItem>
-        )}
-
-        {formData.config.agentTemplateId && !manualOverride.value && (
-          <NFormItem label="模板版本">
-            <span class="text-xs text-gray-500">
-              v{formData.config.agentTemplateVersion ?? '?'}
-            </span>
-          </NFormItem>
-        )}
-
+        <NFormItem label="模型">
+          <NSelect
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).model}
+            options={[
+              { label: 'GPT-4', value: 'gpt-4' },
+              { label: 'GPT-3.5', value: 'gpt-3.5-turbo' },
+              { label: 'Claude 3', value: 'claude-3' }
+            ]}
+            placeholder="选择模型"
+          />
+        </NFormItem>
         <NFormItem label="提示词">
           <NInput
-            v-model:value={formData.config.prompt}
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).prompt}
             type="textarea"
             rows={4}
             placeholder="输入提示词"
           />
         </NFormItem>
-        <NFormItem label="系统提示">
+        <NFormItem label="系统消息">
           <NInput
-            v-model:value={formData.config.systemPrompt}
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).systemMessage}
             type="textarea"
             rows={3}
-            placeholder="系统提示（模板模式下可覆盖）"
-            disabled={!manualOverride.value && !!formData.config.agentTemplateId}
+            placeholder="系统消息（可选）"
           />
         </NFormItem>
         <NFormItem label="温度">
           <NInputNumber
-            v-model:value={formData.config.temperature}
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).temperature}
             min={0}
             max={2}
             step={0.1}
             placeholder="0-2"
           />
         </NFormItem>
-        <NFormItem label="最大Tokens">
+        <NFormItem label="最大 Tokens">
           <NInputNumber
-            v-model:value={formData.config.maxTokens}
+            v-model:value={(formData.config as Api.Workflow.LlmNodeConfig).maxTokens}
             min={1}
             max={4096}
             placeholder="最大生成长度"
@@ -170,11 +112,14 @@ export default defineComponent({
     const renderHttpConfig = () => (
       <>
         <NFormItem label="URL">
-          <NInput v-model:value={formData.config.url} placeholder="https://api.example.com" />
+          <NInput
+            v-model:value={(formData.config as Api.Workflow.HttpNodeConfig).url}
+            placeholder="https://api.example.com"
+          />
         </NFormItem>
         <NFormItem label="方法">
           <NSelect
-            v-model:value={formData.config.method}
+            v-model:value={(formData.config as Api.Workflow.HttpNodeConfig).method}
             options={[
               { label: 'GET', value: 'GET' },
               { label: 'POST', value: 'POST' },
@@ -184,101 +129,91 @@ export default defineComponent({
             ]}
           />
         </NFormItem>
-        <NFormItem label="请求头 (JSON)">
-          <NInput
-            v-model:value={formData.config.headers}
-            type="textarea"
-            rows={3}
-            placeholder='{"Content-Type": "application/json"}'
-          />
-        </NFormItem>
-        <NFormItem label="请求体">
-          <NInput v-model:value={formData.config.body} type="textarea" rows={4} />
-        </NFormItem>
         <NFormItem label="超时 (秒)">
-          <NInputNumber v-model:value={formData.config.timeout} min={1} max={300} />
+          <NInputNumber
+            v-model:value={(formData.config as Api.Workflow.HttpNodeConfig).timeout}
+            min={1}
+            max={300}
+          />
         </NFormItem>
       </>
     );
 
     const renderDatabaseConfig = () => (
       <>
-        <NFormItem label="连接字符串">
-          <NInput
-            v-model:value={formData.config.connectionString}
-            type="password"
-            showPasswordOn="click"
-            placeholder="数据库连接字符串"
-          />
-        </NFormItem>
         <NFormItem label="查询语句">
           <NInput
-            v-model:value={formData.config.query}
+            v-model:value={(formData.config as Api.Workflow.DatabaseNodeConfig).query}
             type="textarea"
             rows={6}
-            placeholder="SQL查询"
+            placeholder="SQL 查询"
           />
         </NFormItem>
       </>
     );
 
-    const renderConditionConfig = () => (
-      <>
-        <NFormItem label="条件表达式">
-          <NInput
-            v-model:value={formData.config.expression}
-            type="textarea"
-            rows={3}
-            placeholder="例如: input.value > 100"
-          />
-        </NFormItem>
-      </>
-    );
+    const renderConditionConfig = () => {
+      const cfg = formData.config as Api.Workflow.ConditionNodeConfig;
+      type ConditionItem = NonNullable<Api.Workflow.ConditionNodeConfig['conditions']>[number];
+      const condition: ConditionItem = cfg.conditions?.[0] ?? {
+        variable: 'input',
+        operator: '==',
+        value: true
+      };
+
+      return (
+        <>
+          <NFormItem label="变量名">
+            <NInput
+              value={condition.variable}
+              onUpdateValue={(v: string) => {
+                cfg.conditions = [{ ...condition, variable: v }];
+              }}
+              placeholder="例如: input.status"
+            />
+          </NFormItem>
+          <NFormItem label="运算符">
+            <NSelect
+              value={condition.operator}
+              onUpdateValue={(v: ConditionItem['operator']) => {
+                cfg.conditions = [{ ...condition, operator: v }];
+              }}
+              options={[
+                { label: '等于', value: '==' },
+                { label: '不等于', value: '!=' },
+                { label: '大于', value: '>' },
+                { label: '小于', value: '<' },
+                { label: '包含', value: 'contains' }
+              ]}
+            />
+          </NFormItem>
+          <NFormItem label="比较值">
+            <NInput
+              value={String(condition.value ?? '')}
+              onUpdateValue={(v: string) => {
+                cfg.conditions = [{ ...condition, value: v }];
+              }}
+              placeholder="比较值"
+            />
+          </NFormItem>
+        </>
+      );
+    };
 
     const renderTransformConfig = () => (
       <>
-        <NFormItem label="转换代码">
+        <NFormItem label="转换脚本">
           <div style={{ height: '300px', border: '1px solid #d0d0d0', borderRadius: '4px' }}>
             <MonacoEditor
-              modelValue={formData.config.code || ''}
+              modelValue={(formData.config as Api.Workflow.TransformNodeConfig).script || ''}
               language="javascript"
               height="100%"
-              onUpdate:modelValue={(val: string) => (formData.config.code = val)}
+              onUpdate:modelValue={(val: string) => {
+                (formData.config as Api.Workflow.TransformNodeConfig).script = val;
+              }}
             />
           </div>
         </NFormItem>
-        <NFormItem label="语言">
-          <NSelect
-            v-model:value={formData.config.language}
-            options={[
-              { label: 'JavaScript', value: 'javascript' },
-              { label: 'Python', value: 'python' }
-            ]}
-          />
-        </NFormItem>
-      </>
-    );
-
-    const renderFileConfig = () => (
-      <>
-        <NFormItem label="操作类型">
-          <NSelect
-            v-model:value={formData.config.operation}
-            options={[
-              { label: '读取', value: 'read' },
-              { label: '写入', value: 'write' },
-              { label: '删除', value: 'delete' }
-            ]}
-          />
-        </NFormItem>
-        <NFormItem label="文件路径">
-          <NInput v-model:value={formData.config.path} placeholder="/path/to/file" />
-        </NFormItem>
-        {formData.config.operation === 'write' && (
-          <NFormItem label="文件内容">
-            <NInput v-model:value={formData.config.content} type="textarea" rows={6} />
-          </NFormItem>
-        )}
       </>
     );
 
@@ -286,8 +221,8 @@ export default defineComponent({
       if (!props.node) return null;
 
       switch (props.node.type) {
-        case 'ai':
-          return renderAIConfig();
+        case 'llm':
+          return renderLlmConfig();
         case 'http':
           return renderHttpConfig();
         case 'database':
@@ -296,8 +231,6 @@ export default defineComponent({
           return renderConditionConfig();
         case 'transform':
           return renderTransformConfig();
-        case 'file':
-          return renderFileConfig();
         default:
           return null;
       }
@@ -306,19 +239,11 @@ export default defineComponent({
     const handleSave = async () => {
       if (!props.node || !props.onUpdate) return;
 
-      if (
-        formData.config.mode !== 'manual' &&
-        formData.config.agentTemplateId &&
-        !formData.config.agentTemplateVersion
-      ) {
-        const detail = await mockAgentApi.fetchAgentDetail(formData.config.agentTemplateId);
-        formData.config.agentTemplateVersion = detail.data.version;
-      }
-
       await props.onUpdate(props.node.id, {
-        name: formData.label,
-        description: formData.description,
-        config: formData.config
+        data: {
+          label: formData.label,
+          config: { ...formData.config }
+        }
       });
     };
 
@@ -346,15 +271,6 @@ export default defineComponent({
             <NForm labelPlacement="top" labelWidth={80}>
               <NFormItem label="节点名称">
                 <NInput v-model:value={formData.label} placeholder="节点名称" />
-              </NFormItem>
-
-              <NFormItem label="描述">
-                <NInput
-                  v-model:value={formData.description}
-                  type="textarea"
-                  rows={2}
-                  placeholder="节点描述"
-                />
               </NFormItem>
 
               <NDivider />

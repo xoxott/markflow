@@ -1,13 +1,21 @@
 /**
  * Api.Workflow 与 Flow 画布数据互转
  *
- * 单一职责：定义持久化模型 ↔ 运行时 FlowNode/FlowEdge 的映射规则
+ * 持久化模型采用后端 ReactFlow 风格：config.nodes / config.edges / config.viewport
  */
 
 import type { FlowEdge, FlowHandle, FlowNode, FlowViewport } from '@/components/flow';
 import { createDefaultNodeData, getNodeTypeConfig } from '../registry/node-registry';
 import { WORKFLOW_NODE_SIZE } from '../constants/workflow-layout';
 import type { WorkflowNodeFlowData } from '../types/workflow-node-data';
+
+function getNodeLabel(node: Api.Workflow.WorkflowNode): string {
+  return node.data?.label ?? '未命名节点';
+}
+
+function getNodeConfig(node: Api.Workflow.WorkflowNode): Api.Workflow.NodeConfig {
+  return node.data?.config ?? {};
+}
 
 /** 将业务端口映射为 Flow 句柄 */
 export function portsToHandles(
@@ -49,30 +57,30 @@ export function portsToHandles(
 export function workflowNodeToFlowNode(
   node: Api.Workflow.WorkflowNode
 ): FlowNode<WorkflowNodeFlowData> {
-  const meta = getNodeTypeConfig(node.type);
-  const inputs = node.inputs ?? meta.defaultPorts?.inputs ?? [];
-  const outputs = node.outputs ?? meta.defaultPorts?.outputs ?? [];
+  const nodeType = node.type as Api.Workflow.NodeType;
+  const meta = getNodeTypeConfig(nodeType);
+  const inputs = meta.defaultPorts?.inputs ?? [];
+  const outputs = meta.defaultPorts?.outputs ?? [];
 
   return {
     id: node.id,
-    type: node.type,
+    type: nodeType,
     position: { ...node.position },
     size: { ...WORKFLOW_NODE_SIZE },
-    class: `workflow-flow-node workflow-flow-node--${node.type}`,
+    class: `workflow-flow-node workflow-flow-node--${nodeType}`,
     data: {
-      nodeType: node.type,
-      label: node.name,
-      description: node.description,
+      nodeType,
+      label: getNodeLabel(node),
       icon: meta.icon,
       color: meta.color,
       category: meta.category,
-      config: node.config ?? {},
+      config: getNodeConfig(node),
       inputs,
       outputs
     },
     handles: portsToHandles(inputs, outputs),
-    connectable: node.type !== 'start' && node.type !== 'end',
-    deletable: node.type !== 'start'
+    connectable: nodeType !== 'start' && nodeType !== 'end',
+    deletable: nodeType !== 'start'
   };
 }
 
@@ -84,63 +92,68 @@ export function flowNodeToWorkflowNode(
   return {
     id: node.id,
     type: data.nodeType,
-    name: data.label,
-    description: data.description,
     position: { ...node.position },
-    config: data.config ?? {},
-    inputs: data.inputs,
-    outputs: data.outputs
+    data: {
+      label: data.label,
+      config: data.config ?? {}
+    }
   };
 }
 
-/** 业务连接 → Flow 边 */
-export function workflowConnectionToFlowEdge(conn: Api.Workflow.Connection): FlowEdge {
+/** 业务边 → Flow 边 */
+export function workflowEdgeToFlowEdge(edge: Api.Workflow.WorkflowEdge): FlowEdge {
   return {
-    id: conn.id,
-    source: conn.sourceNodeId,
-    target: conn.targetNodeId,
-    sourceHandle: conn.sourcePortId,
-    targetHandle: conn.targetPortId,
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceHandle,
+    targetHandle: edge.targetHandle,
     type: 'bezier'
   };
 }
 
-/** Flow 边 → 业务连接 */
-export function flowEdgeToWorkflowConnection(edge: FlowEdge): Api.Workflow.Connection {
+/** Flow 边 → 业务边 */
+export function flowEdgeToWorkflowEdge(edge: FlowEdge): Api.Workflow.WorkflowEdge {
   return {
     id: edge.id,
-    sourceNodeId: edge.source,
-    sourcePortId: edge.sourceHandle ?? 'output',
-    targetNodeId: edge.target,
-    targetPortId: edge.targetHandle ?? 'input'
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceHandle ?? 'output',
+    targetHandle: edge.targetHandle ?? 'input'
   };
 }
 
-/** 工作流定义 → Flow 初始状态 */
-export function definitionToFlowState(definition: Api.Workflow.WorkflowDefinition): {
+/** 工作流 config → Flow 初始状态 */
+export function configToFlowState(config: Api.Workflow.WorkflowConfig): {
   nodes: FlowNode<WorkflowNodeFlowData>[];
   edges: FlowEdge[];
   viewport: FlowViewport;
 } {
   return {
-    nodes: (definition.nodes ?? []).map(workflowNodeToFlowNode),
-    edges: (definition.connections ?? []).map(workflowConnectionToFlowEdge),
-    viewport: definition.viewport ?? { x: 0, y: 0, zoom: 1 }
+    nodes: (config.nodes ?? []).map(workflowNodeToFlowNode),
+    edges: (config.edges ?? []).map(workflowEdgeToFlowEdge),
+    viewport: config.viewport ?? { x: 0, y: 0, zoom: 1 }
   };
 }
 
-/** Flow 当前状态 → 工作流定义 */
-export function flowStateToDefinition(
+/** @deprecated 使用 configToFlowState */
+export const definitionToFlowState = configToFlowState;
+
+/** Flow 当前状态 → 工作流 config */
+export function flowStateToConfig(
   nodes: FlowNode<WorkflowNodeFlowData>[],
   edges: FlowEdge[],
   viewport: FlowViewport
-): Api.Workflow.WorkflowDefinition {
+): Api.Workflow.WorkflowConfig {
   return {
     nodes: nodes.map(flowNodeToWorkflowNode),
-    connections: edges.map(flowEdgeToWorkflowConnection),
+    edges: edges.map(flowEdgeToWorkflowEdge),
     viewport: { ...viewport }
   };
 }
+
+/** @deprecated 使用 flowStateToConfig */
+export const flowStateToDefinition = flowStateToConfig;
 
 /** 在画布坐标创建新节点 */
 export function createFlowNodeAt(
@@ -153,12 +166,11 @@ export function createFlowNodeAt(
   const apiNode: Api.Workflow.WorkflowNode = {
     id: nodeId,
     type,
-    name: defaults.name ?? getNodeTypeConfig(type).label,
-    description: defaults.description,
     position,
-    config: defaults.config ?? {},
-    inputs: defaults.inputs,
-    outputs: defaults.outputs
+    data: {
+      label: defaults.data?.label ?? getNodeTypeConfig(type).label,
+      config: defaults.data?.config ?? {}
+    }
   };
   return workflowNodeToFlowNode(apiNode);
 }

@@ -9,18 +9,19 @@ import { useMessage } from 'naive-ui';
 import type { FlowEdge, FlowNode, FlowViewport } from '@/components/flow';
 import { readExposedRef } from '@/components/flow/internal';
 import {
+  configToFlowState,
   createFlowNodeAt,
-  definitionToFlowState,
-  flowStateToDefinition
+  flowNodeToWorkflowNode,
+  flowStateToConfig
 } from '../adapters/flow-adapter';
 import { WORKFLOW_DRAG_MIME } from '../constants/workflow-layout';
 import { validateWorkflowGraph } from '../validation/validate-workflow';
 import type { WorkflowFlowCanvasExpose, WorkflowNodeFlowData } from '../types/workflow-node-data';
 
 export interface UseWorkflowEditorOptions {
-  workflowId: Ref<string | undefined>;
-  definition: Ref<Api.Workflow.WorkflowDefinition | undefined>;
-  onSave?: (definition: Api.Workflow.WorkflowDefinition) => void | Promise<void>;
+  workflowId: Ref<number | undefined>;
+  config: Ref<Api.Workflow.WorkflowConfig | undefined>;
+  onSave?: (config: Api.Workflow.WorkflowConfig) => void | Promise<void>;
   onNodeSelect?: (node: Api.Workflow.WorkflowNode | null) => void;
 }
 
@@ -44,26 +45,17 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     const flowNodes = readExposedRef(api?.nodes, [] as FlowNode<WorkflowNodeFlowData>[]);
     const flowNode = flowNodes.find(n => n.id === id);
     if (!flowNode) return null;
-    return {
-      id: flowNode.id,
-      type: flowNode.data.nodeType,
-      name: flowNode.data.label,
-      description: flowNode.data.description,
-      position: { ...flowNode.position },
-      config: flowNode.data.config,
-      inputs: flowNode.data.inputs,
-      outputs: flowNode.data.outputs
-    };
+    return flowNodeToWorkflowNode(flowNode);
   });
 
   function getCanvasApi(): WorkflowFlowCanvasExpose | null {
     return canvasRef.value;
   }
 
-  function getDefinition(): Api.Workflow.WorkflowDefinition | null {
+  function getWorkflowConfig(): Api.Workflow.WorkflowConfig | null {
     const api = getCanvasApi();
     if (!api) return null;
-    return flowStateToDefinition(
+    return flowStateToConfig(
       readExposedRef(api.nodes, [] as FlowNode<WorkflowNodeFlowData>[]),
       readExposedRef(api.edges, [] as FlowEdge[]),
       readExposedRef(api.viewport, defaultViewport)
@@ -131,17 +123,7 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   function handleNodeClick(node: FlowNode<WorkflowNodeFlowData>) {
     const api = getCanvasApi();
     api?.selectNode(node.id);
-    const d = node.data;
-    options.onNodeSelect?.({
-      id: node.id,
-      type: d.nodeType,
-      name: d.label,
-      description: d.description,
-      position: { ...node.position },
-      config: d.config,
-      inputs: d.inputs,
-      outputs: d.outputs
-    });
+    options.onNodeSelect?.(flowNodeToWorkflowNode(node));
   }
 
   function handleConnect(_edge: FlowEdge) {
@@ -162,9 +144,8 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     if (!existing) return;
 
     const data = { ...existing.data };
-    if (updates.name !== undefined) data.label = updates.name;
-    if (updates.description !== undefined) data.description = updates.description;
-    if (updates.config !== undefined) data.config = updates.config;
+    if (updates.data?.label !== undefined) data.label = updates.data.label;
+    if (updates.data?.config !== undefined) data.config = updates.data.config;
 
     api.updateNode(nodeId, { data });
     markDirty();
@@ -172,10 +153,10 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   }
 
   async function save() {
-    const def = getDefinition();
-    if (!def || !options.onSave) return;
+    const workflowConfig = getWorkflowConfig();
+    if (!workflowConfig || !options.onSave) return;
 
-    const validation = validateWorkflowGraph(def.nodes, def.connections);
+    const validation = validateWorkflowGraph(workflowConfig.nodes, workflowConfig.edges);
     lastValidation.value = validation;
     if (!validation.valid) {
       message.error(`校验未通过：${validation.errors[0]?.message ?? '存在错误'}`);
@@ -184,7 +165,7 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
 
     isSaving.value = true;
     try {
-      await options.onSave(def);
+      await options.onSave(workflowConfig);
       isDirty.value = false;
     } finally {
       isSaving.value = false;
@@ -192,9 +173,9 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   }
 
   function validate() {
-    const def = getDefinition();
-    if (!def) return null;
-    const result = validateWorkflowGraph(def.nodes, def.connections);
+    const workflowConfig = getWorkflowConfig();
+    if (!workflowConfig) return null;
+    const result = validateWorkflowGraph(workflowConfig.nodes, workflowConfig.edges);
     lastValidation.value = result;
     if (result.valid && result.warnings.length === 0) {
       message.success('工作流校验通过');
@@ -248,9 +229,9 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
   });
 
   const initialFlowState = computed(() => {
-    const def = options.definition.value;
-    if (!def) return { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } };
-    return definitionToFlowState(def);
+    const cfg = options.config.value;
+    if (!cfg) return { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } };
+    return configToFlowState(cfg);
   });
 
   return {
@@ -268,7 +249,9 @@ export function useWorkflowEditor(options: UseWorkflowEditorOptions) {
     toggleMinimap: () => {
       showMinimap.value = !showMinimap.value;
     },
-    getDefinition,
+    getWorkflowConfig,
+    /** @deprecated 使用 getWorkflowConfig */
+    getDefinition: getWorkflowConfig,
     handleDragOver,
     handleDrop,
     handleNodeClick,
