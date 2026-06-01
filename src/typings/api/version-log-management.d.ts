@@ -38,6 +38,8 @@ declare namespace Api {
     interface VersionLogListParams extends Common.PaginationParams {
       search?: string;
       version?: string;
+      isPrerelease?: boolean;
+      hasBreakingChanges?: boolean;
       sortBy?: string;
       sortOrder?: 'ASC' | 'DESC';
     }
@@ -52,8 +54,8 @@ declare namespace Api {
       metadata?: Record<string, unknown>;
     }
 
-    /** Update body (ai-server UpdateChangelogDto — version 不可变更) */
-    type UpdateVersionLogRequest = Partial<Omit<CreateVersionLogRequest, 'version'>>;
+    /** Update body (ai-server UpdateChangelogDto) */
+    type UpdateVersionLogRequest = Partial<CreateVersionLogRequest>;
 
     interface BatchDeleteVersionLogsRequest {
       ids: number[];
